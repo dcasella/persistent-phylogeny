@@ -12,14 +12,14 @@ int main(int argc, const char* argv[]) {
   s4 = add_vertex(g); g[s4].name = "s4";
   s5 = add_vertex(g); g[s5].name = "s5";
   s6 = add_vertex(g); g[s6].name = "s6";
-  c1 = add_vertex(g); g[c1].name = "c1"; g[c1].type = CHARACTER;
-  c2 = add_vertex(g); g[c2].name = "c2"; g[c2].type = CHARACTER;
-  c3 = add_vertex(g); g[c3].name = "c3"; g[c3].type = CHARACTER;
-  c4 = add_vertex(g); g[c4].name = "c4"; g[c4].type = CHARACTER;
-  c5 = add_vertex(g); g[c5].name = "c5"; g[c5].type = CHARACTER;
-  c6 = add_vertex(g); g[c6].name = "c6"; g[c6].type = CHARACTER;
-  c7 = add_vertex(g); g[c7].name = "c7"; g[c7].type = CHARACTER;
-  c8 = add_vertex(g); g[c8].name = "c8"; g[c8].type = CHARACTER;
+  c1 = add_vertex(g); g[c1].name = "c1"; g[c1].type = Type::character;
+  c2 = add_vertex(g); g[c2].name = "c2"; g[c2].type = Type::character;
+  c3 = add_vertex(g); g[c3].name = "c3"; g[c3].type = Type::character;
+  c4 = add_vertex(g); g[c4].name = "c4"; g[c4].type = Type::character;
+  c5 = add_vertex(g); g[c5].name = "c5"; g[c5].type = Type::character;
+  c6 = add_vertex(g); g[c6].name = "c6"; g[c6].type = Type::character;
+  c7 = add_vertex(g); g[c7].name = "c7"; g[c7].type = Type::character;
+  c8 = add_vertex(g); g[c8].name = "c8"; g[c8].type = Type::character;
   
   g[boost::graph_bundle].num_species = 6;
   g[boost::graph_bundle].num_characters = 8;

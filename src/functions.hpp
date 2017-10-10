@@ -23,7 +23,7 @@ void remove_vertex_if(const Vertex v, Predicate pred, RBGraph& g) {
     clear_vertex(v, g);
     remove_vertex(v, g);
     
-    if (g[v].type == SPECIES)
+    if (g[v].type == Type::species)
       g[boost::graph_bundle].num_species--;
     else
       g[boost::graph_bundle].num_characters--;

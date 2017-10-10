@@ -6,43 +6,51 @@
 
 
 //=============================================================================
-// Constants
+// Data structuress
 
 // Red-Black Graph
 
-#define BLACK false
-#define RED true
+/**
+  @brief Strongly typed boolean enum class used for edge color
+*/
+enum class Color : bool {
+  black, red
+};
 
-#define SPECIES false
-#define CHARACTER true
+/**
+  @brief Strongly typed boolean enum class used for vertex type
+*/
+enum class Type : bool {
+  species, character
+};
 
 
 //=============================================================================
 // Bundled properties
 
-//Red-Black Graph
+// Red-Black Graph
 
 /**
-  @var color stores the edge color (RED or BLACK)
+  @var color stores the edge color (Red or Black)
 */
-struct EdgeProp {
-  bool color = BLACK;
+struct RBEdgeProperties {
+  Color color = Color::black;
 };
 
 /**
   @var name stores the vertex name
-  @var type stores the vertex type (CHARACTERS or SPECIES)
+  @var type stores the vertex type (Character or Species)
 */
-struct VertexProp {
+struct RBVertexProperties {
   std::string name = "v";
-  bool type = SPECIES;
+  Type type = Type::species;
 };
 
 /**
   @var num_species stores the number of species in the graph
   @var num_characters stores the number of characters in the graph
 */
-struct GraphProp {
+struct RBGraphProperties {
   size_t num_species = 0;
   size_t num_characters = 0;
 };
@@ -56,12 +64,12 @@ struct GraphProp {
 // Graph
 
 typedef boost::adjacency_list<
-  boost::listS,       // OutEdgeList
+  boost::setS,        // OutEdgeList
   boost::listS,       // VertexList
   boost::undirectedS, // Directed
-  VertexProp,         // VertexProperties
-  EdgeProp,           // EdgeProperties
-  GraphProp           // GraphProperties
+  RBVertexProperties, // VertexProperties
+  RBEdgeProperties,   // EdgeProperties
+  RBGraphProperties   // GraphProperties
 > RBGraph;
 
 // Descriptors

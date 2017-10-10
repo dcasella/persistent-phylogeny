@@ -10,28 +10,28 @@ int main(int argc, const char* argv[]) {
   s3 = add_vertex(g); g[s3].name = "s3";
   s4 = add_vertex(g); g[s4].name = "s4";
   s5 = add_vertex(g); g[s5].name = "s5";
-  c1 = add_vertex(g); g[c1].name = "c1"; g[c1].type = CHARACTER;
-  c2 = add_vertex(g); g[c2].name = "c2"; g[c2].type = CHARACTER;
-  c3 = add_vertex(g); g[c3].name = "c3"; g[c3].type = CHARACTER;
-  c4 = add_vertex(g); g[c4].name = "c4"; g[c4].type = CHARACTER;
-  c5 = add_vertex(g); g[c5].name = "c5"; g[c5].type = CHARACTER;
-  c6 = add_vertex(g); g[c6].name = "c6"; g[c6].type = CHARACTER;
-  c7 = add_vertex(g); g[c7].name = "c7"; g[c7].type = CHARACTER;
-  c8 = add_vertex(g); g[c8].name = "c8"; g[c8].type = CHARACTER;
+  c1 = add_vertex(g); g[c1].name = "c1"; g[c1].type = Type::character;
+  c2 = add_vertex(g); g[c2].name = "c2"; g[c2].type = Type::character;
+  c3 = add_vertex(g); g[c3].name = "c3"; g[c3].type = Type::character;
+  c4 = add_vertex(g); g[c4].name = "c4"; g[c4].type = Type::character;
+  c5 = add_vertex(g); g[c5].name = "c5"; g[c5].type = Type::character;
+  c6 = add_vertex(g); g[c6].name = "c6"; g[c6].type = Type::character;
+  c7 = add_vertex(g); g[c7].name = "c7"; g[c7].type = Type::character;
+  c8 = add_vertex(g); g[c8].name = "c8"; g[c8].type = Type::character;
   
   g[boost::graph_bundle].num_species = 3;
   g[boost::graph_bundle].num_characters = 8;
   
   add_edge(s3, c2, g);
   add_edge(s3, c3, g);
-  boost::tie(a, std::ignore) = add_edge(s3, c4, g); g[a].color = RED;
+  boost::tie(a, std::ignore) = add_edge(s3, c4, g); g[a].color = Color::red;
   add_edge(s4, c1, g);
   add_edge(s4, c2, g);
-  boost::tie(b, std::ignore) = add_edge(s4, c4, g); g[b].color = RED;
+  boost::tie(b, std::ignore) = add_edge(s4, c4, g); g[b].color = Color::red;
   add_edge(s5, c1, g);
   add_edge(s5, c2, g);
   add_edge(s5, c3, g);
-  boost::tie(c, std::ignore) = add_edge(s5, c4, g); g[c].color = RED;
+  boost::tie(c, std::ignore) = add_edge(s5, c4, g); g[c].color = Color::red;
   add_edge(s5, c5, g);
   add_edge(s5, c7, g);
   
