@@ -3,9 +3,9 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  Vertex s1, s2, s3, s4, s5, s6,
+  RBVertex s1, s2, s3, s4, s5, s6,
          c1, c2, c3, c4, c5, c6, c7, c8;
-  Edge a, b, c;
+  RBEdge a, b, c;
   
   s2 = add_vertex(g); g[s2].name = "s2";
   s3 = add_vertex(g); g[s3].name = "s3";
@@ -42,9 +42,9 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c3, g);
   add_edge(s6, c5, g);
   
-  std::list<Vertex> cm_check({c2, c3});
+  std::list<RBVertex> cm_check({c2, c3});
   
-  std::list<Vertex> cm = maximal_characters2(g);
+  std::list<RBVertex> cm = maximal_characters2(g);
   assert(cm == cm_check);
   
   maximal_reducible_graph(g, cm);
@@ -53,7 +53,7 @@ int main(int argc, const char* argv[]) {
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
-  std::list<Vertex>::iterator i = cm.begin();
+  std::list<RBVertex>::iterator i = cm.begin();
   for (; i != cm.end(); ++i) std::cout << g[*i].name << " ";
   std::cout << "}" << std::endl;
   #endif

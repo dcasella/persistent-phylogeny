@@ -3,9 +3,9 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  Vertex s3, s4, s5,
+  RBVertex s3, s4, s5,
          c1, c2, c3, c4, c5, c6, c7, c8;
-  Edge a, b, c;
+  RBEdge a, b, c;
   
   s3 = add_vertex(g); g[s3].name = "s3";
   s4 = add_vertex(g); g[s4].name = "s4";
@@ -40,7 +40,7 @@ int main(int argc, const char* argv[]) {
   assert(is_free(c4, g) == true);
   
   #ifdef DEBUG
-  print_graph(g);
+  print_rbgraph(g);
   #endif
   
   std::cout << "free: tests passed" << std::endl;

@@ -3,7 +3,7 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  Vertex s1, s2, s3, s4, s5, s6,
+  RBVertex s1, s2, s3, s4, s5, s6,
          c1, c2, c3, c4, c5, c6, c7, c8;
   
   s1 = add_vertex(g); g[s1].name = "s1";
@@ -42,7 +42,7 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c5, g);
   
   #ifdef DEBUG
-  print_graph(g);
+  print_rbgraph(g);
   #endif
   
   assert(boost::num_vertices(g) == 14);
@@ -50,7 +50,7 @@ int main(int argc, const char* argv[]) {
   remove_singletons(g);
   
   #ifdef DEBUG
-  print_graph(g);
+  print_rbgraph(g);
   #endif
   
   assert(boost::num_vertices(g) == 13);

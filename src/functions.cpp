@@ -7,13 +7,13 @@
 
 // Red-Black Graph
 
-void print_graph(const RBGraph& g) {
-  VertexIter v, v_end;
+void print_rbgraph(const RBGraph& g) {
+  RBVertexIter v, v_end;
   boost::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     std::cout << g[*v].name << ":";
     
-    OutEdgeIter e, e_end;
+    RBOutEdgeIter e, e_end;
     boost::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
       std::cout << " -" << (g[*e].color == Color::red ? "r" : "-") << "- "
@@ -28,7 +28,7 @@ void print_graph(const RBGraph& g) {
 // File I/O
 
 void read_graph(const std::string filename, RBGraph& g) {
-  std::vector<Vertex> species, characters;
+  std::vector<RBVertex> species, characters;
   bool value, first_line = true;
   std::string line;
   std::ifstream file(filename);
@@ -48,7 +48,7 @@ void read_graph(const std::string filename, RBGraph& g) {
       
       // insert species in the graph
       for (size_t j = 0; j < g[boost::graph_bundle].num_species; ++j) {
-        Vertex s = add_vertex(g);
+        RBVertex s = add_vertex(g);
         g[s].name = ("s" + std::to_string(j + 1));
         
         species[j] = s;
@@ -56,7 +56,7 @@ void read_graph(const std::string filename, RBGraph& g) {
       
       // insert characters in the graph
       for (size_t j = 0; j < g[boost::graph_bundle].num_characters; ++j) {
-        Vertex c = add_vertex(g);
+        RBVertex c = add_vertex(g);
         g[c].name = ("c" + std::to_string(j + 1));
         g[c].type = Type::character;
         
@@ -114,18 +114,69 @@ void read_graph(const std::string filename, RBGraph& g) {
 //   return std::make_tuple(num_species, num_characters);
 // }
 
+// Hasse Diagram
+
+void print_hdgraph(const HDGraph& g) {
+  HDVertexIter v, v_end;
+  boost::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    std::cout << "[ ";
+    
+    std::list<std::string>::const_iterator i = g[*v].vertices.begin();
+    for (; i != g[*v].vertices.end(); ++i)
+      std::cout << *i << " ";
+    
+    std::cout << "( ";
+    
+    i = g[*v].characters.begin();
+    for (; i != g[*v].characters.end(); ++i)
+      std::cout << *i << " ";
+    
+    std::cout << ") ]:";
+    
+    HDOutEdgeIter e, e_end;
+    boost::tie(e, e_end) = out_edges(*v, g);
+    for (; e != e_end; ++e) {
+      HDVertex vt = target(*e, g);
+      
+      std::cout << " -" << g[*e].character;
+      
+      if (g[*e].state == State::gain)
+        std::cout << "+";
+      else if (g[*e].state == State::lose)
+        std::cout << "-";
+      
+      std::cout << "-> [ ";
+      
+      std::list<std::string>::const_iterator i = g[vt].vertices.begin();
+      for (; i != g[vt].vertices.end(); ++i)
+        std::cout << *i << " ";
+      
+      std::cout << "( ";
+      
+      i = g[vt].characters.begin();
+      for (; i != g[vt].characters.end(); ++i)
+        std::cout << *i << " ";
+      
+      std::cout << ") ];";
+    }
+    
+    std::cout << std::endl;
+  }
+}
+
 
 //=============================================================================
 // Algorithm functions
 
 // Red-Black Graph
 
-bool if_singleton::operator()(const Vertex v, RBGraph& g) const {
+bool if_singleton::operator()(const RBVertex v, RBGraph& g) const {
   return (out_degree(v, g) == 0);
 }
 
 void remove_singletons(RBGraph& g) {
-  VertexIter v, v_end, next;
+  RBVertexIter v, v_end, next;
   boost::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
     ++next;
@@ -133,13 +184,13 @@ void remove_singletons(RBGraph& g) {
   }
 }
 
-bool is_free(const Vertex v, const RBGraph& g) {
+bool is_free(const RBVertex v, const RBGraph& g) {
   if (g[v].type != Type::character)
     return false;
   
   size_t count_species = 0;
   
-  OutEdgeIter e, e_end;
+  RBOutEdgeIter e, e_end;
   boost::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
     if (g[*e].color == Color::black || g[target(*e, g)].type != Type::species)
@@ -154,13 +205,13 @@ bool is_free(const Vertex v, const RBGraph& g) {
   return true;
 }
 
-bool is_universal(const Vertex v, const RBGraph& g) {
+bool is_universal(const RBVertex v, const RBGraph& g) {
   if (g[v].type != Type::character)
     return false;
   
   size_t count_species = 0;
   
-  OutEdgeIter e, e_end;
+  RBOutEdgeIter e, e_end;
   boost::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
     if (g[*e].color == Color::red || g[target(*e, g)].type != Type::species)
@@ -181,7 +232,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
   AssocMap i_map(map_index), c_map(map_comp);
   
   // fill vertex index map
-  VertexIter v, v_end;
+  RBVertexIter v, v_end;
   size_t idx = 0;
   boost::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v, ++idx) {
@@ -198,7 +249,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
     // resize subgraph components
     components.resize(num_comps);
     // vertices: graphVertex => compVertex
-    std::map<Vertex, Vertex> vertices;
+    std::map<RBVertex, RBVertex> vertices;
     
     // initialize subgraph components
     for (size_t i = 0; i < num_comps; ++i) {
@@ -209,8 +260,8 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
     IndexMap::iterator i = map_comp.begin();
     for (; i != map_comp.end(); ++i) {
       // for each vertex
-      Vertex v = i->first;
-      VertexSize comp = i->second;
+      RBVertex v = i->first;
+      RBVertexSize comp = i->second;
       RBGraph* component = components[comp].get();
       
       vertices[v] = add_vertex(*component);
@@ -227,22 +278,22 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
     i = map_comp.begin();
     for (; i != map_comp.end(); ++i) {
       // for each vertex
-      Vertex v = i->first;
-      Vertex new_v = vertices[v];
-      VertexSize comp = i->second;
+      RBVertex v = i->first;
+      RBVertex new_v = vertices[v];
+      RBVertexSize comp = i->second;
       RBGraph* component = components[comp].get();
       
       // prevent duplicate edges
       // if (g[v].type != Type::species)
       //   continue;
       
-      OutEdgeIter e, e_end;
+      RBOutEdgeIter e, e_end;
       boost::tie(e, e_end) = out_edges(v, g);
       for (; e != e_end; ++e) {
         // for each out edge
-        Vertex new_vt = vertices[target(*e, g)];
+        RBVertex new_vt = vertices[target(*e, g)];
         
-        Edge edge;
+        RBEdge edge;
         boost::tie(edge, std::ignore) = add_edge(new_v, new_vt, *component);
         (*component)[edge].color = g[*e].color;
       }
@@ -251,7 +302,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
     #ifdef DEBUG
     std::cout << "Connected components:" << std::endl;
     for (size_t i = 0; i < num_comps; ++i) {
-      print_graph(*components[i].get());
+      print_rbgraph(*components[i].get());
       std::cout << std::endl;
     }
     #endif
@@ -263,13 +314,17 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
   return num_comps;
 }
 
-std::list<Vertex> maximal_characters(const RBGraph& g) {
-  std::list<Vertex> cm;
-  std::map< Vertex, std::list<Vertex> > sets;
+std::list<RBVertex> maximal_characters(const RBGraph& g) {
+  std::list<RBVertex> cm;
+  std::map< RBVertex, std::list<RBVertex> > sets;
   int count_incl, count_excl;
   bool keep_char, skip_cycle;
   
-  VertexIter v, v_end;
+  /* How sets is going to be structured:
+   * sets[C] => < List of adjacent species to C >
+   */
+  
+  RBVertexIter v, v_end;
   boost::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     if (g[*v].type != Type::character)
@@ -277,15 +332,14 @@ std::list<Vertex> maximal_characters(const RBGraph& g) {
     // for each character vertex
     
     // build v's set of adjacent species
-    OutEdgeIter e, e_end;
+    RBOutEdgeIter e, e_end;
     boost::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
-      Vertex vt = target(*e, g);
+      RBVertex vt = target(*e, g);
       
-      if (g[*e].color == Color::red || g[vt].type != Type::species) {
-        // v is active or connected to random nodes
+      // if v is active or connected to random nodes ignore it
+      if (g[*e].color == Color::red || g[vt].type != Type::species)
         break;
-      }
       
       sets[*v].push_back(vt);
     }
@@ -305,7 +359,7 @@ std::list<Vertex> maximal_characters(const RBGraph& g) {
     skip_cycle = false;
     
     // check if sets[*v] is subset of the species adjacent to cmv
-    VertexIter cmv = cm.begin(), cmv_end = cm.end();
+    RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
     while (cmv != cmv_end) {
       // for each species in cm
       if (skip_cycle)
@@ -313,7 +367,7 @@ std::list<Vertex> maximal_characters(const RBGraph& g) {
       
       #ifdef DEBUG
       std::cout << "curr Cm: " << g[*cmv].name << " = { ";
-      VertexIter kk = sets[*cmv].begin(), kk_end = sets[*cmv].end();
+      RBVertexIter kk = sets[*cmv].begin(), kk_end = sets[*cmv].end();
       for (; kk != kk_end; ++kk) std::cout << g[*kk].name << " ";
       std::cout << "}:" << std::endl;
       #endif
@@ -321,7 +375,7 @@ std::list<Vertex> maximal_characters(const RBGraph& g) {
       count_incl = 0; count_excl = 0;
       keep_char = false;
       
-      VertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
+      RBVertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
       while (sv != sv_end) {
         // for each species adjacent to v, S(C#)
         #ifdef DEBUG
@@ -329,7 +383,7 @@ std::list<Vertex> maximal_characters(const RBGraph& g) {
         #endif
         
         // find sv in the list of cmv's adjacent species
-        VertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(),
+        RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(),
                                   *sv);
         
         /* keep count of how many species are included (or not found) in
@@ -438,15 +492,28 @@ std::list<Vertex> maximal_characters(const RBGraph& g) {
 
 // TODO: test which one is faster
 
-std::list<Vertex> maximal_characters2(const RBGraph& g) {
-  std::list<Vertex> cm;
-  std::vector< std::list<Vertex> > sets(g[boost::graph_bundle].num_characters);
-  std::map< Vertex, std::list<Vertex> > v_map;
+std::list<RBVertex> maximal_characters2(const RBGraph& g) {
+  std::list<RBVertex> cm;
+  std::vector< std::list<RBVertex> > sets(
+    g[boost::graph_bundle].num_characters
+  );
+  std::map< RBVertex, std::list<RBVertex> > v_map;
   int count_incl, count_excl;
   bool keep_char, skip_cycle;
   
+  /* How sets is going to be structured:
+   * sets[index] => < C, List of adjacent species to C >
+   *
+   * sets is used to sort the lists by number of elements, this is why we store
+   * the list of adjacent species to C. While we store C to be able to access
+   * v_map[C] in costant time
+   *
+   * How v_map is going to be structured:
+   * v_map[C] => < List of adjacent species to C >
+   */
+  
   size_t idx = 0;
-  VertexIter v, v_end;
+  RBVertexIter v, v_end;
   boost::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     if (g[*v].type != Type::character)
@@ -456,14 +523,14 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
     sets[idx].push_back(*v);
     
     // build v's set of adjacent species
-    OutEdgeIter e, e_end;
+    RBOutEdgeIter e, e_end;
     boost::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
-      Vertex vt = target(*e, g);
-      if (g[*e].color == Color::red || g[vt].type != Type::species) {
-        // v is active or connected to random nodes
+      RBVertex vt = target(*e, g);
+      
+      // if v is active or connected to random nodes ignore it
+      if (g[*e].color == Color::red || g[vt].type != Type::species)
         break;
-      }
       
       sets[idx].push_back(vt);
       v_map[*v].push_back(vt);
@@ -475,14 +542,13 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
   // sort sets by size in descending order
   std::sort(sets.begin(), sets.end(), descending_size);
   
-  cm.push_back(sets[0].front());
-  
-  for (size_t i = 1; i < sets.size(); ++i) {
+  for (size_t i = 0; i < sets.size(); ++i) {
     // for each set of species
-    Vertex v = sets[i].front();
+    RBVertex v = sets[i].front();
     
     if (sets[i].size() == sets[0].size()) {
       // both sets[i] and sets[0] are maximal
+      // or i = 0, which still means sets[i] and sets[0] maximal
       cm.push_back(v);
       continue;
     }
@@ -494,7 +560,7 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
     skip_cycle = false;
     
     // check if sc is subset of the species adjacent to cmv
-    VertexIter cmv = cm.begin(), cmv_end = cm.end();
+    RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
     while (cmv != cmv_end) {
       // for each species in cm
       if (skip_cycle)
@@ -502,7 +568,7 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
       
       #ifdef DEBUG
       std::cout << "curr Cm: " << g[*cmv].name << " = { ";
-      VertexIter kk = v_map[*cmv].begin(), kk_end = v_map[*cmv].end();
+      RBVertexIter kk = v_map[*cmv].begin(), kk_end = v_map[*cmv].end();
       for (; kk != kk_end; ++kk) std::cout << g[*kk].name << " ";
       std::cout << "}:" << std::endl;
       #endif
@@ -510,7 +576,7 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
       count_incl = 0; count_excl = 0;
       keep_char = false;
       
-      VertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
+      RBVertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
       while (sv != sv_end) {
         // for each species adjacent to v, S(C#)
         #ifdef DEBUG
@@ -518,7 +584,7 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
         #endif
         
         // find sv in the list of cmv's adjacent species
-        VertexIter in = std::find(v_map[*cmv].begin(), v_map[*cmv].end(),
+        RBVertexIter in = std::find(v_map[*cmv].begin(), v_map[*cmv].end(),
                                   *sv);
         
         /* keep count of how many species are included (or not found) in
@@ -611,15 +677,13 @@ std::list<Vertex> maximal_characters2(const RBGraph& g) {
   return cm;
 }
 
-bool if_not_maximal::operator()(const Vertex v, RBGraph& g) const {
-  return (
-    std::find(cm.begin(), cm.end(), v) == cm.end()
-  );
+bool if_not_maximal::operator()(const RBVertex v, const RBGraph& g) const {
+  return (std::find(cm.begin(), cm.end(), v) == cm.end());
 }
 
-void maximal_reducible_graph(RBGraph& g, std::list<Vertex> cm) {
+void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm) {
   // remove non-maximal characters
-  VertexIter v, v_end, next;
+  RBVertexIter v, v_end, next;
   boost::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
     ++next;
@@ -627,6 +691,204 @@ void maximal_reducible_graph(RBGraph& g, std::list<Vertex> cm) {
     if (g[*v].type == Type::character) {
       remove_vertex_if(*v, if_not_maximal(cm), g);
     }
+  }
+}
+
+void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
+  std::vector< std::list<RBVertex> > sets(
+    g[boost::graph_bundle].num_species
+  );
+  std::map< RBVertex, std::list<RBVertex> > v_map;
+  
+  /* How sets is going to be structured:
+   * sets[index] => < S, List of adjacent characters to S >
+   *
+   * sets is used to sort the lists by number of elements, this is why we store
+   * the list of adjacent characters to S. While we store S to be able to
+   * access v_map[S] in costant time
+   *
+   * How v_map is going to be structured:
+   * v_map[S] => < List of adjacent characters to S >
+   */
+  
+  size_t idx = 0;
+  RBVertexIter v, v_end;
+  boost::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    if (g[*v].type != Type::species)
+      continue;
+    // for each species vertex
+    
+    #ifdef DEBUG
+    std::cout << "C(" << g[*v].name << ") = { ";
+    #endif
+    
+    sets[idx].push_back(*v);
+    
+    // build v's set of adjacent characters
+    RBOutEdgeIter e, e_end;
+    boost::tie(e, e_end) = out_edges(*v, g);
+    for (; e != e_end; ++e) {
+      RBVertex vt = target(*e, g);
+      
+      #ifdef DEBUG
+      std::cout << g[vt].name << " ";
+      #endif
+      
+      sets[idx].push_back(vt);
+      v_map[*v].push_back(vt);
+    }
+    
+    #ifdef DEBUG
+    std::cout << "}" << std::endl;
+    #endif
+    
+    ++idx;
+  }
+  
+  #ifdef DEBUG
+  std::cout << std::endl;
+  #endif
+  
+  // sort sets by size in ascending order
+  std::sort(sets.begin(), sets.end(), ascending_size);
+  
+  for (size_t i = 0; i < sets.size(); ++i) {
+    // for each set of characters
+    RBVertex v = sets[i].front();
+    
+    // fill the list of characters names of v
+    std::list<std::string> lcv;
+    RBVertexIter cv = v_map[v].begin(), cv_end = v_map[v].end();
+    for (; cv != cv_end; ++cv)
+      lcv.push_back(g[*cv].name);
+    
+    if (sets[i].size() == sets[0].size()) {
+      // first block of sets with the same number of elements
+      HDVertex u = add_vertex(hasse);
+      hasse[u].vertices.push_back(g[v].name);
+      hasse[u].characters = lcv;
+      
+      continue;
+    }
+    
+    #ifdef DEBUG
+    std::cout << g[v].name << " = { ";
+    RBVertexIter kk = v_map[v].begin(), kk_end = v_map[v].end();
+    for (; kk != kk_end; ++kk) std::cout << g[*kk].name << " ";
+    std::cout << "}:" << std::endl;
+    #endif
+    
+    /* new_edges will contain the list of edges that may be added to the
+     * Hasse diagram: HDVertex is the source, std::string is the edge label
+     */
+    std::list< std::pair<HDVertex, std::string> > new_edges;
+    
+    /* check if there is a vertex with the same characters as v or
+     * if v needs to be added to the Hasse diagram
+     */
+    HDVertexIter hdv, hdv_end;
+    boost::tie(hdv, hdv_end) = vertices(hasse);
+    while (hdv != hdv_end) {
+      // for each vertex in hasse
+      #ifdef DEBUG
+      std::cout << "hdv: ";
+      std::list<std::string>::const_iterator kk = hasse[*hdv].vertices.begin();
+      for (; kk != hasse[*hdv].vertices.end(); ++kk) std::cout << *kk << " ";
+      std::cout << "= { ";
+      kk = hasse[*hdv].characters.begin();
+      for (; kk != hasse[*hdv].characters.end(); ++kk) std::cout << *kk << " ";
+      std::cout << "} -> ";
+      #endif
+      
+      if (lcv == hasse[*hdv].characters) {
+        // v and hdv have the same characters
+        #ifdef DEBUG
+        std::cout << "mod" << std::endl;
+        #endif
+        
+        // add v (species) to the list of vertices in hdv
+        hasse[*hdv].vertices.push_back(g[v].name);
+        
+        break;
+      }
+      
+      std::list<std::string> lhdv = hasse[*hdv].characters;
+      
+      if (lhdv.size() < lcv.size()) {
+        // hdv has less characters than v
+        // Hasse.addE s1 -c1+-> s2
+        std::list<std::string>::const_iterator ci, ci_end;
+        ci = lcv.begin(); ci_end = lcv.end();
+        while (ci != ci_end) {
+          // for each character in hdv
+          std::list<std::string>::const_iterator in;
+          in = std::find(lhdv.begin(), lhdv.end(), *ci);
+          
+          if (in == lhdv.end()) {
+            // character is not present in lhdv
+            new_edges.push_back(std::make_pair(*hdv, *ci));
+            
+            // break;
+          }
+          
+          ++ci;
+        }
+      }
+      
+      if (std::next(hdv) == hdv_end) {
+        // last iteration on the characters in the list has been performed
+        #ifdef DEBUG
+        std::cout << "add" << std::endl;
+        #endif
+        
+        // build a vertex for v and add it to the Hasse diagram
+        HDVertex u = add_vertex(hasse);
+        hasse[u].vertices.push_back(g[v].name);
+        hasse[u].characters = lcv;
+        
+        // build in_edges for the vertex and add them to the Hasse diagram
+        std::list< std::pair<HDVertex, std::string> >::iterator ei, ei_end;
+        ei = new_edges.begin(), ei_end = new_edges.end();
+        for (; ei != ei_end; ++ei) {
+          // for each new edge to add to the Hasse diagram
+          HDEdge edge;
+          boost::tie(edge, std::ignore) = add_edge(ei->first, u, hasse);
+          hasse[edge].character = ei->second;
+          hasse[edge].state = State::gain;
+          
+          #ifdef DEBUG
+          std::cout << "Hasse.addE ";
+          kk = hasse[ei->first].vertices.begin();
+          for (; kk != hasse[ei->first].vertices.end(); ++kk)
+            std::cout << *kk << " ";
+          std::cout << "-" << hasse[edge].character;
+          if (hasse[edge].state == State::gain) std::cout << "+";
+          else if (hasse[edge].state == State::lose) std::cout << "-";
+          std::cout << "-> ";
+          kk = hasse[u].vertices.begin();
+          for (; kk != hasse[u].vertices.end(); ++kk) std::cout << *kk << " ";
+          std::cout << std::endl;
+          #endif
+        }
+        
+        break;
+      }
+      #ifdef DEBUG
+      else
+        std::cout << "ignore";
+      #endif
+      
+      #ifdef DEBUG
+      std::cout << std::endl;
+      #endif
+      
+      ++hdv;
+    }
+    
+    #ifdef DEBUG
+    std::cout << std::endl;
+    #endif
   }
 }
 
@@ -656,7 +918,7 @@ std::list<std::string> reduce(RBGraph& g) {
   std::cout << "G not empty" << std::endl;
   #endif
   
-  VertexIter v, v_end;
+  RBVertexIter v, v_end;
   boost::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
@@ -729,19 +991,33 @@ std::list<std::string> reduce(RBGraph& g) {
   }
   
   RBGraph g_cm(g);
-  std::list<Vertex> cm = maximal_characters2(g_cm);
+  std::list<RBVertex> cm = maximal_characters2(g_cm);
   maximal_reducible_graph(g_cm, cm);
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
-  std::list<Vertex>::iterator i = cm.begin();
-  for (; i != cm.end(); ++i) std::cout << g[*i].name << " ";
+  std::list<RBVertex>::iterator i = cm.begin();
+  for (; i != cm.end(); ++i) std::cout << g_cm[*i].name << " ";
   std::cout << "}" << std::endl
             << "Gcm:" << std::endl;
-  print_graph(g_cm);
+  print_rbgraph(g_cm);
   #endif
   
   // ...
   
   return output;
+}
+
+//=============================================================================
+// Enum / Struct operator overloads
+
+// General
+
+std::ostream& operator<<(std::ostream& os, const State& s) {
+  if (s == State::lose)
+    os << "-";
+  else
+    os << "+";
+  
+  return os;
 }

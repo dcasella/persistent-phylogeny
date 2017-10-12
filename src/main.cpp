@@ -3,9 +3,9 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  Vertex s1, s2, s3, s4, s5, s6,
+  RBVertex s1, s2, s3, s4, s5, s6,
          c1, c2, c3, c4, c5, c6, c7, c8;
-  Edge a, b, c;
+  RBEdge a, b, c;
   
   s1 = add_vertex(g); g[s1].name = "s1";
   s2 = add_vertex(g); g[s2].name = "s2";

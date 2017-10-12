@@ -8,6 +8,15 @@
 //=============================================================================
 // Data structuress
 
+// General
+
+/**
+  @brief Strongly typed boolean enum class used for character state (- or +)
+*/
+enum class State : unsigned char {
+  none, lose, gain
+};
+
 // Red-Black Graph
 
 /**
@@ -55,6 +64,29 @@ struct RBGraphProperties {
   size_t num_characters = 0;
 };
 
+// Hasse Diagram
+
+/**
+  @var character stores the character name which lables the edge
+  @var state stores the character state
+*/
+struct HDEdgeProperties {
+  std::string character = "c";
+  State state = State::none;
+};
+
+/**
+  @var vertices stores the list of vertices which labels the vertex
+*/
+struct HDVertexProperties {
+  std::list<std::string> vertices;
+  std::list<std::string> characters;
+};
+
+struct HDGraphProperties {
+  
+};
+
 
 //=============================================================================
 // Typedefs used for readabily
@@ -74,29 +106,60 @@ typedef boost::adjacency_list<
 
 // Descriptors
 
-typedef boost::graph_traits<RBGraph>::edge_descriptor Edge;
-typedef boost::graph_traits<RBGraph>::vertex_descriptor Vertex;
+typedef boost::graph_traits<RBGraph>::edge_descriptor RBEdge;
+typedef boost::graph_traits<RBGraph>::vertex_descriptor RBVertex;
 
 // Iterators
 
-typedef boost::graph_traits<RBGraph>::edge_iterator EdgeIter;
-typedef boost::graph_traits<RBGraph>::vertex_iterator VertexIter;
+typedef boost::graph_traits<RBGraph>::edge_iterator RBEdgeIter;
+typedef boost::graph_traits<RBGraph>::vertex_iterator RBVertexIter;
 
-typedef boost::graph_traits<RBGraph>::out_edge_iterator OutEdgeIter;
+typedef boost::graph_traits<RBGraph>::out_edge_iterator RBOutEdgeIter;
 
-typedef boost::graph_traits<RBGraph>::adjacency_iterator AdjIter;
+typedef boost::graph_traits<RBGraph>::adjacency_iterator RBAdjIter;
 
 // Size types
 
-typedef boost::graph_traits<RBGraph>::vertices_size_type VertexSize;
+typedef boost::graph_traits<RBGraph>::vertices_size_type RBVertexSize;
 
 // Index Maps
 
-typedef std::map<Vertex, VertexSize> IndexMap;
+typedef std::map<RBVertex, RBVertexSize> IndexMap;
 typedef boost::associative_property_map<IndexMap> AssocMap;
 
 // Containers
 
 typedef std::vector< std::unique_ptr<RBGraph> > RBGraphVector;
+
+// Hasse Diagram
+
+// Graph
+
+typedef boost::adjacency_list<
+  boost::setS,        // OutEdgeList
+  boost::listS,       // VertexList
+  boost::directedS,   // Directed
+  HDVertexProperties, // VertexProperties
+  HDEdgeProperties,   // EdgeProperties
+  HDGraphProperties   // GraphProperties
+> HDGraph;
+
+// Descriptors
+
+typedef boost::graph_traits<HDGraph>::edge_descriptor HDEdge;
+typedef boost::graph_traits<HDGraph>::vertex_descriptor HDVertex;
+
+// Iterators
+
+typedef boost::graph_traits<HDGraph>::edge_iterator HDEdgeIter;
+typedef boost::graph_traits<HDGraph>::vertex_iterator HDVertexIter;
+
+typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
+
+typedef boost::graph_traits<HDGraph>::adjacency_iterator HDAdjIter;
+
+// Size types
+
+typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
 
 #endif // DEFS_HPP

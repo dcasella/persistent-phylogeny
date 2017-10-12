@@ -12,12 +12,12 @@
 
 /**
   @brief Remove \c v from \c g if it satisfies \c pred
-  @param v    Vertex
+  @param v    RBVertex
   @param g    Red-black graph
   @param pred Predicate
 */
 template <typename Predicate>
-void remove_vertex_if(const Vertex v, Predicate pred, RBGraph& g) {
+void remove_vertex_if(const RBVertex v, Predicate pred, RBGraph& g) {
   if (pred(v, g)) {
     // vertex satisfies pred
     clear_vertex(v, g);
@@ -34,7 +34,7 @@ void remove_vertex_if(const Vertex v, Predicate pred, RBGraph& g) {
   @brief Print \c g
   @param g Red-black graph
 */
-void print_graph(const RBGraph& g);
+void print_rbgraph(const RBGraph& g);
 
 // File I/O
 
@@ -48,6 +48,14 @@ void read_graph(const std::string filename, RBGraph& g);
 // std::tuple<size_t, size_t>
 // read_matrix(const std::string filename, std::vector<bool>& m);
 
+// Hasse Diagram
+
+/**
+  @brief Print \c g
+  @param g Hasse diagram graph
+*/
+void print_hdgraph(const HDGraph& g);
+
 
 //=============================================================================
 // Algorithm functions
@@ -60,11 +68,11 @@ void read_graph(const std::string filename, RBGraph& g);
 */
 struct if_singleton {
   /**
-    @param v Vertex
+    @param v RBVertex
     @param g Red-black graph
     @return  True if \c v is a singleton in \c g
   */
-  bool operator()(const Vertex v, RBGraph& g) const;
+  bool operator()(const RBVertex v, RBGraph& g) const;
 };
 
 /**
@@ -84,19 +92,19 @@ inline bool is_empty(const RBGraph& g) {
 
 /**
   @brief Check if \c v is free
-  @param v Vertex
+  @param v RBVertex
   @param g Red-black graph
   @return  True if \c v is free
 */
-bool is_free(const Vertex v, const RBGraph& g);
+bool is_free(const RBVertex v, const RBGraph& g);
 
 /**
   @brief Check if \c v is universal
-  @param v Vertex
+  @param v RBVertex
   @param g Red-black graph
   @return  True if \c v is universal
 */
-bool is_universal(const Vertex v, const RBGraph& g);
+bool is_universal(const RBVertex v, const RBGraph& g);
 
 /**
   @brief Build the Red-black subgraphs of \c g
@@ -114,7 +122,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components);
   @param g Red-black graph
   @return  Maximal characters (vertices) of \c g
 */
-std::list<Vertex> maximal_characters(const RBGraph& g);
+std::list<RBVertex> maximal_characters(const RBGraph& g);
 
 /**
   @brief Predicate used to sort a vector of lists
@@ -122,8 +130,8 @@ std::list<Vertex> maximal_characters(const RBGraph& g);
   @param b List of vertices
   @return  True if \c a has more elements than \c b
 */
-inline bool descending_size(const std::list<Vertex>& a,
-                            const std::list<Vertex>& b) {
+inline bool descending_size(const std::list<RBVertex>& a,
+                            const std::list<RBVertex>& b) {
    return a.size() > b.size();
 }
 
@@ -134,25 +142,25 @@ inline bool descending_size(const std::list<Vertex>& a,
   @param g Red-black graph
   @return  Maximal characters (vertices) of \c g
 */
-std::list<Vertex> maximal_characters2(const RBGraph& g);
+std::list<RBVertex> maximal_characters2(const RBGraph& g);
 
 /**
   @brief Functor used in remove_vertex_if
          ...
 */
 struct if_not_maximal {
-  if_not_maximal(std::list<Vertex> cm_) : cm(cm_) {};
+  if_not_maximal(std::list<RBVertex> cm_) : cm(cm_) {};
   
   /**
-    @param v Vertex
+    @param v RBVertex
     @param g Red-black graph
     @return  True if \c v is not maximal character of \c g
   */
-  bool operator()(const Vertex v, RBGraph& g) const;
+  bool operator()(const RBVertex v, const RBGraph& g) const;
   
 private:
   
-  std::list<Vertex> cm;
+  std::list<RBVertex> cm;
 };
 
 /**
@@ -161,7 +169,25 @@ private:
   @param g  Red-black graph
   @param cm List of maximal characters of \c g
 */
-void maximal_reducible_graph(RBGraph& g, std::list<Vertex> cm);
+void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm);
+
+/**
+  @brief Predicate used to sort a vector of lists
+  @param a List of vertices
+  @param b List of vertices
+  @return  True if \c a has more elements than \c b
+*/
+inline bool ascending_size(const std::list<RBVertex>& a,
+                           const std::list<RBVertex>& b) {
+   return a.size() < b.size();
+}
+
+/**
+  @brief Build the Hasse diagram of \c g
+  @param g     Red-black graph
+  @param hasse Hasse diagram graph
+*/
+void hasse_diagram(const RBGraph& g, HDGraph& hasse);
 
 
 //=============================================================================
@@ -170,6 +196,7 @@ void maximal_reducible_graph(RBGraph& g, std::list<Vertex> cm);
 /**
   @brief ...
   @param g Red-black graph
+  @return  c-reduction of \c g
 */
 std::list<std::string> reduce(RBGraph& g);
 

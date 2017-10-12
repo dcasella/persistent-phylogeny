@@ -3,7 +3,7 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  Vertex v0, v1, v2, v3, v4;
+  RBVertex v0, v1, v2, v3, v4;
   
   v0 = add_vertex(g); g[v0].name = "v0";
   v1 = add_vertex(g); g[v1].name = "v1";
