@@ -4,7 +4,7 @@
 int main(int argc, const char* argv[]) {
   RBGraph g;
   RBVertex s1, s2, s3, s4, s5, s6,
-         c1, c2, c3, c4, c5, c6, c7, c8;
+           c1, c2, c3, c4, c5, c6, c7, c8;
   
   s1 = add_vertex(g); g[s1].name = "s1";
   s2 = add_vertex(g); g[s2].name = "s2";
@@ -45,7 +45,7 @@ int main(int argc, const char* argv[]) {
   print_rbgraph(g);
   #endif
   
-  assert(boost::num_vertices(g) == 14);
+  assert(num_vertices(g) == 14);
   
   remove_singletons(g);
   
@@ -53,7 +53,7 @@ int main(int argc, const char* argv[]) {
   print_rbgraph(g);
   #endif
   
-  assert(boost::num_vertices(g) == 13);
+  assert(num_vertices(g) == 13);
   
   std::cout << "singletons: tests passed" << std::endl;
   

@@ -17,16 +17,16 @@
   @param pred Predicate
 */
 template <typename Predicate>
-void remove_vertex_if(const RBVertex v, Predicate pred, RBGraph& g) {
+void remove_vertex_if(const RBVertex& v, Predicate pred, RBGraph& g) {
   if (pred(v, g)) {
     // vertex satisfies pred
-    clear_vertex(v, g);
-    remove_vertex(v, g);
-    
     if (g[v].type == Type::species)
       g[boost::graph_bundle].num_species--;
     else
       g[boost::graph_bundle].num_characters--;
+    
+    clear_vertex(v, g);
+    remove_vertex(v, g);
   }
 }
 
@@ -61,6 +61,22 @@ void print_hdgraph(const HDGraph& g);
 // Algorithm functions
 
 // Red-Black Graph
+
+/**
+  @brief Check if \c v is active
+  @param v RBVertex
+  @param g Red-black graph
+  @return  True if \c v is active
+*/
+bool is_active(const RBVertex v, const RBGraph& g);
+
+/**
+  @brief Check if \c v is inactive
+  @param v RBVertex
+  @param g Red-black graph
+  @return  True if \c v is inactive
+*/
+bool is_inactive(const RBVertex v, const RBGraph& g);
 
 /**
   @brief Functor used in remove_vertex_if
@@ -189,6 +205,17 @@ inline bool ascending_size(const std::list<RBVertex>& a,
 */
 void hasse_diagram(const RBGraph& g, HDGraph& hasse);
 
+/**
+  @brief Returns the vertex iterator of \c g whose name is \c name
+         Returns the end of the iterator if a vertex could not be found
+  @param v     Vertex iterator
+  @param v_end Vertex end iterator
+  @param name  Vertex name
+  @param g     Red-black graph
+*/
+RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
+                         const std::string& name, const RBGraph& g);
+
 
 //=============================================================================
 // Algorithm main functions
@@ -198,6 +225,13 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse);
   @param g Red-black graph
   @return  c-reduction of \c g
 */
-std::list<std::string> reduce(RBGraph& g);
+std::list<CharacterState> reduce(RBGraph& g);
+
+/**
+  @brief ...
+  @param g Red-black graph
+  @param c Character name of \c g and state
+*/
+void realize(RBGraph& g, const CharacterState& c);
 
 #endif

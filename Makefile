@@ -1,7 +1,7 @@
 # G++
 
 CC          = g++
-CFLAGS      = -O3 -Wfatal-errors
+CFLAGS      = -O3 -Wall
 CEXTRA      =
 BOOST_LIB_G = /usr/include/boost/libs/graph/build
 BOOST_LIB_R = /usr/include/boost/libs/regex/build

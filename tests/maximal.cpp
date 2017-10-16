@@ -3,8 +3,8 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  RBVertex s1, s2, s3, s4, s5, s6,
-         c1, c2, c3, c4, c5, c6, c7, c8;
+  RBVertex s2, s3, s4, s5, s6,
+           c1, c2, c3, c4, c5, c6, c7;
   RBEdge a, b, c;
   
   s2 = add_vertex(g); g[s2].name = "s2";
@@ -28,14 +28,14 @@ int main(int argc, const char* argv[]) {
   add_edge(s2, c6, g);
   add_edge(s3, c2, g);
   add_edge(s3, c3, g);
-  boost::tie(a, std::ignore) = add_edge(s3, c4, g); g[a].color = Color::red;
+  std::tie(a, std::ignore) = add_edge(s3, c4, g); g[a].color = Color::red;
   add_edge(s4, c1, g);
   add_edge(s4, c2, g);
-  boost::tie(b, std::ignore) = add_edge(s4, c4, g); g[b].color = Color::red;
+  std::tie(b, std::ignore) = add_edge(s4, c4, g); g[b].color = Color::red;
   add_edge(s5, c1, g);
   add_edge(s5, c2, g);
   add_edge(s5, c3, g);
-  boost::tie(c, std::ignore) = add_edge(s5, c4, g); g[c].color = Color::red;
+  std::tie(c, std::ignore) = add_edge(s5, c4, g); g[c].color = Color::red;
   add_edge(s5, c5, g);
   add_edge(s5, c7, g);
   add_edge(s6, c2, g);

@@ -9,12 +9,12 @@
 
 void print_rbgraph(const RBGraph& g) {
   RBVertexIter v, v_end;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     std::cout << g[*v].name << ":";
     
     RBOutEdgeIter e, e_end;
-    boost::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
       std::cout << " -" << (g[*e].color == Color::red ? "r" : "-") << "- "
                 << g[target(*e, g)].name
@@ -118,7 +118,7 @@ void read_graph(const std::string filename, RBGraph& g) {
 
 void print_hdgraph(const HDGraph& g) {
   HDVertexIter v, v_end;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     std::cout << "[ ";
     
@@ -135,7 +135,7 @@ void print_hdgraph(const HDGraph& g) {
     std::cout << ") ]:";
     
     HDOutEdgeIter e, e_end;
-    boost::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
       HDVertex vt = target(*e, g);
       
@@ -171,13 +171,41 @@ void print_hdgraph(const HDGraph& g) {
 
 // Red-Black Graph
 
+bool is_active(const RBVertex v, const RBGraph& g) {
+  if (g[v].type != Type::character)
+    return false;
+  
+  RBOutEdgeIter e, e_end;
+  std::tie(e, e_end) = out_edges(v, g);
+  for (; e != e_end; ++e) {
+    if (g[*e].color == Color::black || g[target(*e, g)].type != Type::species)
+      return false;
+  }
+  
+  return true;
+}
+
+bool is_inactive(const RBVertex v, const RBGraph& g) {
+  if (g[v].type != Type::character)
+    return false;
+  
+  RBOutEdgeIter e, e_end;
+  std::tie(e, e_end) = out_edges(v, g);
+  for (; e != e_end; ++e) {
+    if (g[*e].color == Color::red || g[target(*e, g)].type != Type::species)
+      return false;
+  }
+  
+  return true;
+}
+
 bool if_singleton::operator()(const RBVertex v, RBGraph& g) const {
   return (out_degree(v, g) == 0);
 }
 
 void remove_singletons(RBGraph& g) {
   RBVertexIter v, v_end, next;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
     ++next;
     remove_vertex_if(*v, if_singleton(), g);
@@ -191,7 +219,7 @@ bool is_free(const RBVertex v, const RBGraph& g) {
   size_t count_species = 0;
   
   RBOutEdgeIter e, e_end;
-  boost::tie(e, e_end) = out_edges(v, g);
+  std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
     if (g[*e].color == Color::black || g[target(*e, g)].type != Type::species)
       return false;
@@ -212,7 +240,7 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   size_t count_species = 0;
   
   RBOutEdgeIter e, e_end;
-  boost::tie(e, e_end) = out_edges(v, g);
+  std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
     if (g[*e].color == Color::red || g[target(*e, g)].type != Type::species)
       return false;
@@ -234,7 +262,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
   // fill vertex index map
   RBVertexIter v, v_end;
   size_t idx = 0;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v, ++idx) {
     boost::put(i_map, *v, idx);
   }
@@ -253,7 +281,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
     
     // initialize subgraph components
     for (size_t i = 0; i < num_comps; ++i) {
-      components[i] = std::unique_ptr<RBGraph>(new RBGraph);
+      components[i] = std::make_unique<RBGraph>();
     }
     
     // add vertices to their respective subgraph
@@ -288,13 +316,13 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
       //   continue;
       
       RBOutEdgeIter e, e_end;
-      boost::tie(e, e_end) = out_edges(v, g);
+      std::tie(e, e_end) = out_edges(v, g);
       for (; e != e_end; ++e) {
         // for each out edge
         RBVertex new_vt = vertices[target(*e, g)];
         
         RBEdge edge;
-        boost::tie(edge, std::ignore) = add_edge(new_v, new_vt, *component);
+        std::tie(edge, std::ignore) = add_edge(new_v, new_vt, *component);
         (*component)[edge].color = g[*e].color;
       }
     }
@@ -317,7 +345,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
 std::list<RBVertex> maximal_characters(const RBGraph& g) {
   std::list<RBVertex> cm;
   std::map< RBVertex, std::list<RBVertex> > sets;
-  int count_incl, count_excl;
+  size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
   
   /* How sets is going to be structured:
@@ -325,7 +353,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
    */
   
   RBVertexIter v, v_end;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     if (g[*v].type != Type::character)
       continue;
@@ -333,7 +361,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
     
     // build v's set of adjacent species
     RBOutEdgeIter e, e_end;
-    boost::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
       RBVertex vt = target(*e, g);
       
@@ -360,7 +388,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
     
     // check if sets[*v] is subset of the species adjacent to cmv
     RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
-    while (cmv != cmv_end) {
+    for (; cmv != cmv_end; ++cmv) {
       // for each species in cm
       if (skip_cycle)
         break;
@@ -376,7 +404,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       keep_char = false;
       
       RBVertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
-      while (sv != sv_end) {
+      for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
         #ifdef DEBUG
         std::cout << "S(" << g[*v].name << "): " << g[*sv].name << " -> ";
@@ -460,8 +488,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         #ifdef DEBUG
         std::cout << std::endl;
         #endif
-        
-        ++sv;
       }
       
       if (std::next(cmv) == cmv_end) {
@@ -482,8 +508,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       #ifdef DEBUG
       std::cout << std::endl;
       #endif
-      
-      ++cmv;
     }
   }
   
@@ -498,7 +522,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
     g[boost::graph_bundle].num_characters
   );
   std::map< RBVertex, std::list<RBVertex> > v_map;
-  int count_incl, count_excl;
+  size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
   
   /* How sets is going to be structured:
@@ -514,7 +538,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   
   size_t idx = 0;
   RBVertexIter v, v_end;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     if (g[*v].type != Type::character)
       continue;
@@ -524,7 +548,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
     
     // build v's set of adjacent species
     RBOutEdgeIter e, e_end;
-    boost::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
       RBVertex vt = target(*e, g);
       
@@ -561,7 +585,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
     
     // check if sc is subset of the species adjacent to cmv
     RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
-    while (cmv != cmv_end) {
+    for (; cmv != cmv_end; ++cmv) {
       // for each species in cm
       if (skip_cycle)
         break;
@@ -577,7 +601,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       keep_char = false;
       
       RBVertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
-      while (sv != sv_end) {
+      for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
         #ifdef DEBUG
         std::cout << "S(" << g[v].name << "): " << g[*sv].name << " -> ";
@@ -647,8 +671,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         #ifdef DEBUG
         std::cout << std::endl;
         #endif
-        
-        ++sv;
       }
       
       if (std::next(cmv) == cmv_end) {
@@ -669,8 +691,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       #ifdef DEBUG
       std::cout << std::endl;
       #endif
-      
-      ++cmv;
     }
   }
   
@@ -684,13 +704,12 @@ bool if_not_maximal::operator()(const RBVertex v, const RBGraph& g) const {
 void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm) {
   // remove non-maximal characters
   RBVertexIter v, v_end, next;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
     ++next;
     
-    if (g[*v].type == Type::character) {
+    if (g[*v].type == Type::character)
       remove_vertex_if(*v, if_not_maximal(cm), g);
-    }
   }
 }
 
@@ -713,7 +732,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
   
   size_t idx = 0;
   RBVertexIter v, v_end;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     if (g[*v].type != Type::species)
       continue;
@@ -727,7 +746,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
     
     // build v's set of adjacent characters
     RBOutEdgeIter e, e_end;
-    boost::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
       RBVertex vt = target(*e, g);
       
@@ -788,8 +807,8 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
      * if v needs to be added to the Hasse diagram
      */
     HDVertexIter hdv, hdv_end;
-    boost::tie(hdv, hdv_end) = vertices(hasse);
-    while (hdv != hdv_end) {
+    std::tie(hdv, hdv_end) = vertices(hasse);
+    for (; hdv != hdv_end; ++hdv) {
       // for each vertex in hasse
       #ifdef DEBUG
       std::cout << "hdv: ";
@@ -820,7 +839,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
         // Hasse.addE s1 -c1+-> s2
         std::list<std::string>::const_iterator ci, ci_end;
         ci = lcv.begin(); ci_end = lcv.end();
-        while (ci != ci_end) {
+        for (; ci != ci_end; ++ci) {
           // for each character in hdv
           std::list<std::string>::const_iterator in;
           in = std::find(lhdv.begin(), lhdv.end(), *ci);
@@ -831,8 +850,6 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
             
             // break;
           }
-          
-          ++ci;
         }
       }
       
@@ -853,7 +870,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
         for (; ei != ei_end; ++ei) {
           // for each new edge to add to the Hasse diagram
           HDEdge edge;
-          boost::tie(edge, std::ignore) = add_edge(ei->first, u, hasse);
+          std::tie(edge, std::ignore) = add_edge(ei->first, u, hasse);
           hasse[edge].character = ei->second;
           hasse[edge].state = State::gain;
           
@@ -882,8 +899,6 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
       #ifdef DEBUG
       std::cout << std::endl;
       #endif
-      
-      ++hdv;
     }
     
     #ifdef DEBUG
@@ -892,12 +907,22 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
   }
 }
 
+RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
+                         const std::string& name, const RBGraph& g) {
+  for (; v != v_end; ++v) {
+    if (name == g[*v].name)
+      return v;
+  }
+  
+  return v_end;
+}
+
 
 //=============================================================================
 // Algorithm main functions
 
-std::list<std::string> reduce(RBGraph& g) {
-  std::list<std::string> output;
+std::list<CharacterState> reduce(RBGraph& g) {
+  std::list<CharacterState> output;
   
   // cleanup graph from dead vertices
   remove_singletons(g);
@@ -919,7 +944,7 @@ std::list<std::string> reduce(RBGraph& g) {
   #endif
   
   RBVertexIter v, v_end;
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
     if (is_free(*v, g)) {
@@ -932,10 +957,11 @@ std::list<std::string> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      // realize(v-, g)
-      // ...
+      CharacterState cs {g[*v].name, State::lose};
       
-      output.push_back(g[*v].name + "-");
+      realize(g, cs);
+      
+      output.push_back(cs);
       output.splice(output.end(), reduce(g));
       
       // return < v-, reduce(g) >
@@ -947,7 +973,7 @@ std::list<std::string> reduce(RBGraph& g) {
   std::cout << "G no free characters" << std::endl;
   #endif
   
-  boost::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
     if (is_universal(*v, g)) {
@@ -960,10 +986,11 @@ std::list<std::string> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      // realize(v+, g)
-      // ...
+      CharacterState cs {g[*v].name, State::gain};
       
-      output.push_back(g[*v].name + "+");
+      realize(g, cs);
+      
+      output.push_back(cs);
       output.splice(output.end(), reduce(g));
       
       // return < v+, reduce(g) >
@@ -982,11 +1009,9 @@ std::list<std::string> reduce(RBGraph& g) {
      * build subgraphs (connected components) g1, g2, etc.
      * return < reduce(g1), reduce(g2), ... >
      */
-    
     for (size_t i = 0; i < num_comps; ++i)
       output.splice(output.end(), reduce(*components[i].get()));
     
-    // return < reduce(g1), reduce(g2), ... >
     return output;
   }
   
@@ -1001,6 +1026,16 @@ std::list<std::string> reduce(RBGraph& g) {
   std::cout << "}" << std::endl
             << "Gcm:" << std::endl;
   print_rbgraph(g_cm);
+  std::cout << std::endl;
+  #endif
+  
+  HDGraph p;
+  hasse_diagram(g_cm, p);
+  
+  #ifdef DEBUG
+  std::cout << "Hasse:" << std::endl;
+  print_hdgraph(p);
+  std::cout << std::endl;
   #endif
   
   // ...
@@ -1008,16 +1043,81 @@ std::list<std::string> reduce(RBGraph& g) {
   return output;
 }
 
-//=============================================================================
-// Enum / Struct operator overloads
-
-// General
-
-std::ostream& operator<<(std::ostream& os, const State& s) {
-  if (s == State::lose)
-    os << "-";
-  else
-    os << "+";
+void realize(RBGraph& g, const CharacterState& c) {
+  // find vertex whose name is c.character in g
+  RBVertexIter v, v_end, in;
+  std::tie(v, v_end) = vertices(g);
+  in = find_vertex(v, v_end, c.character, g);
   
-  return os;
+  if (in == v_end)
+    // vertex whose name is c.character doesn't exist in g
+    return;
+  
+  RBVertex cv = *in;
+  
+  IndexMap map_index, map_comp;
+  AssocMap i_map(map_index), c_map(map_comp);
+  
+  // fill vertex index map
+  std::tie(v, v_end) = vertices(g);
+  for (size_t idx = 0; v != v_end; ++v, ++idx) {
+    boost::put(i_map, *v, idx);
+  }
+  
+  // build the components map
+  boost::connected_components(g, c_map, boost::vertex_index_map(i_map));
+  
+  if (c.state == State::gain && is_inactive(cv, g)) {
+    // c+ and c is inactive
+    #ifdef DEBUG
+    std::cout << c << " (+ and inactive):" << std::endl;
+    #endif
+    
+    std::tie(v, v_end) = vertices(g);
+    for (; v != v_end; ++v) {
+      if (g[*v].type == Type::character || map_comp[*v] != map_comp[cv])
+        continue;
+      // for each species in the same connected component of cv
+      
+      #ifdef DEBUG
+      std::cout << g[*v].name << " -> ";
+      #endif
+      
+      RBEdge e;
+      bool exists;
+      std::tie(e, exists) = edge(*v, cv, g);
+      
+      if (exists) {
+        // there is an edge (black) between *v and cv
+        #ifdef DEBUG
+        std::cout << "rm;\t";
+        #endif
+        
+        remove_edge(e, g);
+      }
+      else {
+        // there isn't an edge between *v and cv
+        #ifdef DEBUG
+        std::cout << "red;\t";
+        #endif
+        
+        std::tie(e, std::ignore) = add_edge(*v, cv, g);
+        g[e].color = Color::red;
+      }
+    }
+    
+    #ifdef DEBUG
+    std::cout << std::endl;
+    #endif
+  }
+  else if (c.state == State::lose && is_active(cv, g)) {
+    // c- and c is active
+    #ifdef DEBUG
+    std::cout << c << " (- and active)" << std::endl;
+    #endif
+    
+    clear_vertex(cv, g);
+  }
+  
+  remove_singletons(g);
 }

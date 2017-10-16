@@ -91,6 +91,8 @@ struct HDGraphProperties {
 //=============================================================================
 // Typedefs used for readabily
 
+typedef HDEdgeProperties CharacterState;
+
 // Red-Black Graph
 
 // Graph
@@ -161,5 +163,23 @@ typedef boost::graph_traits<HDGraph>::adjacency_iterator HDAdjIter;
 // Size types
 
 typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
+
+//=============================================================================
+// Enum / Struct operator overloads
+
+// General
+
+inline std::ostream& operator<<(std::ostream& os, const State& s) {
+  if (s == State::lose)
+    os << "-";
+  else if (s == State::gain)
+    os << "+";
+  
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const CharacterState& cs) {
+  return os << cs.character << cs.state;
+}
 
 #endif // DEFS_HPP
