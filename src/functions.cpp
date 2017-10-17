@@ -1121,3 +1121,9 @@ void realize(RBGraph& g, const CharacterState& c) {
   
   remove_singletons(g);
 }
+
+void realize(RBGraph& g, const std::list<CharacterState>& lc) {
+  std::list<CharacterState>::const_iterator i = lc.begin();
+  for (; i != lc.end(); ++i)
+    realize(g, *i);
+}

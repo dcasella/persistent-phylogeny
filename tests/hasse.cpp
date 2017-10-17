@@ -10,10 +10,6 @@ int main(int argc, const char* argv[]) {
   assert(num_vertices(hasse) == 3);
   assert(num_edges(hasse) == 2);
   
-  #ifdef DEBUG
-  print_hdgraph(hasse);
-  #endif
-  
   std::cout << "hasse: tests passed" << std::endl;
   
   return 0;

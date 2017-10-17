@@ -234,4 +234,11 @@ std::list<CharacterState> reduce(RBGraph& g);
 */
 void realize(RBGraph& g, const CharacterState& c);
 
+/**
+  @brief ...
+  @param g  Red-black graph
+  @param lc List of character names of \c g and states
+*/
+void realize(RBGraph& g, const std::list<CharacterState>& c);
+
 #endif
