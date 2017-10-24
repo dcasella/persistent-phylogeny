@@ -12,7 +12,7 @@
 
 /**
   @brief Remove \c v from \c g if it satisfies \c pred
-  @param v    RBVertex
+  @param v    Vertex
   @param g    Red-black graph
   @param pred Predicate
 */
@@ -22,7 +22,7 @@ void remove_vertex_if(const RBVertex& v, Predicate pred, RBGraph& g) {
     // vertex satisfies pred
     if (g[v].type == Type::species)
       g[boost::graph_bundle].num_species--;
-    else
+    else if (g[v].type == Type::character)
       g[boost::graph_bundle].num_characters--;
     
     clear_vertex(v, g);
@@ -64,7 +64,7 @@ void print_hdgraph(const HDGraph& g);
 
 /**
   @brief Check if \c v is active
-  @param v RBVertex
+  @param v Vertex
   @param g Red-black graph
   @return  True if \c v is active
 */
@@ -72,7 +72,7 @@ bool is_active(const RBVertex v, const RBGraph& g);
 
 /**
   @brief Check if \c v is inactive
-  @param v RBVertex
+  @param v Vertex
   @param g Red-black graph
   @return  True if \c v is inactive
 */
@@ -84,7 +84,7 @@ bool is_inactive(const RBVertex v, const RBGraph& g);
 */
 struct if_singleton {
   /**
-    @param v RBVertex
+    @param v Vertex
     @param g Red-black graph
     @return  True if \c v is a singleton in \c g
   */
@@ -108,7 +108,7 @@ inline bool is_empty(const RBGraph& g) {
 
 /**
   @brief Check if \c v is free
-  @param v RBVertex
+  @param v Vertex
   @param g Red-black graph
   @return  True if \c v is free
 */
@@ -116,7 +116,7 @@ bool is_free(const RBVertex v, const RBGraph& g);
 
 /**
   @brief Check if \c v is universal
-  @param v RBVertex
+  @param v Vertex
   @param g Red-black graph
   @return  True if \c v is universal
 */
@@ -168,7 +168,7 @@ struct if_not_maximal {
   if_not_maximal(std::list<RBVertex> cm_) : cm(cm_) {};
   
   /**
-    @param v RBVertex
+    @param v Vertex
     @param g Red-black graph
     @return  True if \c v is not maximal character of \c g
   */
@@ -216,6 +216,30 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse);
 RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
                          const std::string& name, const RBGraph& g);
 
+/**
+  @brief Returns the vertex iterator of \c g if it's a source
+         Returns the end of the iterator if a source could not be found
+  @param v     Vertex iterator
+  @param v_end Vertex end iterator
+  @param hasse Hasse diagram graph
+*/
+HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
+                         const HDGraph& hasse);
+
+/**
+  @brief Check if \c g is a red Σ-graph
+  @param g Red-black graph
+  @return  True if \c g is a red Σ-graph
+*/
+bool is_redsigma(const RBGraph& g);
+
+/**
+  @brief Returns bool = true and the the vertex of \c g if it's a safe source
+         Returns bool = false if the diagram has no safe source
+  @param hasse Hasse diagram graph
+*/
+std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse);
+
 
 //=============================================================================
 // Algorithm main functions
@@ -239,6 +263,6 @@ void realize(RBGraph& g, const CharacterState& c);
   @param g  Red-black graph
   @param lc List of character names of \c g and states
 */
-void realize(RBGraph& g, const std::list<CharacterState>& c);
+void realize(RBGraph& g, const std::list<CharacterState>& lc);
 
 #endif

@@ -11,7 +11,7 @@
 // General
 
 /**
-  @brief Strongly typed boolean enum class used for character state (- or +)
+  @brief Strongly typed 8-bit enum class used for character state
 */
 enum class State : unsigned char {
   none, lose, gain
@@ -27,10 +27,10 @@ enum class Color : bool {
 };
 
 /**
-  @brief Strongly typed boolean enum class used for vertex type
+  @brief Strongly typed 8-bit enum class used for vertex type
 */
-enum class Type : bool {
-  species, character
+enum class Type : unsigned char {
+  none, species, character
 };
 
 
@@ -52,7 +52,7 @@ struct RBEdgeProperties {
 */
 struct RBVertexProperties {
   std::string name = "v";
-  Type type = Type::species;
+  Type type = Type::none;
 };
 
 /**
@@ -131,19 +131,19 @@ typedef boost::associative_property_map<IndexMap> AssocMap;
 
 // Containers
 
-typedef std::vector< std::unique_ptr<RBGraph> > RBGraphVector;
+typedef std::vector<std::unique_ptr<RBGraph>> RBGraphVector;
 
 // Hasse Diagram
 
 // Graph
 
 typedef boost::adjacency_list<
-  boost::setS,        // OutEdgeList
-  boost::listS,       // VertexList
-  boost::directedS,   // Directed
-  HDVertexProperties, // VertexProperties
-  HDEdgeProperties,   // EdgeProperties
-  HDGraphProperties   // GraphProperties
+  boost::setS,           // OutEdgeList
+  boost::listS,          // VertexList
+  boost::bidirectionalS, // Directed
+  HDVertexProperties,    // VertexProperties
+  HDEdgeProperties,      // EdgeProperties
+  HDGraphProperties      // GraphProperties
 > HDGraph;
 
 // Descriptors

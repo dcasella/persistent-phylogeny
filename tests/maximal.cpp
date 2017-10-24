@@ -7,11 +7,11 @@ int main(int argc, const char* argv[]) {
            c1, c2, c3, c4, c5, c6, c7;
   RBEdge a, b, c;
   
-  s2 = add_vertex(g); g[s2].name = "s2";
-  s3 = add_vertex(g); g[s3].name = "s3";
-  s4 = add_vertex(g); g[s4].name = "s4";
-  s5 = add_vertex(g); g[s5].name = "s5";
-  s6 = add_vertex(g); g[s6].name = "s6";
+  s2 = add_vertex(g); g[s2].name = "s2"; g[s2].type = Type::species;
+  s3 = add_vertex(g); g[s3].name = "s3"; g[s3].type = Type::species;
+  s4 = add_vertex(g); g[s4].name = "s4"; g[s4].type = Type::species;
+  s5 = add_vertex(g); g[s5].name = "s5"; g[s5].type = Type::species;
+  s6 = add_vertex(g); g[s6].name = "s6"; g[s6].type = Type::species;
   c1 = add_vertex(g); g[c1].name = "c1"; g[c1].type = Type::character;
   c2 = add_vertex(g); g[c2].name = "c2"; g[c2].type = Type::character;
   c3 = add_vertex(g); g[c3].name = "c3"; g[c3].type = Type::character;
@@ -43,11 +43,10 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c5, g);
   
   std::list<RBVertex> cm_check({c2, c3});
-  
   std::list<RBVertex> cm = maximal_characters2(g);
-  assert(cm == cm_check);
-  
   maximal_reducible_graph(g, cm);
+  
+  assert(cm == cm_check);
   assert(g[boost::graph_bundle].num_species == 5);
   assert(g[boost::graph_bundle].num_characters == 2);
   
@@ -58,7 +57,7 @@ int main(int argc, const char* argv[]) {
   std::cout << "}" << std::endl;
   #endif
   
-  std::cout << "maximal_characters: tests passed" << std::endl;
+  std::cout << "maximal: tests passed" << std::endl;
   
   return 0;
 }

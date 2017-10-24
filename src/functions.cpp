@@ -50,6 +50,7 @@ void read_graph(const std::string filename, RBGraph& g) {
       for (size_t j = 0; j < g[boost::graph_bundle].num_species; ++j) {
         RBVertex s = add_vertex(g);
         g[s].name = ("s" + std::to_string(j + 1));
+        g[s].type = Type::species;
         
         species[j] = s;
       }
@@ -81,38 +82,6 @@ void read_graph(const std::string filename, RBGraph& g) {
     }
   }
 }
-
-// std::tuple<size_t, size_t>
-// read_matrix(const std::string filename, std::vector<bool>& m) {
-//   size_t num_species, num_characters;
-//   bool value, first_line = true;
-//   std::string line;
-//   std::ifstream file(filename);
-  
-//   size_t i = 0;
-//   while (std::getline(file, line)) {
-//     std::istringstream iss(line);
-    
-//     if (first_line) {
-//       // read rows and columns (species and characters)
-//       iss >> num_species;
-//       iss >> num_characters;
-      
-//       m.resize(num_species * num_characters);
-      
-//       first_line = false;
-//     }
-//     else {
-//       // read binary matrix
-//       while (iss >> value) {
-//         m[i] = value;
-//         ++i;
-//       }
-//     }
-//   }
-  
-//   return std::make_tuple(num_species, num_characters);
-// }
 
 // Hasse Diagram
 
@@ -344,7 +313,7 @@ size_t connected_components(const RBGraph& g, RBGraphVector& components) {
 
 std::list<RBVertex> maximal_characters(const RBGraph& g) {
   std::list<RBVertex> cm;
-  std::map< RBVertex, std::list<RBVertex> > sets;
+  std::map<RBVertex, std::list<RBVertex>> sets;
   size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
   
@@ -448,7 +417,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
              * v may be a new maximal character
              */
             #ifdef DEBUG
-            std::cout << " add? not subset?";
+            std::cout << " add, not subset";
             #endif
             
             keep_char = true;
@@ -459,7 +428,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
              * iterations on the characters in Cm
              */
             #ifdef DEBUG
-            std::cout << " ignore, same set?" << std::endl;
+            std::cout << " ignore, same set" << std::endl;
             #endif
             
             skip_cycle = true;
@@ -471,7 +440,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
              * next iterations on the characters in Cm
              */
             #ifdef DEBUG
-            std::cout << " ignore, subset?" << std::endl;
+            std::cout << " ignore, subset" << std::endl;
             #endif
             
             skip_cycle = true;
@@ -480,7 +449,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
           else {
             // how we ended up here nobody knows
             #ifdef DEBUG
-            std::cout << " idk?";
+            std::cout << " idk";
             #endif
           }
         }
@@ -518,10 +487,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
 
 std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   std::list<RBVertex> cm;
-  std::vector< std::list<RBVertex> > sets(
-    g[boost::graph_bundle].num_characters
-  );
-  std::map< RBVertex, std::list<RBVertex> > v_map;
+  std::vector<std::list<RBVertex>> sets(g[boost::graph_bundle].num_characters);
+  std::map<RBVertex, std::list<RBVertex>> v_map;
   size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
   
@@ -631,7 +598,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
              * v may be a new maximal character
              */
             #ifdef DEBUG
-            std::cout << " add? not subset?";
+            std::cout << " add, not subset";
             #endif
             
             keep_char = true;
@@ -642,7 +609,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
              * iterations on the characters in Cm
              */
             #ifdef DEBUG
-            std::cout << " ignore, same set?" << std::endl;
+            std::cout << " ignore, same set" << std::endl;
             #endif
             
             skip_cycle = true;
@@ -654,7 +621,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
              * next iterations on the characters in Cm
              */
             #ifdef DEBUG
-            std::cout << " ignore, subset?" << std::endl;
+            std::cout << " ignore, subset" << std::endl;
             #endif
             
             skip_cycle = true;
@@ -663,7 +630,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
           else {
             // how we ended up here nobody knows
             #ifdef DEBUG
-            std::cout << " idk?";
+            std::cout << " idk";
             #endif
           }
         }
@@ -714,10 +681,8 @@ void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm) {
 }
 
 void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
-  std::vector< std::list<RBVertex> > sets(
-    g[boost::graph_bundle].num_species
-  );
-  std::map< RBVertex, std::list<RBVertex> > v_map;
+  std::vector<std::list<RBVertex>> sets(g[boost::graph_bundle].num_species);
+  std::map<RBVertex, std::list<RBVertex>> v_map;
   
   /* How sets is going to be structured:
    * sets[index] => < S, List of adjacent characters to S >
@@ -801,7 +766,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
     /* new_edges will contain the list of edges that may be added to the
      * Hasse diagram: HDVertex is the source, std::string is the edge label
      */
-    std::list< std::pair<HDVertex, std::string> > new_edges;
+    std::list<std::pair<HDVertex, std::string>> new_edges;
     
     /* check if there is a vertex with the same characters as v or
      * if v needs to be added to the Hasse diagram
@@ -834,6 +799,8 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
       
       std::list<std::string> lhdv = hasse[*hdv].characters;
       
+      // TODO: find the correct way to build the edges
+      
       if (lhdv.size() < lcv.size()) {
         // hdv has less characters than v
         // Hasse.addE s1 -c1+-> s2
@@ -865,7 +832,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
         hasse[u].characters = lcv;
         
         // build in_edges for the vertex and add them to the Hasse diagram
-        std::list< std::pair<HDVertex, std::string> >::iterator ei, ei_end;
+        std::list<std::pair<HDVertex, std::string>>::iterator ei, ei_end;
         ei = new_edges.begin(), ei_end = new_edges.end();
         for (; ei != ei_end; ++ei) {
           // for each new edge to add to the Hasse diagram
@@ -917,6 +884,102 @@ RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
   return v_end;
 }
 
+HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
+                         const HDGraph& hasse) {
+  for (; v != v_end; ++v) {
+    if (in_degree(*v, hasse) == 0)
+      return v;
+  }
+  
+  return v_end;
+}
+
+bool is_redsigma(const RBGraph& g) {
+  // TODO: WIP
+  return true;
+}
+
+std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse) {
+  bool safe = false;
+  
+  HDVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(hasse);
+  while (v != v_end) {
+    v = find_source(v, v_end, hasse);
+    // for each source in hasse
+    
+    if (v == v_end) {
+      // hasse has no sources left
+      // safe = false;
+      break;
+    }
+    
+    std::list<CharacterState> lc;
+    HDVertex curr = *v;
+    
+    #ifdef DEBUG
+    std::cout << "Source: [ ";
+    std::list<std::string>::const_iterator kk = hasse[curr].vertices.begin();
+    for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
+    std::cout << "]" << std::endl << "C: < ";
+    #endif
+    
+    while (out_degree(curr, hasse) > 0) {
+      #ifdef DEBUG
+      std::cout << "[ ";
+      kk = hasse[curr].vertices.begin();
+      for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
+      std::cout << "] ";
+      #endif
+      
+      HDOutEdgeIter edge;
+      std::tie(edge, std::ignore) = out_edges(curr, hasse);
+      lc.push_back({ hasse[*edge].character, hasse[*edge].state });
+      
+      curr = target(*edge, hasse);
+    }
+    
+    #ifdef DEBUG
+    std::cout << "[ ";
+    kk = hasse[curr].vertices.begin();
+    for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
+    std::cout << "] >" << std::endl << "S(C): < ";
+    std::list<CharacterState>::iterator jj = lc.begin();
+    for (; jj != lc.end(); ++jj) {
+      std::cout << jj->character;
+      if (jj->state == State::gain) std::cout << "+";
+      else if (jj->state == State::lose) std::cout << "-";
+      std::cout << " ";
+    }
+    std::cout << ">" << std::endl;
+    #endif
+    
+    RBGraph g1(g);
+    realize(g1, lc);
+    
+    #ifdef DEBUG
+    print_rbgraph(g1);
+    #endif
+    
+    if (!is_redsigma(g1)) {
+      #ifdef DEBUG
+      std::cout << "No red Σ-graph" << std::endl;
+      #endif
+      
+      safe = true;
+      break;
+    }
+    
+    #ifdef DEBUG
+    std::cout << std::endl;
+    #endif
+    
+    ++v;
+  }
+  
+  return std::make_pair(*v, safe);
+}
+
 
 //=============================================================================
 // Algorithm main functions
@@ -957,7 +1020,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      CharacterState cs {g[*v].name, State::lose};
+      CharacterState cs { g[*v].name, State::lose };
       
       realize(g, cs);
       
@@ -986,7 +1049,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      CharacterState cs {g[*v].name, State::gain};
+      CharacterState cs { g[*v].name, State::gain };
       
       realize(g, cs);
       
@@ -1015,20 +1078,24 @@ std::list<CharacterState> reduce(RBGraph& g) {
     return output;
   }
   
+  /* cm = Cm, maximal characters of g (Grb)
+   * g_cm = Grb|Cm, maximal reducible graph of g (Grb)
+   */
   RBGraph g_cm(g);
   std::list<RBVertex> cm = maximal_characters2(g_cm);
   maximal_reducible_graph(g_cm, cm);
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
-  std::list<RBVertex>::iterator i = cm.begin();
-  for (; i != cm.end(); ++i) std::cout << g_cm[*i].name << " ";
+  std::list<RBVertex>::iterator kk = cm.begin();
+  for (; kk != cm.end(); ++kk) std::cout << g_cm[*kk].name << " ";
   std::cout << "}" << std::endl
             << "Gcm:" << std::endl;
   print_rbgraph(g_cm);
   std::cout << std::endl;
   #endif
   
+  // p = Hasse diagram for g_cm (Grb|Cm)
   HDGraph p;
   hasse_diagram(g_cm, p);
   
@@ -1038,8 +1105,17 @@ std::list<CharacterState> reduce(RBGraph& g) {
   std::cout << std::endl;
   #endif
   
-  // ...
+  /* TODO: WIP
+  s = safe source of P
+  sc = Sc, sequence of positive characters of s inactive in g (Grb)
   
+  realize(g, sc);
+  
+  output.splice(output.end(), sc);
+  output.splice(output.end(), reduce(g));
+  */
+  
+  // return < sc, reduce(g) >
   return output;
 }
 

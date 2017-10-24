@@ -7,12 +7,12 @@ int main(int argc, const char* argv[]) {
            c1, c2, c3, c4, c5, c6, c7, c8;
   RBEdge a, b, c;
   
-  s1 = add_vertex(g); g[s1].name = "s1";
-  s2 = add_vertex(g); g[s2].name = "s2";
-  s3 = add_vertex(g); g[s3].name = "s3";
-  s4 = add_vertex(g); g[s4].name = "s4";
-  s5 = add_vertex(g); g[s5].name = "s5";
-  s6 = add_vertex(g); g[s6].name = "s6";
+  s1 = add_vertex(g); g[s1].name = "s1"; g[s1].type = Type::species;
+  s2 = add_vertex(g); g[s2].name = "s2"; g[s2].type = Type::species;
+  s3 = add_vertex(g); g[s3].name = "s3"; g[s3].type = Type::species;
+  s4 = add_vertex(g); g[s4].name = "s4"; g[s4].type = Type::species;
+  s5 = add_vertex(g); g[s5].name = "s5"; g[s5].type = Type::species;
+  s6 = add_vertex(g); g[s6].name = "s6"; g[s6].type = Type::species;
   c1 = add_vertex(g); g[c1].name = "c1"; g[c1].type = Type::character;
   c2 = add_vertex(g); g[c2].name = "c2"; g[c2].type = Type::character;
   c3 = add_vertex(g); g[c3].name = "c3"; g[c3].type = Type::character;

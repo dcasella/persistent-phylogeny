@@ -17,8 +17,14 @@ int main(int argc, const char* argv[]) {
   RBGraphVector components;
   
   assert(connected_components(g, components) == 3);
+  assert(num_vertices(*components[0].get()) == 1);
+  assert(num_edges(*components[0].get()) == 0);
+  assert(num_vertices(*components[1].get()) == 2);
+  assert(num_edges(*components[1].get()) == 1);
+  assert(num_vertices(*components[2].get()) == 2);
+  assert(num_edges(*components[2].get()) == 1);
   
-  std::cout << "connected_components: tests passed" << std::endl;
+  std::cout << "connected: tests passed" << std::endl;
   
   return 0;
 }
