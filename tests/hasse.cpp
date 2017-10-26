@@ -3,8 +3,8 @@
 
 int main(int argc, const char* argv[]) {
   HDGraph hasse;
-  
   RBGraph g;
+  
   read_graph("tests/no_5x2.txt", g);
   hasse_diagram(g, hasse);
   

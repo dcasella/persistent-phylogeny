@@ -27,7 +27,7 @@ void print_rbgraph(const RBGraph& g) {
 
 // File I/O
 
-void read_graph(const std::string filename, RBGraph& g) {
+void read_graph(const std::string& filename, RBGraph& g) {
   std::vector<RBVertex> species, characters;
   bool value, first_line = true;
   std::string line;
@@ -680,6 +680,21 @@ void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm) {
   }
 }
 
+bool is_included(const std::list<std::string>& a,
+                 const std::list<std::string>& b) {
+  std::list<std::string>::const_iterator i = a.begin();
+  for (; i != a.end(); ++i) {
+    std::list<std::string>::const_iterator in;
+    in = std::find(b.begin(), b.end(), *i);
+    
+    if (in == b.end())
+      // exit the function at the first string of a not present in b
+      return false;
+  }
+  
+  return true;
+}
+
 void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
   std::vector<std::list<RBVertex>> sets(g[boost::graph_bundle].num_species);
   std::map<RBVertex, std::list<RBVertex>> v_map;
@@ -801,9 +816,8 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
       
       // TODO: find the correct way to build the edges
       
-      if (lhdv.size() < lcv.size()) {
-        // hdv has less characters than v
-        // Hasse.addE s1 -c1+-> s2
+      if (is_included(lhdv, lcv) && (lhdv.size() == lcv.size() - 1)) {
+        // hdv has one less character than v and  hdv included in v
         std::list<std::string>::const_iterator ci, ci_end;
         ci = lcv.begin(); ci_end = lcv.end();
         for (; ci != ci_end; ++ci) {
@@ -859,8 +873,9 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
         break;
       }
       #ifdef DEBUG
-      else
+      else {
         std::cout << "ignore";
+      }
       #endif
       
       #ifdef DEBUG
@@ -877,7 +892,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
 RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
                          const std::string& name, const RBGraph& g) {
   for (; v != v_end; ++v) {
-    if (name == g[*v].name)
+    if (g[*v].name == name)
       return v;
   }
   
@@ -895,34 +910,42 @@ HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
 }
 
 bool is_redsigma(const RBGraph& g) {
-  // TODO: WIP
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    if (!is_active(*v, g) && !is_free(*v, g))
+      return false;
+  }
+  
   return true;
 }
 
-std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse) {
+std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
+                                                      const HDGraph& hasse) {
+  std::list<CharacterState> lc;
   bool safe = false;
   
   HDVertexIter v, v_end;
   std::tie(v, v_end) = vertices(hasse);
-  while (v != v_end) {
+  for (; v != v_end; ++v) {
     v = find_source(v, v_end, hasse);
     // for each source in hasse
     
-    if (v == v_end) {
+    if (v == v_end)
       // hasse has no sources left
-      // safe = false;
       break;
-    }
     
-    std::list<CharacterState> lc;
     HDVertex curr = *v;
     
     #ifdef DEBUG
     std::cout << "Source: [ ";
     std::list<std::string>::const_iterator kk = hasse[curr].vertices.begin();
     for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
-    std::cout << "]" << std::endl << "C: < ";
+    std::cout << "]" << std::endl
+              << "C: < ";
     #endif
+    
+    // TODO: implement DFS-like approach for when a chain is not safe?
     
     while (out_degree(curr, hasse) > 0) {
       #ifdef DEBUG
@@ -943,7 +966,8 @@ std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse) {
     std::cout << "[ ";
     kk = hasse[curr].vertices.begin();
     for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
-    std::cout << "] >" << std::endl << "S(C): < ";
+    std::cout << "] >" << std::endl 
+              << "S(C): < ";
     std::list<CharacterState>::iterator jj = lc.begin();
     for (; jj != lc.end(); ++jj) {
       std::cout << jj->character;
@@ -969,15 +993,20 @@ std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse) {
       safe = true;
       break;
     }
+    else {
+      #ifdef DEBUG
+      std::cout << "Found red Σ-graph" << std::endl;
+      #endif
+      
+      lc.clear();
+    }
     
     #ifdef DEBUG
     std::cout << std::endl;
     #endif
-    
-    ++v;
   }
   
-  return std::make_pair(*v, safe);
+  return std::make_pair(lc, safe);
 }
 
 
@@ -987,7 +1016,15 @@ std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse) {
 std::list<CharacterState> reduce(RBGraph& g) {
   std::list<CharacterState> output;
   
+  #ifdef DEBUG
+  std::cout << std::endl
+            << "Working on G:" << std::endl;
+  print_rbgraph(g);
+  std::cout << std::endl;
+  #endif
+  
   // cleanup graph from dead vertices
+  // TODO: check if this is needed (realize already removes singletons)
   remove_singletons(g);
   
   if (is_empty(g)) {
@@ -1105,15 +1142,18 @@ std::list<CharacterState> reduce(RBGraph& g) {
   std::cout << std::endl;
   #endif
   
-  /* TODO: WIP
-  s = safe source of P
-  sc = Sc, sequence of positive characters of s inactive in g (Grb)
+  std::list<CharacterState> sc;
+  bool s_safe;
+  std::tie(sc, s_safe) = safe_chain(g_cm, p);
+  
+  if (!s_safe)
+    // p has no safe source
+    throw std::runtime_error("Could not reduce graph");
   
   realize(g, sc);
   
   output.splice(output.end(), sc);
   output.splice(output.end(), reduce(g));
-  */
   
   // return < sc, reduce(g) >
   return output;
@@ -1194,6 +1234,11 @@ void realize(RBGraph& g, const CharacterState& c) {
     
     clear_vertex(cv, g);
   }
+  #ifdef DEBUG
+  else {
+    std::cout << "Could not realize " << c << std::endl;
+  }
+  #endif
   
   remove_singletons(g);
 }

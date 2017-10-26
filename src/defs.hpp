@@ -169,6 +169,17 @@ typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
 
 // General
 
+inline std::ostream& operator<<(std::ostream& os, const Type& t) {
+  if (t == Type::species)
+    os << "Species";
+  else if (t == Type::character)
+    os << "Character";
+  else
+    os << "None";
+  
+  return os;
+}
+
 inline std::ostream& operator<<(std::ostream& os, const State& s) {
   if (s == State::lose)
     os << "-";
@@ -180,6 +191,10 @@ inline std::ostream& operator<<(std::ostream& os, const State& s) {
 
 inline std::ostream& operator<<(std::ostream& os, const CharacterState& cs) {
   return os << cs.character << cs.state;
+}
+
+inline bool operator==(const CharacterState& a, const CharacterState& b) {
+  return (a.character == b.character && a.state == b.state);
 }
 
 #endif // DEFS_HPP

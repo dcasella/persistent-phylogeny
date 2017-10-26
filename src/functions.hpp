@@ -43,7 +43,7 @@ void print_rbgraph(const RBGraph& g);
   @param filename Filename
   @param g        Red-black graph
 */
-void read_graph(const std::string filename, RBGraph& g);
+void read_graph(const std::string& filename, RBGraph& g);
 
 // std::tuple<size_t, size_t>
 // read_matrix(const std::string filename, std::vector<bool>& m);
@@ -188,15 +188,24 @@ private:
 void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm);
 
 /**
-  @brief Predicate used to sort a vector of lists
+  @brief Predicate used to sort a vector of lists of vertices
   @param a List of vertices
   @param b List of vertices
-  @return  True if \c a has more elements than \c b
+  @return  True if \c a has less elements than \c b
 */
 inline bool ascending_size(const std::list<RBVertex>& a,
                            const std::list<RBVertex>& b) {
    return a.size() < b.size();
 }
+
+/**
+  @brief Returns True if \c a is included in \c b
+  @param a List of character names (strings)
+  @param b List of character names (strings)
+  @return  True if \c a is included in \c b, False otherwise
+*/
+bool is_included(const std::list<std::string>& a,
+                 const std::list<std::string>& b);
 
 /**
   @brief Build the Hasse diagram of \c g
@@ -206,22 +215,24 @@ inline bool ascending_size(const std::list<RBVertex>& a,
 void hasse_diagram(const RBGraph& g, HDGraph& hasse);
 
 /**
-  @brief Returns the vertex iterator of \c g whose name is \c name
+  @brief Returns the vertex iterator of \c g if its name is \c name
          Returns the end of the iterator if a vertex could not be found
   @param v     Vertex iterator
   @param v_end Vertex end iterator
   @param name  Vertex name
   @param g     Red-black graph
+  @return      Vertex iterator of \c g if its name is \c name, or \c v_end
 */
 RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
                          const std::string& name, const RBGraph& g);
 
 /**
-  @brief Returns the vertex iterator of \c g if it's a source
+  @brief Returns the vertex iterator of \c hasse if it's a source
          Returns the end of the iterator if a source could not be found
   @param v     Vertex iterator
   @param v_end Vertex end iterator
   @param hasse Hasse diagram graph
+  @return      Vertex iterator of \c hasse if it's a source, or \c v_end
 */
 HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
                          const HDGraph& hasse);
@@ -234,11 +245,15 @@ HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
 bool is_redsigma(const RBGraph& g);
 
 /**
-  @brief Returns bool = true and the the vertex of \c g if it's a safe source
-         Returns bool = false if the diagram has no safe source
+  @brief Returns bool = True and a safe chain if the diagram has a safe source
+         Returns bool = False if the diagram has no safe source
+  @param g     Red-black graph
   @param hasse Hasse diagram graph
+  @return      Pair consisting in a safe chain and the outcome of the function
+               A safe chain is represented as a list of CharacterStates
 */
-std::pair<HDVertex, bool> safe_source(const RBGraph& g, const HDGraph& hasse);
+std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
+                                                      const HDGraph& hasse);
 
 
 //=============================================================================
