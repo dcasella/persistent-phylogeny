@@ -29,7 +29,8 @@ void print_rbgraph(const RBGraph& g) {
 
 void read_graph(const std::string& filename, RBGraph& g) {
   std::vector<RBVertex> species, characters;
-  bool value, first_line = true;
+  size_t num_s = 0, num_c = 0;
+  bool first_line = true;
   std::string line;
   std::ifstream file(filename);
   
@@ -40,14 +41,24 @@ void read_graph(const std::string& filename, RBGraph& g) {
     
     if (first_line) {
       // read rows and columns (species and characters)
-      iss >> g[boost::graph_bundle].num_species;
-      iss >> g[boost::graph_bundle].num_characters;
+      iss >> num_s;
+      iss >> num_c;
       
-      species.resize(g[boost::graph_bundle].num_species);
-      characters.resize(g[boost::graph_bundle].num_characters);
+      g[boost::graph_bundle].num_species = num_s;
+      g[boost::graph_bundle].num_characters = num_c;
+      
+      species.resize(num_s);
+      characters.resize(num_c);
+      
+      if (num_s == 0 || num_c == 0) {
+        // input file parsing error
+        throw std::runtime_error(
+          "Failed to read graph from file: badly formatted line 0"
+        );
+      }
       
       // insert species in the graph
-      for (size_t j = 0; j < g[boost::graph_bundle].num_species; ++j) {
+      for (size_t j = 0; j < num_s; ++j) {
         RBVertex s = add_vertex(g);
         g[s].name = ("s" + std::to_string(j + 1));
         g[s].type = Type::species;
@@ -56,7 +67,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
       }
       
       // insert characters in the graph
-      for (size_t j = 0; j < g[boost::graph_bundle].num_characters; ++j) {
+      for (size_t j = 0; j < num_c; ++j) {
         RBVertex c = add_vertex(g);
         g[c].name = ("c" + std::to_string(j + 1));
         g[c].type = Type::character;
@@ -67,19 +78,59 @@ void read_graph(const std::string& filename, RBGraph& g) {
       first_line = false;
     }
     else {
+      char value;
+      
       // read binary matrix
       while (iss >> value) {
-        if (value) {
-          // add (black) edge between species[s_idx] and characters[c_idx]
-          size_t s_idx = idx / g[boost::graph_bundle].num_characters,
-                 c_idx = idx % g[boost::graph_bundle].num_characters;
+        bool red_edge = false;
+        
+        switch (value) {
+          #ifdef DEBUG
+          case '2':
+            // permit red edges from input matrix only if debugging
+            red_edge = true;
+          #endif
           
-          add_edge(species[s_idx], characters[c_idx], g);
+          case '1': {
+            // add edge between species[s_idx] and characters[c_idx]
+            size_t s_idx = idx / num_c,
+                   c_idx = idx % num_c;
+            
+            if (s_idx >= num_s || c_idx >= num_c) {
+              // input file parsing error
+              throw std::runtime_error(
+                "Failed to read graph from file: oversized matrix"
+              );
+            }
+            
+            RBEdge edge;
+            std::tie(edge, std::ignore) = add_edge(species[s_idx],
+                                                   characters[c_idx], g);
+            
+            if (red_edge)
+              g[edge].color = Color::red;
+          }
+          
+          case '0':
+            break;
+          
+          default:
+            // input file parsing error
+            throw std::runtime_error(
+              "Failed to read graph from file: unexcepted value in matrix"
+            );
         }
         
         ++idx;
       }
     }
+  }
+  
+  if (num_s == 0 || num_c == 0) {
+    // input file parsing error
+    throw std::runtime_error(
+      "Failed to read graph from file: empty file"
+    );
   }
 }
 
@@ -817,7 +868,7 @@ void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
       // TODO: find the correct way to build the edges
       
       if (is_included(lhdv, lcv) && (lhdv.size() == lcv.size() - 1)) {
-        // hdv has one less character than v and  hdv included in v
+        // hdv has one less character than v and hdv included in v
         std::list<std::string>::const_iterator ci, ci_end;
         ci = lcv.begin(); ci_end = lcv.end();
         for (; ci != ci_end; ++ci) {
@@ -921,6 +972,7 @@ bool is_redsigma(const RBGraph& g) {
 }
 
 std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
+                                                      const RBGraph& g_cm,
                                                       const HDGraph& hasse) {
   std::list<CharacterState> lc;
   bool safe = false;
@@ -968,7 +1020,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
     std::cout << "] >" << std::endl 
               << "S(C): < ";
-    std::list<CharacterState>::iterator jj = lc.begin();
+    std::list<CharacterState>::const_iterator jj = lc.begin();
     for (; jj != lc.end(); ++jj) {
       std::cout << jj->character;
       if (jj->state == State::gain) std::cout << "+";
@@ -978,14 +1030,16 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     std::cout << ">" << std::endl;
     #endif
     
-    RBGraph g1(g);
-    realize(g1, lc);
+    // TODO: test chain against g_cm_test or what? test source or not?
+    
+    RBGraph g_cm_test(g_cm);
+    realize(g_cm_test, lc);
     
     #ifdef DEBUG
-    print_rbgraph(g1);
+    print_rbgraph(g_cm_test);
     #endif
     
-    if (!is_redsigma(g1)) {
+    if (!is_redsigma(g_cm_test)) {
       #ifdef DEBUG
       std::cout << "No red Σ-graph" << std::endl;
       #endif
@@ -1124,7 +1178,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
-  std::list<RBVertex>::iterator kk = cm.begin();
+  std::list<RBVertex>::const_iterator kk = cm.begin();
   for (; kk != cm.end(); ++kk) std::cout << g_cm[*kk].name << " ";
   std::cout << "}" << std::endl
             << "Gcm:" << std::endl;
@@ -1142,9 +1196,10 @@ std::list<CharacterState> reduce(RBGraph& g) {
   std::cout << std::endl;
   #endif
   
+  // sc = safe chain for g (Grb)
   std::list<CharacterState> sc;
   bool s_safe;
-  std::tie(sc, s_safe) = safe_chain(g_cm, p);
+  std::tie(sc, s_safe) = safe_chain(g, g_cm, p);
   
   if (!s_safe)
     // p has no safe source

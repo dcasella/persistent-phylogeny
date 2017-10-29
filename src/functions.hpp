@@ -248,11 +248,13 @@ bool is_redsigma(const RBGraph& g);
   @brief Returns bool = True and a safe chain if the diagram has a safe source
          Returns bool = False if the diagram has no safe source
   @param g     Red-black graph
+  @param g_cm  Red-black maximal reducible graph
   @param hasse Hasse diagram graph
   @return      Pair consisting in a safe chain and the outcome of the function
                A safe chain is represented as a list of CharacterStates
 */
 std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
+                                                      const RBGraph& g_cm,
                                                       const HDGraph& hasse);
 
 
