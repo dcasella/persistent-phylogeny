@@ -20,6 +20,7 @@ int main(int argc, const char* argv[]) {
   assert(hasse[*a].vertices == std::list<std::string>({ "s1" }));
   assert(hasse[*b].vertices == std::list<std::string>({ "s3" }));
   assert(c == v_end);
+  assert(safe_source(*a, g, hasse) && safe_source(*b, g, hasse));
   
   std::cout << "source: tests passed" << std::endl;
   

@@ -964,6 +964,25 @@ bool is_redsigma(const RBGraph& g) {
   return true;
 }
 
+bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
+  RBGraph g1(g);
+  
+  std::list<std::string>::const_iterator i = hasse[v].vertices.begin();
+  for (; i != hasse[v].vertices.end(); ++i) {
+    RBVertexIter u, u_end, in;
+    std::tie(u, u_end) = vertices(g1);
+    in = find_vertex(u, u_end, *i, g1);
+    // for each species name in v
+    
+    if (in == u_end)
+      return false;
+    
+    realize(*in, g1);
+  }
+  
+  return !is_redsigma(g1);
+}
+
 std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
                                                       const RBGraph& g_cm,
                                                       const HDGraph& hasse) {

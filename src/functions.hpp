@@ -63,24 +63,23 @@ void print_hdgraph(const HDGraph& g);
 // Red-Black Graph
 
 /**
-  @brief Check if \c v is active
+  @brief Check if \c v is active in \c g
   @param v Vertex
   @param g Red-black graph
-  @return  True if \c v is active
+  @return  True if \c v is active in \c g
 */
 bool is_active(const RBVertex v, const RBGraph& g);
 
 /**
-  @brief Check if \c v is inactive
+  @brief Check if \c v is inactive in \c g
   @param v Vertex
   @param g Red-black graph
-  @return  True if \c v is inactive
+  @return  True if \c v is inactive in \c g
 */
 bool is_inactive(const RBVertex v, const RBGraph& g);
 
 /**
   @brief Functor used in remove_vertex_if
-         ...
 */
 struct if_singleton {
   /**
@@ -109,18 +108,18 @@ inline bool is_empty(const RBGraph& g) {
 }
 
 /**
-  @brief Check if \c v is free
+  @brief Check if \c v is free in \c g
   @param v Vertex
   @param g Red-black graph
-  @return  True if \c v is free
+  @return  True if \c v is free in \c g
 */
 bool is_free(const RBVertex v, const RBGraph& g);
 
 /**
-  @brief Check if \c v is universal
+  @brief Check if \c v is universal in \c g
   @param v Vertex
   @param g Red-black graph
-  @return  True if \c v is universal
+  @return  True if \c v is universal in \c g
 */
 bool is_universal(const RBVertex v, const RBGraph& g);
 
@@ -164,7 +163,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g);
 
 /**
   @brief Functor used in remove_vertex_if
-         ...
 */
 struct if_not_maximal {
   if_not_maximal(std::list<RBVertex> cm_) : cm(cm_) {};
@@ -249,8 +247,16 @@ HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
 bool is_redsigma(const RBGraph& g);
 
 /**
-  @brief Returns bool = True and a safe chain if \c hasse has a safe source
-         Returns bool = False if \c hasse has no safe source
+  @brief Check if \c v is a safe source in \c hasse
+  @param g     Red-black graph
+  @param hasse Hasse diagram graph
+  @return      True if \c v is a safe source in \c hasse
+*/
+bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
+
+/**
+  @brief Returns bool = True and a safe chain if \c hasse has a safe chain
+         Returns bool = False if \c hasse has no safe chain
   @param g     Red-black graph
   @param g_cm  Red-black maximal reducible graph
   @param hasse Hasse diagram graph
