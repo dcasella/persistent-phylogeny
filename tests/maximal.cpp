@@ -44,7 +44,7 @@ int main(int argc, const char* argv[]) {
   
   std::list<RBVertex> cm_check({c2, c3});
   std::list<RBVertex> cm = maximal_characters2(g);
-  maximal_reducible_graph(g, cm);
+  maximal_reducible_graph(cm, g);
   
   assert(cm == cm_check);
   assert(g[boost::graph_bundle].num_species == 5);

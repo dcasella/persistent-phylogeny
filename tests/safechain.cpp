@@ -13,9 +13,9 @@ int main(int argc, const char* argv[]) {
   assert(lc.empty());
   
   read_graph("tests/no_5x2.txt", g);
-  hasse_diagram(g, hasse);
+  hasse_diagram(hasse, g);
   g_cm = g;
-  maximal_reducible_graph(g_cm, maximal_characters2(g_cm));
+  maximal_reducible_graph(maximal_characters2(g_cm), g_cm);
   
   std::tie(lc, safe) = safe_chain(g, g_cm, hasse);
   

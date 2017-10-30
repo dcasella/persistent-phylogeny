@@ -16,7 +16,7 @@ int main(int argc, const char* argv[]) {
   
   RBGraphVector components;
   
-  assert(connected_components(g, components) == 3);
+  assert(connected_components(components, g) == 3);
   assert(num_vertices(*components[0].get()) == 1);
   assert(num_edges(*components[0].get()) == 0);
   assert(num_vertices(*components[1].get()) == 2);

@@ -6,7 +6,7 @@ int main(int argc, const char* argv[]) {
   RBGraph g;
   
   read_graph("tests/no_5x2.txt", g);
-  hasse_diagram(g, hasse);
+  hasse_diagram(hasse, g);
   
   assert(num_vertices(hasse) == 3);
   assert(num_edges(hasse) == 2);

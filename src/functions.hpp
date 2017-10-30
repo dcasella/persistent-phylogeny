@@ -88,7 +88,9 @@ struct if_singleton {
     @param g Red-black graph
     @return  True if \c v is a singleton in \c g
   */
-  bool operator()(const RBVertex v, RBGraph& g) const;
+  inline bool operator()(const RBVertex v, RBGraph& g) const {
+    return (out_degree(v, g) == 0);
+  }
 };
 
 /**
@@ -125,11 +127,11 @@ bool is_universal(const RBVertex v, const RBGraph& g);
 /**
   @brief Build the Red-black subgraphs of \c g
          Each subgraph is a copy of the respective connected component
-  @param g          Red-black graph
   @param components Vector of unique pointers to each subgraph
+  @param g          Red-black graph
   @return           Number of connected components
 */
-size_t connected_components(const RBGraph& g, RBGraphVector& components);
+size_t connected_components(RBGraphVector& components, const RBGraph& g);
 
 /**
   @brief Build the list of maximal characters of \c g
@@ -172,7 +174,9 @@ struct if_not_maximal {
     @param g Red-black graph
     @return  True if \c v is not maximal character of \c g
   */
-  bool operator()(const RBVertex v, const RBGraph& g) const;
+  inline bool operator()(const RBVertex v, const RBGraph& g) const {
+    return (std::find(cm.begin(), cm.end(), v) == cm.end());
+  }
   
 private:
   
@@ -182,10 +186,10 @@ private:
 /**
   @brief Build the maximal reducible graph of \c g given the maximal characters
          \c cm, removing non-maximal characters directly from \c g
-  @param g  Red-black graph
   @param cm List of maximal characters of \c g
+  @param g  Red-black graph
 */
-void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm);
+void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g);
 
 /**
   @brief Predicate used to sort a vector of lists of vertices
@@ -209,10 +213,10 @@ bool is_included(const std::list<std::string>& a,
 
 /**
   @brief Build the Hasse diagram of \c g
-  @param g     Red-black graph
   @param hasse Hasse diagram graph
+  @param g     Red-black graph
 */
-void hasse_diagram(const RBGraph& g, HDGraph& hasse);
+void hasse_diagram(HDGraph& hasse, const RBGraph& g);
 
 /**
   @brief Returns the vertex iterator of \c g if its name is \c name
@@ -245,8 +249,8 @@ HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
 bool is_redsigma(const RBGraph& g);
 
 /**
-  @brief Returns bool = True and a safe chain if the diagram has a safe source
-         Returns bool = False if the diagram has no safe source
+  @brief Returns bool = True and a safe chain if \c hasse has a safe source
+         Returns bool = False if \c hasse has no safe source
   @param g     Red-black graph
   @param g_cm  Red-black maximal reducible graph
   @param hasse Hasse diagram graph
@@ -269,17 +273,27 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
 std::list<CharacterState> reduce(RBGraph& g);
 
 /**
-  @brief ...
-  @param g Red-black graph
+  @brief Realize the character \c c (+ or -) in \c g
   @param c Character name of \c g and state
+  @param g Red-black graph
+  @return  True if the realization of \c c is feasible for g
 */
-void realize(RBGraph& g, const CharacterState& c);
+bool realize(const CharacterState& c, RBGraph& g);
 
 /**
-  @brief ...
-  @param g  Red-black graph
-  @param lc List of character names of \c g and states
+  @brief Realize the inactive characters of the species \c v in \c g
+  @param v Vertex
+  @param g Red-black graph
+  @return  True if the realization of \c v is feasible for g
 */
-void realize(RBGraph& g, const std::list<CharacterState>& lc);
+bool realize(const RBVertex& v, RBGraph& g);
+
+/**
+  @brief Realize the list of characters \c lc (+ or - each) in \c g
+  @param lc List of character names of \c g and states
+  @param g  Red-black graph
+  @return   True if the realizations of \c lc are feasible for g
+*/
+bool realize(const std::list<CharacterState>& lc, RBGraph& g);
 
 #endif

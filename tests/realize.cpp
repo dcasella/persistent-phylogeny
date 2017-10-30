@@ -47,13 +47,13 @@ int main(int argc, const char* argv[]) {
   
   RBGraph g1(g);
   
-  realize(g, {"c3", State::gain});
-  realize(g, {"c5", State::gain});
-  realize(g, {"c2", State::gain});
-  realize(g, {"c4", State::lose});
+  realize({ "c3", State::gain }, g);
+  realize({ "c5", State::gain }, g);
+  realize({ "c2", State::gain }, g);
+  realize({ "c4", State::lose }, g);
   
-  realize(g1, { {"c3", State::gain}, {"c5", State::gain},
-                {"c2", State::gain}, {"c4", State::lose} });
+  realize({ { "c3", State::gain }, { "c5", State::gain },
+            { "c2", State::gain }, { "c4", State::lose } }, g1);
   
   assert(num_vertices(g) == num_vertices(g1));
   assert(num_edges(g) == num_edges(g1));

@@ -219,10 +219,6 @@ bool is_inactive(const RBVertex v, const RBGraph& g) {
   return true;
 }
 
-bool if_singleton::operator()(const RBVertex v, RBGraph& g) const {
-  return (out_degree(v, g) == 0);
-}
-
 void remove_singletons(RBGraph& g) {
   RBVertexIter v, v_end, next;
   std::tie(v, v_end) = vertices(g);
@@ -274,7 +270,7 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   return true;
 }
 
-size_t connected_components(const RBGraph& g, RBGraphVector& components) {
+size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   size_t num_comps;
   IndexMap map_index, map_comp;
   AssocMap i_map(map_index), c_map(map_comp);
@@ -715,11 +711,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   return cm;
 }
 
-bool if_not_maximal::operator()(const RBVertex v, const RBGraph& g) const {
-  return (std::find(cm.begin(), cm.end(), v) == cm.end());
-}
-
-void maximal_reducible_graph(RBGraph& g, const std::list<RBVertex>& cm) {
+void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
   // remove non-maximal characters
   RBVertexIter v, v_end, next;
   std::tie(v, v_end) = vertices(g);
@@ -746,7 +738,7 @@ bool is_included(const std::list<std::string>& a,
   return true;
 }
 
-void hasse_diagram(const RBGraph& g, HDGraph& hasse) {
+void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   std::vector<std::list<RBVertex>> sets(g[boost::graph_bundle].num_species);
   std::map<RBVertex, std::list<RBVertex>> v_map;
   
@@ -1033,7 +1025,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     // TODO: test chain against g_cm_test or what? test source or not?
     
     RBGraph g_cm_test(g_cm);
-    realize(g_cm_test, lc);
+    realize(lc, g_cm_test);
     
     #ifdef DEBUG
     print_rbgraph(g_cm_test);
@@ -1113,7 +1105,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
       
       CharacterState cs { g[*v].name, State::lose };
       
-      realize(g, cs);
+      realize(cs, g);
       
       output.push_back(cs);
       output.splice(output.end(), reduce(g));
@@ -1142,7 +1134,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
       
       CharacterState cs { g[*v].name, State::gain };
       
-      realize(g, cs);
+      realize(cs, g);
       
       output.push_back(cs);
       output.splice(output.end(), reduce(g));
@@ -1157,7 +1149,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
   #endif
   
   RBGraphVector components;
-  size_t num_comps = connected_components(g, components);
+  size_t num_comps = connected_components(components, g);
   if (num_comps > 1) {
     /* if graph is not connected
      * build subgraphs (connected components) g1, g2, etc.
@@ -1174,7 +1166,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
    */
   RBGraph g_cm(g);
   std::list<RBVertex> cm = maximal_characters2(g_cm);
-  maximal_reducible_graph(g_cm, cm);
+  maximal_reducible_graph(cm, g_cm);
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
@@ -1188,7 +1180,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
   
   // p = Hasse diagram for g_cm (Grb|Cm)
   HDGraph p;
-  hasse_diagram(g_cm, p);
+  hasse_diagram(p, g_cm);
   
   #ifdef DEBUG
   std::cout << "Hasse:" << std::endl;
@@ -1205,7 +1197,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
     // p has no safe source
     throw std::runtime_error("Could not reduce graph");
   
-  realize(g, sc);
+  realize(sc, g);
   
   output.splice(output.end(), sc);
   output.splice(output.end(), reduce(g));
@@ -1214,7 +1206,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
   return output;
 }
 
-void realize(RBGraph& g, const CharacterState& c) {
+bool realize(const CharacterState& c, RBGraph& g) {
   // find vertex whose name is c.character in g
   RBVertexIter v, v_end, in;
   std::tie(v, v_end) = vertices(g);
@@ -1222,7 +1214,7 @@ void realize(RBGraph& g, const CharacterState& c) {
   
   if (in == v_end)
     // vertex whose name is c.character doesn't exist in g
-    return;
+    return false;
   
   RBVertex cv = *in;
   
@@ -1289,17 +1281,49 @@ void realize(RBGraph& g, const CharacterState& c) {
     
     clear_vertex(cv, g);
   }
-  #ifdef DEBUG
   else {
+    #ifdef DEBUG
     std::cout << "Could not realize " << c << std::endl;
+    #endif
+    
+    return false;
   }
-  #endif
   
   remove_singletons(g);
+  
+  return true;
 }
 
-void realize(RBGraph& g, const std::list<CharacterState>& lc) {
+bool realize(const RBVertex& v, RBGraph& g) {
+  if (g[v].type != Type::species)
+    return false;
+  
+  std::list<CharacterState> lc;
+  
+  RBOutEdgeIter e, e_end;
+  std::tie(e, e_end) = out_edges(v, g);
+  for (; e != e_end; ++e) {
+    RBVertex u = target(*e, g);
+    
+    if (is_inactive(u, g))
+      lc.push_back({ g[u].name, State::gain });
+  }
+  
+  bool feasible = realize(lc, g);
+  
+  return feasible;
+}
+
+bool realize(const std::list<CharacterState>& lc, RBGraph& g) {
+  bool output = true;
+  
   std::list<CharacterState>::const_iterator i = lc.begin();
-  for (; i != lc.end(); ++i)
-    realize(g, *i);
+  for (; i != lc.end(); ++i) {
+    bool feasible = realize(*i, g);
+    
+    if (!feasible)
+      output = false;
+  }
+  
+  return output;
 }

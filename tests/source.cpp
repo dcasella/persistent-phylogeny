@@ -6,7 +6,7 @@ int main(int argc, const char* argv[]) {
   RBGraph g;
   
   read_graph("tests/no_5x2.txt", g);
-  hasse_diagram(g, hasse);
+  hasse_diagram(hasse, g);
   
   HDVertexIter v, v_end, a, b, c;
   std::tie(v, v_end) = vertices(hasse);
