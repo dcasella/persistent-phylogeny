@@ -159,16 +159,19 @@ void print_hdgraph(const HDGraph& g) {
     for (; e != e_end; ++e) {
       HDVertex vt = target(*e, g);
       
-      std::cout << " -" << g[*e].character;
+      std::cout << " -";
       
-      if (g[*e].state == State::gain)
-        std::cout << "+";
-      else if (g[*e].state == State::lose)
-        std::cout << "-";
+      std::list<CharacterState>::const_iterator j = g[*e].lcs.begin();
+      for (; j != g[*e].lcs.end(); ++j) {
+        std::cout << *j;
+        
+        if (std::next(j) != g[*e].lcs.end())
+          std::cout << ",";
+      }
       
       std::cout << "-> [ ";
       
-      std::list<std::string>::const_iterator i = g[vt].vertices.begin();
+      i = g[vt].vertices.begin();
       for (; i != g[vt].vertices.end(); ++i)
         std::cout << *i << " ";
       
@@ -859,8 +862,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       
       // TODO: find the correct way to build the edges
       
-      if (is_included(lhdv, lcv) && (lhdv.size() == lcv.size() - 1)) {
-        // hdv has one less character than v and hdv included in v
+      if (is_included(lhdv, lcv)) {
+        // hdv has one less character than v and hdv is included in v
         std::list<std::string>::const_iterator ci, ci_end;
         ci = lcv.begin(); ci_end = lcv.end();
         for (; ci != ci_end; ++ci) {
@@ -871,8 +874,6 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
           if (in == lhdv.end()) {
             // character is not present in lhdv
             new_edges.push_back(std::make_pair(*hdv, *ci));
-            
-            // break;
           }
         }
       }
@@ -895,17 +896,19 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
           // for each new edge to add to the Hasse diagram
           HDEdge edge;
           std::tie(edge, std::ignore) = add_edge(ei->first, u, hasse);
-          hasse[edge].character = ei->second;
-          hasse[edge].state = State::gain;
+          hasse[edge].lcs.push_back({ ei->second, State::gain });
           
           #ifdef DEBUG
           std::cout << "Hasse.addE ";
           kk = hasse[ei->first].vertices.begin();
-          for (; kk != hasse[ei->first].vertices.end(); ++kk)
-            std::cout << *kk << " ";
-          std::cout << "-" << hasse[edge].character;
-          if (hasse[edge].state == State::gain) std::cout << "+";
-          else if (hasse[edge].state == State::lose) std::cout << "-";
+          for (; kk != hasse[ei->first].vertices.end(); ++kk) std::cout << *kk << " ";
+          std::cout << "-";
+          std::list<CharacterState>::const_iterator jj = hasse[edge].lcs.begin();
+          for (; jj != hasse[edge].lcs.end(); ++jj) {
+            std::cout << *jj;
+            if (std::next(jj) != hasse[edge].lcs.end())
+              std::cout << ",";
+          }
           std::cout << "-> ";
           kk = hasse[u].vertices.begin();
           for (; kk != hasse[u].vertices.end(); ++kk) std::cout << *kk << " ";
@@ -919,9 +922,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       else {
         std::cout << "ignore";
       }
-      #endif
       
-      #ifdef DEBUG
       std::cout << std::endl;
       #endif
     }
@@ -989,7 +990,9 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
               << "C: < ";
     #endif
     
-    // TODO: implement DFS-like approach for when a chain is not safe?
+    // TODO: test safe source?
+    
+    // TODO: implement DFS-like approach
     
     while (out_degree(curr, hasse) > 0) {
       #ifdef DEBUG
@@ -1001,7 +1004,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
       
       HDOutEdgeIter edge;
       std::tie(edge, std::ignore) = out_edges(curr, hasse);
-      lc.push_back({ hasse[*edge].character, hasse[*edge].state });
+      lc.insert(lc.end(), hasse[*edge].lcs.begin(), hasse[*edge].lcs.end());
       
       curr = target(*edge, hasse);
     }
@@ -1013,16 +1016,9 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     std::cout << "] >" << std::endl 
               << "S(C): < ";
     std::list<CharacterState>::const_iterator jj = lc.begin();
-    for (; jj != lc.end(); ++jj) {
-      std::cout << jj->character;
-      if (jj->state == State::gain) std::cout << "+";
-      else if (jj->state == State::lose) std::cout << "-";
-      std::cout << " ";
-    }
+    for (; jj != lc.end(); ++jj) std::cout << *jj << " ";
     std::cout << ">" << std::endl;
     #endif
-    
-    // TODO: test chain against g_cm_test or what? test source or not?
     
     RBGraph g_cm_test(g_cm);
     realize(lc, g_cm_test);

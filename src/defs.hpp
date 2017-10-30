@@ -17,6 +17,15 @@ enum class State : unsigned char {
   none, lose, gain
 };
 
+/**
+  @var character stores the character name
+  @var state stores the character state
+*/
+struct CharacterState {
+  std::string character = "c";
+  State state = State::none;
+};
+
 // Red-Black Graph
 
 /**
@@ -67,12 +76,10 @@ struct RBGraphProperties {
 // Hasse Diagram
 
 /**
-  @var character stores the character name which lables the edge
-  @var state stores the character state
+  @var lcs stores the character names and states which lable the edge
 */
 struct HDEdgeProperties {
-  std::string character = "c";
-  State state = State::none;
+  std::list<CharacterState> lcs;
 };
 
 /**
@@ -89,9 +96,6 @@ struct HDGraphProperties {
 
 
 //=============================================================================
-// Typedefs used for readabily
-
-typedef HDEdgeProperties CharacterState;
 
 // Red-Black Graph
 
