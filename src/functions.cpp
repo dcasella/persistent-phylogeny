@@ -957,11 +957,15 @@ bool is_redsigma(const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (!is_active(*v, g) && !is_free(*v, g))
+    if (g[*v].type != Type::character)
+      continue;
+    
+    if (is_inactive(*v, g) || is_free(*v, g))
       return false;
   }
   
-  return true;
+  // Return True if g isn't empty (Empty graph isn't red sigma)
+  return !is_empty(g);
 }
 
 bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
@@ -972,7 +976,7 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
     RBVertexIter u, u_end, in;
     std::tie(u, u_end) = vertices(g1);
     in = find_vertex(u, u_end, *i, g1);
-    // for each species name in v
+    // for each species in v
     
     if (in == u_end)
       return false;
@@ -986,7 +990,7 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
 std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
                                                       const RBGraph& g_cm,
                                                       const HDGraph& hasse) {
-  std::list<CharacterState> lc;
+  std::list<CharacterState> output;
   bool safe = false;
   
   HDVertexIter v, v_end;
@@ -1000,6 +1004,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
       break;
     
     HDVertex curr = *v;
+    std::list<CharacterState> lc;
     
     #ifdef DEBUG
     std::cout << "Source: [ ";
@@ -1008,8 +1013,6 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     std::cout << "]" << std::endl
               << "C: < ";
     #endif
-    
-    // TODO: test safe source?
     
     // TODO: implement DFS-like approach
     
@@ -1040,7 +1043,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     #endif
     
     RBGraph g_cm_test(g_cm);
-    realize(lc, g_cm_test);
+    std::tie(output, std::ignore) = realize(lc, g_cm_test);
     
     #ifdef DEBUG
     print_rbgraph(g_cm_test);
@@ -1051,7 +1054,10 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
       std::cout << "No red Σ-graph" << std::endl;
       #endif
       
+      // TODO: test safe source?
+      
       safe = true;
+      
       break;
     }
     else {
@@ -1059,7 +1065,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
       std::cout << "Found red Σ-graph" << std::endl;
       #endif
       
-      lc.clear();
+      output.clear();
     }
     
     #ifdef DEBUG
@@ -1067,7 +1073,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     #endif
   }
   
-  return std::make_pair(lc, safe);
+  return std::make_pair(output, safe);
 }
 
 
@@ -1118,11 +1124,10 @@ std::list<CharacterState> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      CharacterState cs { g[*v].name, State::lose };
+      std::list<CharacterState> lc;
+      std::tie(lc, std::ignore) = realize({ g[*v].name, State::lose }, g);
       
-      realize(cs, g);
-      
-      output.push_back(cs);
+      output.splice(output.end(), lc);
       output.splice(output.end(), reduce(g));
       
       // return < v-, reduce(g) >
@@ -1147,11 +1152,10 @@ std::list<CharacterState> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      CharacterState cs { g[*v].name, State::gain };
+      std::list<CharacterState> lc;
+      std::tie(lc, std::ignore) = realize({ g[*v].name, State::gain }, g);
       
-      realize(cs, g);
-      
-      output.push_back(cs);
+      output.splice(output.end(), lc);
       output.splice(output.end(), reduce(g));
       
       // return < v+, reduce(g) >
@@ -1212,16 +1216,20 @@ std::list<CharacterState> reduce(RBGraph& g) {
     // p has no safe source
     throw std::runtime_error("Could not reduce graph");
   
-  realize(sc, g);
+  std::list<CharacterState> lc;
+  std::tie(lc, std::ignore) = realize(sc, g);
   
-  output.splice(output.end(), sc);
+  output.splice(output.end(), lc);
   output.splice(output.end(), reduce(g));
   
   // return < sc, reduce(g) >
   return output;
 }
 
-bool realize(const CharacterState& c, RBGraph& g) {
+std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
+                                                   RBGraph& g) {
+  std::list<CharacterState> output;
+  
   // find vertex whose name is c.character in g
   RBVertexIter v, v_end, in;
   std::tie(v, v_end) = vertices(g);
@@ -1229,7 +1237,7 @@ bool realize(const CharacterState& c, RBGraph& g) {
   
   if (in == v_end)
     // vertex whose name is c.character doesn't exist in g
-    return false;
+    return std::make_pair(output, false);
   
   RBVertex cv = *in;
   
@@ -1301,19 +1309,64 @@ bool realize(const CharacterState& c, RBGraph& g) {
     std::cout << "Could not realize " << c << std::endl;
     #endif
     
-    return false;
+    return std::make_pair(output, false);
   }
+  
+  output.push_back(c);
   
   remove_singletons(g);
   
-  return true;
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    // for each vertex
+    if (is_universal(*v, g)) {
+      /* if v is universal
+       * realize v+
+       */
+      #ifdef DEBUG
+      std::cout << "G universal character " << g[*v].name
+                << std::endl << std::endl;
+      #endif
+      
+      std::list<CharacterState> lc;
+      std::tie(lc, std::ignore) = realize({ g[*v].name, State::gain }, g);
+      
+      output.splice(output.end(), lc);
+      
+      return std::make_pair(output, true);
+    }
+  }
+  
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    // for each vertex
+    if (is_free(*v, g)) {
+      /* if v is free
+       * realize v-
+       */
+      #ifdef DEBUG
+      std::cout << "G free character " << g[*v].name
+                << std::endl << std::endl;
+      #endif
+      
+      std::list<CharacterState> lc;
+      std::tie(lc, std::ignore) = realize({ g[*v].name, State::lose }, g);
+      
+      output.splice(output.end(), lc);
+      
+      return std::make_pair(output, true);
+    }
+  }
+  
+  return std::make_pair(output, true);
 }
 
-bool realize(const RBVertex& v, RBGraph& g) {
-  if (g[v].type != Type::species)
-    return false;
-  
+std::pair<std::list<CharacterState>, bool> realize(const RBVertex& v,
+                                                   RBGraph& g) {
   std::list<CharacterState> lc;
+  
+  if (g[v].type != Type::species)
+    return std::make_pair(lc, false);
   
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
@@ -1324,21 +1377,26 @@ bool realize(const RBVertex& v, RBGraph& g) {
       lc.push_back({ g[u].name, State::gain });
   }
   
-  bool feasible = realize(lc, g);
-  
-  return feasible;
+  return realize(lc, g);
 }
 
-bool realize(const std::list<CharacterState>& lc, RBGraph& g) {
-  bool output = true;
+std::pair<std::list<CharacterState>, bool> realize(
+    const std::list<CharacterState>& lc,
+    RBGraph& g) {
+  std::list<CharacterState> output;
+  bool feasible = true;
   
   std::list<CharacterState>::const_iterator i = lc.begin();
   for (; i != lc.end(); ++i) {
-    bool feasible = realize(*i, g);
+    std::list<CharacterState> lcs;
+    bool feasible_realize;
+    std::tie(lcs, feasible_realize) = realize(*i, g);
     
-    if (!feasible)
-      output = false;
+    output.splice(output.end(), lcs);
+    
+    if (!feasible_realize)
+      feasible = false;
   }
   
-  return output;
+  return std::make_pair(output, feasible);
 }

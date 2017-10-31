@@ -20,7 +20,9 @@ int main(int argc, const char* argv[]) {
   std::tie(lc, safe) = safe_chain(g, g_cm, hasse);
   
   assert(safe == true);
-  assert(lc == std::list<CharacterState>({ { "c1", State::gain } }));
+  assert(lc == std::list<CharacterState>({ { "c1", State::gain },
+                                           { "c2", State::gain },
+                                           { "c1", State::lose } }));
   
   std::cout << "safechain: tests passed" << std::endl;
   
