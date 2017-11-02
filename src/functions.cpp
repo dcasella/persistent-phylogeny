@@ -275,8 +275,8 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
 
 size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   size_t num_comps;
-  IndexMap map_index, map_comp;
-  AssocMap i_map(map_index), c_map(map_comp);
+  RBIndexMap map_index, map_comp;
+  RBAssocMap i_map(map_index), c_map(map_comp);
   
   // fill vertex index map
   RBVertexIter v, v_end;
@@ -287,9 +287,8 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   }
   
   // get number of components and the components map
-  num_comps = boost::connected_components(
-    g, c_map, boost::vertex_index_map(i_map)
-  );
+  num_comps = boost::connected_components(g, c_map,
+                                          boost::vertex_index_map(i_map));
   
   if (num_comps > 1) {
     // graph is disconnected
@@ -304,7 +303,7 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
     }
     
     // add vertices to their respective subgraph
-    IndexMap::iterator i = map_comp.begin();
+    RBIndexMap::iterator i = map_comp.begin();
     for (; i != map_comp.end(); ++i) {
       // for each vertex
       RBVertex v = i->first;
@@ -355,7 +354,9 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
     #endif
   }
   #ifdef DEBUG
-  else std::cout << "G connected" << std::endl;
+  else {
+    std::cout << "G connected" << std::endl;
+  }
   #endif
   
   return num_comps;
@@ -431,7 +432,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(),
-                                  *sv);
+                                    *sv);
         
         /* keep count of how many species are included (or not found) in
          * the list of cmv's adjacent species
@@ -808,8 +809,15 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     for (; cv != cv_end; ++cv)
       lcv.push_back(g[*cv].name);
     
-    if (sets[i].size() == sets[0].size()) {
-      // first block of sets with the same number of elements
+    if (i == 0) {
+      /* first iteration of the loop:
+       * add v to the Hasse diagram, and being the first vertex of the graph
+       * there's no need to do any work.
+       */
+      #ifdef DEBUG
+      std::cout << "Hasse.addV " << g[v].name << std::endl << std::endl;
+      #endif
+      
       HDVertex u = add_vertex(hasse);
       hasse[u].vertices.push_back(g[v].name);
       hasse[u].characters = lcv;
@@ -818,9 +826,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     }
     
     #ifdef DEBUG
-    std::cout << g[v].name << " = { ";
-    RBVertexIter kk = v_map[v].begin(), kk_end = v_map[v].end();
-    for (; kk != kk_end; ++kk) std::cout << g[*kk].name << " ";
+    std::cout << "C(" << g[v].name << ") = { ";
+    std::list<std::string>::const_iterator kk = lcv.begin();
+    for (; kk != lcv.end(); ++kk) std::cout << *kk << " ";
     std::cout << "}:" << std::endl;
     #endif
     
@@ -838,7 +846,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       // for each vertex in hasse
       #ifdef DEBUG
       std::cout << "hdv: ";
-      std::list<std::string>::const_iterator kk = hasse[*hdv].vertices.begin();
+      kk = hasse[*hdv].vertices.begin();
       for (; kk != hasse[*hdv].vertices.end(); ++kk) std::cout << *kk << " ";
       std::cout << "= { ";
       kk = hasse[*hdv].characters.begin();
@@ -863,7 +871,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       // TODO: find the correct way to build the edges
       
       if (is_included(lhdv, lcv)) {
-        // hdv has one less character than v and hdv is included in v
+        // hdv is included in v
         std::list<std::string>::const_iterator ci, ci_end;
         ci = lcv.begin(); ci_end = lcv.end();
         for (; ci != ci_end; ++ci) {
@@ -931,6 +939,48 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     std::cout << std::endl;
     #endif
   }
+  
+  #ifdef DEBUG
+  std::cout << "Before transitive reduction:" << std::endl;
+  print_hdgraph(hasse);
+  std::cout << std::endl;
+  #endif
+  
+  // transitive reduction of the Hasse diagram
+  HDVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(hasse);
+  for (; u != u_end; ++u) {
+    if (in_degree(*u, hasse) == 0 || out_degree(*u, hasse) == 0)
+      continue;
+    // for each internal vertex in hasse
+    
+    HDInEdgeIter ie, ie_end;
+    std::tie(ie, ie_end) = in_edges(*u, hasse);
+    for (; ie != ie_end; ++ie) {
+      // for each in-edge
+      HDOutEdgeIter oe, oe_end;
+      std::tie(oe, oe_end) = out_edges(*u, hasse);
+      for (; oe != oe_end; ++oe) {
+        /* for each out-edge
+         * source -> u -> target
+         */
+        HDEdge e;
+        bool exists;
+        std::tie(e, exists) = edge(source(*ie, hasse), target(*oe, hasse),
+                                   hasse);
+        
+        if (!exists)
+          // no transitivity between source and target
+          continue;
+        
+        /* remove source -> target, which breaks the no-transitivty rule in
+         * the Hasse diagram we need, because a path between source and target
+         * already exists in the form: source -> u -> target
+         */
+        remove_edge(e, hasse);
+      }
+    }
+  }
 }
 
 RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
@@ -990,6 +1040,12 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
 std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
                                                       const RBGraph& g_cm,
                                                       const HDGraph& hasse) {
+  /* TODO: implement safe_chain by using
+   *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/depth_first_search.html
+   * with an implementation of
+   *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/DFSVisitor.html
+   */
+  
   std::list<CharacterState> output;
   bool safe = false;
   
@@ -1013,8 +1069,6 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     std::cout << "]" << std::endl
               << "C: < ";
     #endif
-    
-    // TODO: implement DFS-like approach
     
     while (out_degree(curr, hasse) > 0) {
       #ifdef DEBUG
@@ -1241,8 +1295,8 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
   
   RBVertex cv = *in;
   
-  IndexMap map_index, map_comp;
-  AssocMap i_map(map_index), c_map(map_comp);
+  RBIndexMap map_index, map_comp;
+  RBAssocMap i_map(map_index), c_map(map_comp);
   
   // fill vertex index map
   std::tie(v, v_end) = vertices(g);

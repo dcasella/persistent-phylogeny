@@ -130,8 +130,8 @@ typedef boost::graph_traits<RBGraph>::vertices_size_type RBVertexSize;
 
 // Index Maps
 
-typedef std::map<RBVertex, RBVertexSize> IndexMap;
-typedef boost::associative_property_map<IndexMap> AssocMap;
+typedef std::map<RBVertex, RBVertexSize> RBIndexMap;
+typedef boost::associative_property_map<RBIndexMap> RBAssocMap;
 
 // Containers
 
@@ -143,7 +143,7 @@ typedef std::vector<std::unique_ptr<RBGraph>> RBGraphVector;
 
 typedef boost::adjacency_list<
   boost::setS,           // OutEdgeList
-  boost::listS,          // VertexList
+  boost::vecS,           // VertexList
   boost::bidirectionalS, // Directed
   HDVertexProperties,    // VertexProperties
   HDEdgeProperties,      // EdgeProperties
@@ -160,6 +160,7 @@ typedef boost::graph_traits<HDGraph>::vertex_descriptor HDVertex;
 typedef boost::graph_traits<HDGraph>::edge_iterator HDEdgeIter;
 typedef boost::graph_traits<HDGraph>::vertex_iterator HDVertexIter;
 
+typedef boost::graph_traits<HDGraph>::in_edge_iterator HDInEdgeIter;
 typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
 
 typedef boost::graph_traits<HDGraph>::adjacency_iterator HDAdjIter;
