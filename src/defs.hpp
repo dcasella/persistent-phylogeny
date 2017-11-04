@@ -175,6 +175,13 @@ typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
 
 // General
 
+/**
+  @brief Overloading of operator<< for Type
+  
+  @param os Output stream
+  @param t  Type
+  @return   Updated output stream
+*/
 inline std::ostream& operator<<(std::ostream& os, const Type& t) {
   if (t == Type::species)
     os << "Species";
@@ -186,6 +193,13 @@ inline std::ostream& operator<<(std::ostream& os, const Type& t) {
   return os;
 }
 
+/**
+  @brief Overloading of operator<< for State
+  
+  @param os Output stream
+  @param s  State
+  @return   Updated output stream
+*/
 inline std::ostream& operator<<(std::ostream& os, const State& s) {
   if (s == State::lose)
     os << "-";
@@ -195,10 +209,24 @@ inline std::ostream& operator<<(std::ostream& os, const State& s) {
   return os;
 }
 
+/**
+  @brief Overloading of operator<< for CharacterState
+  
+  @param os Output stream
+  @param cs CharacterState
+  @return   Updated output stream
+*/
 inline std::ostream& operator<<(std::ostream& os, const CharacterState& cs) {
   return os << cs.character << cs.state;
 }
 
+/**
+  @brief Overloading of operator== for a pair of CharacterState
+  
+  @param a CharacterState
+  @param b CharacterState
+  @return  True if a is equal to b
+*/
 inline bool operator==(const CharacterState& a, const CharacterState& b) {
   return (a.character == b.character && a.state == b.state);
 }

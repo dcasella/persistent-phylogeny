@@ -67,22 +67,24 @@ std::pair<HDEdge, bool> add_edge(const HDVertex u, const HDVertex v,
 
 // Red-Black Graph
 
-void print_rbgraph(const RBGraph& g) {
+std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    std::cout << g[*v].name << ":";
+    os << g[*v].name << ":";
     
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
-      std::cout << " -" << (g[*e].color == Color::red ? "r" : "-") << "- "
-                << g[target(*e, g)].name
-                << ";";
+      os << " -" << (g[*e].color == Color::red ? "r" : "-") << "- "
+         << g[target(*e, g)].name << ";";
     }
     
-    std::cout << std::endl;
+    if (std::next(v) != v_end)
+      os << std::endl;
   }
+  
+  return os;
 }
 
 // File I/O
@@ -189,56 +191,59 @@ void read_graph(const std::string& filename, RBGraph& g) {
 
 // Hasse Diagram
 
-void print_hdgraph(const HDGraph& g) {
+std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
   HDVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(hasse);
   for (; v != v_end; ++v) {
-    std::cout << "[ ";
+    os << "[ ";
     
-    std::list<std::string>::const_iterator i = g[*v].species.begin();
-    for (; i != g[*v].species.end(); ++i)
-      std::cout << *i << " ";
+    std::list<std::string>::const_iterator i = hasse[*v].species.begin();
+    for (; i != hasse[*v].species.end(); ++i)
+      os << *i << " ";
     
-    std::cout << "( ";
+    os << "( ";
     
-    i = g[*v].characters.begin();
-    for (; i != g[*v].characters.end(); ++i)
-      std::cout << *i << " ";
+    i = hasse[*v].characters.begin();
+    for (; i != hasse[*v].characters.end(); ++i)
+      os << *i << " ";
     
-    std::cout << ") ]:";
+    os << ") ]:";
     
     HDOutEdgeIter e, e_end;
-    std::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, hasse);
     for (; e != e_end; ++e) {
-      HDVertex vt = target(*e, g);
+      HDVertex vt = target(*e, hasse);
       
-      std::cout << " -";
+      os << " -";
       
-      std::list<CharacterState>::const_iterator j = g[*e].lcs.begin();
-      for (; j != g[*e].lcs.end(); ++j) {
-        std::cout << *j;
+      std::list<CharacterState>::const_iterator j = hasse[*e].lcs.begin();
+      for (; j != hasse[*e].lcs.end(); ++j) {
+        os << *j;
         
-        if (std::next(j) != g[*e].lcs.end())
-          std::cout << ",";
+        if (std::next(j) != hasse[*e].lcs.end())
+          os << ",";
       }
       
-      std::cout << "-> [ ";
+      os << "-> [ ";
       
-      i = g[vt].species.begin();
-      for (; i != g[vt].species.end(); ++i)
-        std::cout << *i << " ";
+      i = hasse[vt].species.begin();
+      for (; i != hasse[vt].species.end(); ++i)
+        os << *i << " ";
       
-      std::cout << "( ";
+      os << "( ";
       
-      i = g[vt].characters.begin();
-      for (; i != g[vt].characters.end(); ++i)
-        std::cout << *i << " ";
+      i = hasse[vt].characters.begin();
+      for (; i != hasse[vt].characters.end(); ++i)
+        os << *i << " ";
       
-      std::cout << ") ];";
+      os << ") ];";
     }
     
-    std::cout << std::endl;
+    if (std::next(v) != v_end)
+      os << std::endl;
   }
+  
+  return os;
 }
 
 
@@ -399,8 +404,7 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
     #ifdef DEBUG
     std::cout << "Connected components:" << std::endl;
     for (size_t i = 0; i < num_comps; ++i) {
-      print_rbgraph(*components[i].get());
-      std::cout << std::endl;
+      std::cout << *components[i].get() << std::endl << std::endl;
     }
     #endif
   }
@@ -988,9 +992,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   }
   
   #ifdef DEBUG
-  std::cout << "Before transitive reduction:" << std::endl;
-  print_hdgraph(hasse);
-  std::cout << std::endl;
+  std::cout << "Before transitive reduction:" << std::endl
+            << hasse << std::endl << std::endl;
   #endif
   
   // transitive reduction of the Hasse diagram
@@ -1147,7 +1150,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     std::tie(output, std::ignore) = realize(lc, g_cm_test);
     
     #ifdef DEBUG
-    print_rbgraph(g_cm_test);
+    std::cout << g_cm_test << std::endl << std::endl;
     #endif
     
     if (!is_redsigma(g_cm_test)) {
@@ -1186,9 +1189,8 @@ std::list<CharacterState> reduce(RBGraph& g) {
   
   #ifdef DEBUG
   std::cout << std::endl
-            << "Working on G:" << std::endl;
-  print_rbgraph(g);
-  std::cout << std::endl;
+            << "Working on G:" << std::endl
+            << g << std::endl << std::endl;
   #endif
   
   // cleanup graph from dead vertices
@@ -1293,9 +1295,8 @@ std::list<CharacterState> reduce(RBGraph& g) {
   std::list<RBVertex>::const_iterator kk = cm.begin();
   for (; kk != cm.end(); ++kk) std::cout << g_cm[*kk].name << " ";
   std::cout << "}" << std::endl
-            << "Gcm:" << std::endl;
-  print_rbgraph(g_cm);
-  std::cout << std::endl;
+            << "Gcm:" << std::endl
+            << g_cm << std::endl << std::endl;
   #endif
   
   // p = Hasse diagram for g_cm (Grb|Cm)
@@ -1303,9 +1304,8 @@ std::list<CharacterState> reduce(RBGraph& g) {
   hasse_diagram(p, g_cm);
   
   #ifdef DEBUG
-  std::cout << "Hasse:" << std::endl;
-  print_hdgraph(p);
-  std::cout << std::endl;
+  std::cout << "Hasse:" << std::endl
+            << p << std::endl << std::endl;
   #endif
   
   // sc = safe chain for g (Grb)

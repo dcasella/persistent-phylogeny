@@ -147,11 +147,13 @@ void remove_vertex_if(const RBVertex v, Predicate pred, RBGraph& g) {
 }
 
 /**
-  @brief Print \c g
+  @brief Overloading of operator<< for RBGraph
   
-  @param g Red-black graph
+  @param os Output stream
+  @param g  Red-black graph
+  @return   Updated output stream
 */
-void print_rbgraph(const RBGraph& g);
+std::ostream& operator<<(std::ostream& os, const RBGraph& g);
 
 // File I/O
 
@@ -166,11 +168,13 @@ void read_graph(const std::string& filename, RBGraph& g);
 // Hasse Diagram
 
 /**
-  @brief Print \c g
+  @brief Overloading of operator<< for HDGraph
   
-  @param g Hasse diagram graph
+  @param os    Output stream
+  @param hasse Hasse diagram graph
+  @return      Updated output stream
 */
-void print_hdgraph(const HDGraph& g);
+std::ostream& operator<<(std::ostream& os, const HDGraph& hasse);
 
 
 //=============================================================================

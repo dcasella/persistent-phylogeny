@@ -20,7 +20,7 @@ int main(int argc, const char* argv[]) {
   assert(num_vertices(g) == 4);
   
   #ifdef DEBUG
-  print_rbgraph(g);
+  std::cout << g << std::endl;
   #endif
   
   std::cout << "singletons: tests passed" << std::endl;

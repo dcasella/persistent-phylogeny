@@ -56,7 +56,7 @@ int main(int argc, const char* argv[]) {
   assert(num_edges(g) == num_edges(g1));
   
   #ifdef DEBUG
-  print_rbgraph(g);
+  std::cout << g << std::endl;
   #endif
   
   std::cout << "realize: tests passed" << std::endl;
