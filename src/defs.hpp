@@ -76,17 +76,18 @@ struct RBGraphProperties {
 // Hasse Diagram
 
 /**
-  @var lcs stores the character names and states which lable the edge
+  @var lcs stores the character names and states which label the edge
 */
 struct HDEdgeProperties {
   std::list<CharacterState> lcs;
 };
 
 /**
-  @var vertices stores the list of vertices which labels the vertex
+  @var species stores the list of species which label the vertex
+  @var characters stores the list of characters of the species
 */
 struct HDVertexProperties {
-  std::list<std::string> vertices;
+  std::list<std::string> species;
   std::list<std::string> characters;
 };
 

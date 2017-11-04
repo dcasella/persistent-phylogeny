@@ -6,9 +6,129 @@
 
 
 //=============================================================================
+// Boost functions (overloading)
+
+// Red-Black Graph
+
+/**
+  @brief Remove \c v from \c g
+  
+  @param v Vertex
+  @param g Red-black graph
+*/
+void remove_vertex(const RBVertex v, RBGraph& g);
+
+/**
+  @brief Add vertex with name \c name and type \c type to \c g
+  
+  @param name Name
+  @param type Type
+  @param g    Red-black graph
+*/
+RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g);
+
+/**
+  @brief Add vertex with name \c name to \c g
+  
+  @param name Name
+  @param g    Red-black graph
+*/
+inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
+  return add_vertex(name, Type::none, g);
+}
+
+/**
+  @brief Add edge between \c u and \c v with color \c color to \c g
+  
+  @param u     Source Vertex
+  @param v     Target Vertex
+  @param color Color
+  @param g     Red-black graph
+*/
+std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
+                                 const Color color, RBGraph& g);
+
+// Hasse Diagram
+
+/**
+  @brief Add vertex with species \c species and characters \c characters to
+         \c hasse
+  
+  @param species    List of species names
+  @param characters List of character names
+  @param hasse      Hasse diagram graph
+*/
+HDVertex add_vertex(const std::list<std::string>& species,
+                    const std::list<std::string>& characters, HDGraph& hasse);
+
+/**
+  @brief Add vertex with species \c species and characters \c characters to
+         \c hasse
+  
+  @param species    Species name
+  @param characters List of character names
+  @param hasse      Hasse diagram graph
+*/
+inline HDVertex add_vertex(const std::string& species,
+                           const std::list<std::string>& characters,
+                           HDGraph& hasse) {
+  return add_vertex(std::list<std::string>({ species }), characters, hasse);
+}
+
+/**
+  @brief Add edge between \c u and \c v with list of character names and states
+         \c lcs to \c hasse
+  
+  @param u     Source Vertex
+  @param v     Target Vertex
+  @param lcs   List of character names and states
+  @param hasse Hasse diagram graph
+*/
+std::pair<HDEdge, bool> add_edge(const HDVertex u, const HDVertex v,
+                                 const std::list<CharacterState>& lcs,
+                                 HDGraph& hasse);
+
+
+//=============================================================================
 // General functions
 
 // Red-Black Graph
+
+/**
+  @brief Return the number of species in \c g
+  
+  @param g Red-black graph
+*/
+inline size_t& num_species(RBGraph& g) {
+  return g[boost::graph_bundle].num_species;
+}
+
+/**
+  @brief Return the number of species (const) in \c g
+  
+  @param g Red-black graph
+*/
+inline const size_t num_species(const RBGraph& g) {
+  return g[boost::graph_bundle].num_species;
+}
+
+/**
+  @brief Return the number of characters in \c g
+  
+  @param g Red-black graph
+*/
+inline size_t& num_characters(RBGraph& g) {
+  return g[boost::graph_bundle].num_characters;
+}
+
+/**
+  @brief Return the number of characters (const) in \c g
+  
+  @param g Red-black graph
+*/
+inline const size_t num_characters(const RBGraph& g) {
+  return g[boost::graph_bundle].num_characters;
+}
 
 /**
   @brief Remove \c v from \c g if it satisfies \c pred
@@ -18,14 +138,9 @@
   @param pred Predicate
 */
 template <typename Predicate>
-void remove_vertex_if(const RBVertex& v, Predicate pred, RBGraph& g) {
+void remove_vertex_if(const RBVertex v, Predicate pred, RBGraph& g) {
   if (pred(v, g)) {
     // vertex satisfies pred
-    if (g[v].type == Type::species)
-      g[boost::graph_bundle].num_species--;
-    else if (g[v].type == Type::character)
-      g[boost::graph_bundle].num_characters--;
-    
     clear_vertex(v, g);
     remove_vertex(v, g);
   }

@@ -17,8 +17,8 @@ int main(int argc, const char* argv[]) {
   c = find_source(v, v_end, hasse);
   std::tie(v, v_end) = vertices(hasse);
   
-  assert(hasse[*a].vertices == std::list<std::string>({ "s1" }));
-  assert(hasse[*b].vertices == std::list<std::string>({ "s3" }));
+  assert(hasse[*a].species == std::list<std::string>({ "s1" }));
+  assert(hasse[*b].species == std::list<std::string>({ "s3" }));
   assert(c == v_end);
   assert(safe_source(*a, g, hasse) && safe_source(*b, g, hasse));
   

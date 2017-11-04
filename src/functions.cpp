@@ -3,6 +3,66 @@
 
 
 //=============================================================================
+// Boost functions (overloading)
+
+// Red-Black Graph
+
+void remove_vertex(const RBVertex v, RBGraph& g) {
+  if (g[v].type == Type::species)
+    num_species(g)--;
+  else if (g[v].type == Type::character)
+    num_characters(g)--;
+  
+  boost::remove_vertex(v, g);
+}
+
+RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
+  RBVertex v = boost::add_vertex(g);
+  g[v].name = name;
+  g[v].type = type;
+  
+  if (g[v].type == Type::species)
+    num_species(g)++;
+  else if (g[v].type == Type::character)
+    num_characters(g)++;
+  
+  return v;
+}
+
+std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
+                                 const Color color, RBGraph& g) {
+  RBEdge e;
+  bool exists;
+  std::tie(e, exists) = boost::add_edge(u, v, g);
+  g[e].color = color;
+  
+  return std::make_pair(e, exists);
+}
+
+// Hasse Diagram
+
+HDVertex add_vertex(const std::list<std::string>& species,
+                    const std::list<std::string>& characters, HDGraph& hasse) {
+  HDVertex v = boost::add_vertex(hasse);
+  hasse[v].species = species;
+  hasse[v].characters = characters;
+  
+  return v;
+}
+
+std::pair<HDEdge, bool> add_edge(const HDVertex u, const HDVertex v,
+                                 const std::list<CharacterState>& lcs,
+                                 HDGraph& hasse) {
+  HDEdge e;
+  bool exists;
+  std::tie(e, exists) = boost::add_edge(u, v, hasse);
+  hasse[e].lcs = lcs;
+  
+  return std::make_pair(e, exists);
+}
+
+
+//=============================================================================
 // General functions
 
 // Red-Black Graph
@@ -29,7 +89,6 @@ void print_rbgraph(const RBGraph& g) {
 
 void read_graph(const std::string& filename, RBGraph& g) {
   std::vector<RBVertex> species, characters;
-  size_t num_s = 0, num_c = 0;
   bool first_line = true;
   std::string line;
   std::ifstream file(filename);
@@ -41,16 +100,15 @@ void read_graph(const std::string& filename, RBGraph& g) {
     
     if (first_line) {
       // read rows and columns (species and characters)
+      size_t num_s, num_c;
+      
       iss >> num_s;
       iss >> num_c;
-      
-      g[boost::graph_bundle].num_species = num_s;
-      g[boost::graph_bundle].num_characters = num_c;
       
       species.resize(num_s);
       characters.resize(num_c);
       
-      if (num_s == 0 || num_c == 0) {
+      if (species.size() == 0 || characters.size() == 0) {
         // input file parsing error
         throw std::runtime_error(
           "Failed to read graph from file: badly formatted line 0"
@@ -58,21 +116,14 @@ void read_graph(const std::string& filename, RBGraph& g) {
       }
       
       // insert species in the graph
-      for (size_t j = 0; j < num_s; ++j) {
-        RBVertex s = add_vertex(g);
-        g[s].name = ("s" + std::to_string(j + 1));
-        g[s].type = Type::species;
-        
-        species[j] = s;
+      for (size_t j = 0; j < species.size(); ++j) {
+        species[j] = add_vertex("s" + std::to_string(j + 1), Type::species, g);
       }
       
       // insert characters in the graph
-      for (size_t j = 0; j < num_c; ++j) {
-        RBVertex c = add_vertex(g);
-        g[c].name = ("c" + std::to_string(j + 1));
-        g[c].type = Type::character;
-        
-        characters[j] = c;
+      for (size_t j = 0; j < characters.size(); ++j) {
+        characters[j] = add_vertex("c" + std::to_string(j + 1),
+                                   Type::character, g);
       }
       
       first_line = false;
@@ -93,10 +144,10 @@ void read_graph(const std::string& filename, RBGraph& g) {
           
           case '1': {
             // add edge between species[s_idx] and characters[c_idx]
-            size_t s_idx = idx / num_c,
-                   c_idx = idx % num_c;
+            size_t s_idx = idx / characters.size(),
+                   c_idx = idx % characters.size();
             
-            if (s_idx >= num_s || c_idx >= num_c) {
+            if (s_idx >= species.size() || c_idx >= characters.size()) {
               // input file parsing error
               throw std::runtime_error(
                 "Failed to read graph from file: oversized matrix"
@@ -109,6 +160,8 @@ void read_graph(const std::string& filename, RBGraph& g) {
             
             if (red_edge)
               g[edge].color = Color::red;
+            
+            break;
           }
           
           case '0':
@@ -126,7 +179,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
     }
   }
   
-  if (num_s == 0 || num_c == 0) {
+  if (species.size() == 0 || characters.size() == 0) {
     // input file parsing error
     throw std::runtime_error(
       "Failed to read graph from file: empty file"
@@ -142,8 +195,8 @@ void print_hdgraph(const HDGraph& g) {
   for (; v != v_end; ++v) {
     std::cout << "[ ";
     
-    std::list<std::string>::const_iterator i = g[*v].vertices.begin();
-    for (; i != g[*v].vertices.end(); ++i)
+    std::list<std::string>::const_iterator i = g[*v].species.begin();
+    for (; i != g[*v].species.end(); ++i)
       std::cout << *i << " ";
     
     std::cout << "( ";
@@ -171,8 +224,8 @@ void print_hdgraph(const HDGraph& g) {
       
       std::cout << "-> [ ";
       
-      i = g[vt].vertices.begin();
-      for (; i != g[vt].vertices.end(); ++i)
+      i = g[vt].species.begin();
+      for (; i != g[vt].species.end(); ++i)
         std::cout << *i << " ";
       
       std::cout << "( ";
@@ -246,7 +299,7 @@ bool is_free(const RBVertex v, const RBGraph& g) {
     count_species++;
   }
   
-  if (count_species != g[boost::graph_bundle].num_species)
+  if (count_species != num_species(g))
     return false;
   
   return true;
@@ -267,7 +320,7 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
     count_species++;
   }
   
-  if (count_species != g[boost::graph_bundle].num_species)
+  if (count_species != num_species(g))
     return false;
   
   return true;
@@ -310,14 +363,12 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
       RBVertexSize comp = i->second;
       RBGraph* component = components[comp].get();
       
-      vertices[v] = add_vertex(*component);
-      (*component)[vertices[v]].name = g[v].name;
-      (*component)[vertices[v]].type = g[v].type;
+      vertices[v] = add_vertex(g[v].name, g[v].type, *component);
       
       if (g[v].type == Type::species)
-        (*component)[boost::graph_bundle].num_species++;
+        num_species(*component)++;
       else
-        (*component)[boost::graph_bundle].num_characters++;
+        num_characters(*component)++;
     }
     
     // add edges to their respective vertices and subgraph
@@ -340,8 +391,8 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
         RBVertex new_vt = vertices[target(*e, g)];
         
         RBEdge edge;
-        std::tie(edge, std::ignore) = add_edge(new_v, new_vt, *component);
-        (*component)[edge].color = g[*e].color;
+        std::tie(edge, std::ignore) = add_edge(new_v, new_vt, g[*e].color,
+                                               *component);
       }
     }
     
@@ -538,7 +589,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
 
 std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   std::list<RBVertex> cm;
-  std::vector<std::list<RBVertex>> sets(g[boost::graph_bundle].num_characters);
+  std::vector<std::list<RBVertex>> sets(num_characters(g));
   std::map<RBVertex, std::list<RBVertex>> v_map;
   size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
@@ -627,7 +678,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(v_map[*cmv].begin(), v_map[*cmv].end(),
-                                  *sv);
+                                    *sv);
         
         /* keep count of how many species are included (or not found) in
          * the list of cmv's adjacent species
@@ -743,7 +794,7 @@ bool is_included(const std::list<std::string>& a,
 }
 
 void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
-  std::vector<std::list<RBVertex>> sets(g[boost::graph_bundle].num_species);
+  std::vector<std::list<RBVertex>> sets(num_species(g));
   std::map<RBVertex, std::list<RBVertex>> v_map;
   
   /* How sets is going to be structured:
@@ -818,9 +869,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       std::cout << "Hasse.addV " << g[v].name << std::endl << std::endl;
       #endif
       
-      HDVertex u = add_vertex(hasse);
-      hasse[u].vertices.push_back(g[v].name);
-      hasse[u].characters = lcv;
+      add_vertex(g[v].name, lcv, hasse);
       
       continue;
     }
@@ -846,8 +895,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       // for each vertex in hasse
       #ifdef DEBUG
       std::cout << "hdv: ";
-      kk = hasse[*hdv].vertices.begin();
-      for (; kk != hasse[*hdv].vertices.end(); ++kk) std::cout << *kk << " ";
+      kk = hasse[*hdv].species.begin();
+      for (; kk != hasse[*hdv].species.end(); ++kk) std::cout << *kk << " ";
       std::cout << "= { ";
       kk = hasse[*hdv].characters.begin();
       for (; kk != hasse[*hdv].characters.end(); ++kk) std::cout << *kk << " ";
@@ -861,7 +910,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
         #endif
         
         // add v (species) to the list of vertices in hdv
-        hasse[*hdv].vertices.push_back(g[v].name);
+        hasse[*hdv].species.push_back(g[v].name);
         
         break;
       }
@@ -893,9 +942,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
         #endif
         
         // build a vertex for v and add it to the Hasse diagram
-        HDVertex u = add_vertex(hasse);
-        hasse[u].vertices.push_back(g[v].name);
-        hasse[u].characters = lcv;
+        HDVertex u = add_vertex(g[v].name, lcv, hasse);
         
         // build in_edges for the vertex and add them to the Hasse diagram
         std::list<std::pair<HDVertex, std::string>>::iterator ei, ei_end;
@@ -908,8 +955,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
           
           #ifdef DEBUG
           std::cout << "Hasse.addE ";
-          kk = hasse[ei->first].vertices.begin();
-          for (; kk != hasse[ei->first].vertices.end(); ++kk) std::cout << *kk << " ";
+          kk = hasse[ei->first].species.begin();
+          for (; kk != hasse[ei->first].species.end(); ++kk) std::cout << *kk << " ";
           std::cout << "-";
           std::list<CharacterState>::const_iterator jj = hasse[edge].lcs.begin();
           for (; jj != hasse[edge].lcs.end(); ++jj) {
@@ -918,8 +965,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
               std::cout << ",";
           }
           std::cout << "-> ";
-          kk = hasse[u].vertices.begin();
-          for (; kk != hasse[u].vertices.end(); ++kk) std::cout << *kk << " ";
+          kk = hasse[u].species.begin();
+          for (; kk != hasse[u].species.end(); ++kk) std::cout << *kk << " ";
           std::cout << std::endl;
           #endif
         }
@@ -1021,8 +1068,8 @@ bool is_redsigma(const RBGraph& g) {
 bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   RBGraph g1(g);
   
-  std::list<std::string>::const_iterator i = hasse[v].vertices.begin();
-  for (; i != hasse[v].vertices.end(); ++i) {
+  std::list<std::string>::const_iterator i = hasse[v].species.begin();
+  for (; i != hasse[v].species.end(); ++i) {
     RBVertexIter u, u_end, in;
     std::tie(u, u_end) = vertices(g1);
     in = find_vertex(u, u_end, *i, g1);
@@ -1064,8 +1111,8 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     
     #ifdef DEBUG
     std::cout << "Source: [ ";
-    std::list<std::string>::const_iterator kk = hasse[curr].vertices.begin();
-    for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
+    std::list<std::string>::const_iterator kk = hasse[curr].species.begin();
+    for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
     std::cout << "]" << std::endl
               << "C: < ";
     #endif
@@ -1073,8 +1120,8 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     while (out_degree(curr, hasse) > 0) {
       #ifdef DEBUG
       std::cout << "[ ";
-      kk = hasse[curr].vertices.begin();
-      for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
+      kk = hasse[curr].species.begin();
+      for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
       std::cout << "] ";
       #endif
       
@@ -1087,8 +1134,8 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     
     #ifdef DEBUG
     std::cout << "[ ";
-    kk = hasse[curr].vertices.begin();
-    for (; kk != hasse[curr].vertices.end(); ++kk) std::cout << *kk << " ";
+    kk = hasse[curr].species.begin();
+    for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
     std::cout << "] >" << std::endl 
               << "S(C): < ";
     std::list<CharacterState>::const_iterator jj = lc.begin();
@@ -1341,8 +1388,7 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
         std::cout << "red;\t";
         #endif
         
-        std::tie(e, std::ignore) = add_edge(*v, cv, g);
-        g[e].color = Color::red;
+        add_edge(*v, cv, Color::red, g);
       }
     }
     
