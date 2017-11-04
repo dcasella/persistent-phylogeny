@@ -8,9 +8,9 @@
 // Red-Black Graph
 
 void remove_vertex(const RBVertex v, RBGraph& g) {
-  if (g[v].type == Type::species)
+  if (is_species(v, g))
     num_species(g)--;
-  else if (g[v].type == Type::character)
+  else if (is_character(v, g))
     num_characters(g)--;
   
   boost::remove_vertex(v, g);
@@ -21,9 +21,9 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
   g[v].name = name;
   g[v].type = type;
   
-  if (g[v].type == Type::species)
+  if (is_species(v, g))
     num_species(g)++;
-  else if (g[v].type == Type::character)
+  else if (is_character(v, g))
     num_characters(g)++;
   
   return v;
@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
-      os << " -" << (g[*e].color == Color::red ? "r" : "-") << "- "
+      os << " -" << (is_red(*e, g) ? "r" : "-") << "- "
          << g[target(*e, g)].name << ";";
     }
     
@@ -253,13 +253,13 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
 // Red-Black Graph
 
 bool is_active(const RBVertex v, const RBGraph& g) {
-  if (g[v].type != Type::character)
+  if (!is_character(v, g))
     return false;
   
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (g[*e].color == Color::black || g[target(*e, g)].type != Type::species)
+    if (is_black(*e, g) || !is_species(target(*e, g), g))
       return false;
   }
   
@@ -267,13 +267,13 @@ bool is_active(const RBVertex v, const RBGraph& g) {
 }
 
 bool is_inactive(const RBVertex v, const RBGraph& g) {
-  if (g[v].type != Type::character)
+  if (!is_character(v, g))
     return false;
   
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (g[*e].color == Color::red || g[target(*e, g)].type != Type::species)
+    if (is_red(*e, g) || !is_species(target(*e, g), g))
       return false;
   }
   
@@ -290,7 +290,7 @@ void remove_singletons(RBGraph& g) {
 }
 
 bool is_free(const RBVertex v, const RBGraph& g) {
-  if (g[v].type != Type::character)
+  if (!is_character(v, g))
     return false;
   
   size_t count_species = 0;
@@ -298,7 +298,7 @@ bool is_free(const RBVertex v, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (g[*e].color == Color::black || g[target(*e, g)].type != Type::species)
+    if (is_black(*e, g) || !is_species(target(*e, g), g))
       return false;
     
     count_species++;
@@ -311,7 +311,7 @@ bool is_free(const RBVertex v, const RBGraph& g) {
 }
 
 bool is_universal(const RBVertex v, const RBGraph& g) {
-  if (g[v].type != Type::character)
+  if (!is_character(v, g))
     return false;
   
   size_t count_species = 0;
@@ -319,7 +319,7 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (g[*e].color == Color::red || g[target(*e, g)].type != Type::species)
+    if (is_red(*e, g) || !is_species(target(*e, g), g))
       return false;
     
     count_species++;
@@ -370,7 +370,7 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
       
       vertices[v] = add_vertex(g[v].name, g[v].type, *component);
       
-      if (g[v].type == Type::species)
+      if (is_species(v, g))
         num_species(*component)++;
       else
         num_characters(*component)++;
@@ -386,7 +386,7 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
       RBGraph* component = components[comp].get();
       
       // prevent duplicate edges
-      // if (g[v].type != Type::species)
+      // if (!is_species(v, g))
       //   continue;
       
       RBOutEdgeIter e, e_end;
@@ -430,7 +430,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (g[*v].type != Type::character)
+    if (!is_character(*v, g))
       continue;
     // for each character vertex
     
@@ -441,7 +441,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       RBVertex vt = target(*e, g);
       
       // if v is active or connected to random nodes ignore it
-      if (g[*e].color == Color::red || g[vt].type != Type::species)
+      if (is_red(*e, g) || !is_species(vt, g))
         break;
       
       sets[*v].push_back(vt);
@@ -613,7 +613,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (g[*v].type != Type::character)
+    if (!is_character(*v, g))
       continue;
     // for each character vertex
     
@@ -626,7 +626,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       RBVertex vt = target(*e, g);
       
       // if v is active or connected to random nodes ignore it
-      if (g[*e].color == Color::red || g[vt].type != Type::species)
+      if (is_red(*e, g) || !is_species(vt, g))
         break;
       
       sets[idx].push_back(vt);
@@ -777,7 +777,7 @@ void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
   for (next = v; v != v_end; v = next) {
     ++next;
     
-    if (g[*v].type == Type::character)
+    if (is_character(*v, g))
       remove_vertex_if(*v, if_not_maximal(cm), g);
   }
 }
@@ -816,7 +816,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (g[*v].type != Type::species)
+    if (!is_species(*v, g))
       continue;
     // for each species vertex
     
@@ -1057,7 +1057,7 @@ bool is_redsigma(const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (g[*v].type != Type::character)
+    if (!is_character(*v, g))
       continue;
     
     if (is_inactive(*v, g) || is_free(*v, g))
@@ -1362,7 +1362,7 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
     
     std::tie(v, v_end) = vertices(g);
     for (; v != v_end; ++v) {
-      if (g[*v].type == Type::character || map_comp[*v] != map_comp[cv])
+      if (is_character(*v, g) || map_comp[*v] != map_comp[cv])
         continue;
       // for each species in the same connected component of cv
       
@@ -1461,11 +1461,11 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
   return std::make_pair(output, true);
 }
 
-std::pair<std::list<CharacterState>, bool> realize(const RBVertex& v,
+std::pair<std::list<CharacterState>, bool> realize(const RBVertex v,
                                                    RBGraph& g) {
   std::list<CharacterState> lc;
   
-  if (g[v].type != Type::species)
+  if (!is_species(v, g))
     return std::make_pair(lc, false);
   
   RBOutEdgeIter e, e_end;

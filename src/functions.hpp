@@ -131,6 +131,50 @@ inline const size_t num_characters(const RBGraph& g) {
 }
 
 /**
+  @brief Check if \c v is a species in \c g
+  
+  @param v Vertex
+  @param g Red-black graph
+  @return  True if \c v is a species in \c g
+*/
+inline bool is_species(const RBVertex v, const RBGraph& g) {
+  return (g[v].type == Type::species);
+}
+
+/**
+  @brief Check if \c v is a character in \c g
+  
+  @param v Vertex
+  @param g Red-black graph
+  @return  True if \c v is a character in \c g
+*/
+inline bool is_character(const RBVertex v, const RBGraph& g) {
+  return (g[v].type == Type::character);
+}
+
+/**
+  @brief Check if \c e is a black edge in \c g
+  
+  @param e Edge
+  @param g Red-black graph
+  @return  True if \c e is a black edge in \c g
+*/
+inline bool is_black(const RBEdge e, const RBGraph& g) {
+  return (g[e].color == Color::black);
+}
+
+/**
+  @brief Check if \c e is a red edge in \c g
+  
+  @param e Edge
+  @param g Red-black graph
+  @return  True if \c e is a red edge in \c g
+*/
+inline bool is_red(const RBEdge e, const RBGraph& g) {
+  return (g[e].color == Color::red);
+}
+
+/**
   @brief Remove \c v from \c g if it satisfies \c pred
   
   @param v    Vertex
@@ -452,7 +496,7 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
   @return  Pair consisting in the list of realized characters and the outcome
            of the realization
 */
-std::pair<std::list<CharacterState>, bool> realize(const RBVertex& v,
+std::pair<std::list<CharacterState>, bool> realize(const RBVertex v,
                                                    RBGraph& g);
 
 /**
