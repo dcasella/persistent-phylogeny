@@ -21,7 +21,7 @@ enum class State : unsigned char {
   @var character stores the character name
   @var state stores the character state
 */
-struct CharacterState {
+struct SignedCharacter {
   std::string character = "c";
   State state = State::none;
 };
@@ -76,10 +76,10 @@ struct RBGraphProperties {
 // Hasse Diagram
 
 /**
-  @var lcs stores the character names and states which label the edge
+  @var signedcharacters stores the SignedCharacters which label the edge
 */
 struct HDEdgeProperties {
-  std::list<CharacterState> lcs;
+  std::list<SignedCharacter> signedcharacters;
 };
 
 /**
@@ -97,6 +97,15 @@ struct HDGraphProperties {
 
 
 //=============================================================================
+// Typedefs used for readabily
+
+// General
+
+// Iterators
+
+typedef std::list<std::string>::const_iterator StringIter;
+
+typedef std::list<SignedCharacter>::const_iterator SignedCharacterIter;
 
 // Red-Black Graph
 
@@ -210,24 +219,24 @@ inline std::ostream& operator<<(std::ostream& os, const State& s) {
 }
 
 /**
-  @brief Overloading of operator<< for CharacterState
+  @brief Overloading of operator<< for SignedCharacter
   
   @param os Output stream
-  @param cs CharacterState
+  @param sc SignedCharacter
   @return   Updated output stream
 */
-inline std::ostream& operator<<(std::ostream& os, const CharacterState& cs) {
-  return os << cs.character << cs.state;
+inline std::ostream& operator<<(std::ostream& os, const SignedCharacter& sc) {
+  return os << sc.character << sc.state;
 }
 
 /**
-  @brief Overloading of operator== for a pair of CharacterState
+  @brief Overloading of operator== for a pair of SignedCharacter
   
-  @param a CharacterState
-  @param b CharacterState
+  @param a SignedCharacter
+  @param b SignedCharacter
   @return  True if a is equal to b
 */
-inline bool operator==(const CharacterState& a, const CharacterState& b) {
+inline bool operator==(const SignedCharacter& a, const SignedCharacter& b) {
   return (a.character == b.character && a.state == b.state);
 }
 

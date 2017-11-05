@@ -50,13 +50,15 @@ HDVertex add_vertex(const std::list<std::string>& species,
   return v;
 }
 
-std::pair<HDEdge, bool> add_edge(const HDVertex u, const HDVertex v,
-                                 const std::list<CharacterState>& lcs,
-                                 HDGraph& hasse) {
+std::pair<HDEdge, bool> add_edge(
+    const HDVertex u,
+    const HDVertex v,
+    const std::list<SignedCharacter>& signedcharacters,
+    HDGraph& hasse) {
   HDEdge e;
   bool exists;
   std::tie(e, exists) = boost::add_edge(u, v, hasse);
-  hasse[e].lcs = lcs;
+  hasse[e].signedcharacters = signedcharacters;
   
   return std::make_pair(e, exists);
 }
@@ -197,7 +199,7 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
   for (; v != v_end; ++v) {
     os << "[ ";
     
-    std::list<std::string>::const_iterator i = hasse[*v].species.begin();
+    StringIter i = hasse[*v].species.begin();
     for (; i != hasse[*v].species.end(); ++i)
       os << *i << " ";
     
@@ -216,11 +218,11 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
       
       os << " -";
       
-      std::list<CharacterState>::const_iterator j = hasse[*e].lcs.begin();
-      for (; j != hasse[*e].lcs.end(); ++j) {
+      SignedCharacterIter j = hasse[*e].signedcharacters.begin();
+      for (; j != hasse[*e].signedcharacters.end(); ++j) {
         os << *j;
         
-        if (std::next(j) != hasse[*e].lcs.end())
+        if (std::next(j) != hasse[*e].signedcharacters.end())
           os << ",";
       }
       
@@ -784,9 +786,9 @@ void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
 
 bool is_included(const std::list<std::string>& a,
                  const std::list<std::string>& b) {
-  std::list<std::string>::const_iterator i = a.begin();
+  StringIter i = a.begin();
   for (; i != a.end(); ++i) {
-    std::list<std::string>::const_iterator in;
+    StringIter in;
     in = std::find(b.begin(), b.end(), *i);
     
     if (in == b.end())
@@ -880,7 +882,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     
     #ifdef DEBUG
     std::cout << "C(" << g[v].name << ") = { ";
-    std::list<std::string>::const_iterator kk = lcv.begin();
+    StringIter kk = lcv.begin();
     for (; kk != lcv.end(); ++kk) std::cout << *kk << " ";
     std::cout << "}:" << std::endl;
     #endif
@@ -925,11 +927,11 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       
       if (is_included(lhdv, lcv)) {
         // hdv is included in v
-        std::list<std::string>::const_iterator ci, ci_end;
+        StringIter ci, ci_end;
         ci = lcv.begin(); ci_end = lcv.end();
         for (; ci != ci_end; ++ci) {
           // for each character in hdv
-          std::list<std::string>::const_iterator in;
+          StringIter in;
           in = std::find(lhdv.begin(), lhdv.end(), *ci);
           
           if (in == lhdv.end()) {
@@ -955,17 +957,18 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
           // for each new edge to add to the Hasse diagram
           HDEdge edge;
           std::tie(edge, std::ignore) = add_edge(ei->first, u, hasse);
-          hasse[edge].lcs.push_back({ ei->second, State::gain });
+          hasse[edge].signedcharacters.push_back({ ei->second, State::gain });
           
           #ifdef DEBUG
           std::cout << "Hasse.addE ";
           kk = hasse[ei->first].species.begin();
-          for (; kk != hasse[ei->first].species.end(); ++kk) std::cout << *kk << " ";
+          for (; kk != hasse[ei->first].species.end(); ++kk)
+            std::cout << *kk << " ";
           std::cout << "-";
-          std::list<CharacterState>::const_iterator jj = hasse[edge].lcs.begin();
-          for (; jj != hasse[edge].lcs.end(); ++jj) {
+          SignedCharacterIter jj = hasse[edge].signedcharacters.begin();
+          for (; jj != hasse[edge].signedcharacters.end(); ++jj) {
             std::cout << *jj;
-            if (std::next(jj) != hasse[edge].lcs.end())
+            if (std::next(jj) != hasse[edge].signedcharacters.end())
               std::cout << ",";
           }
           std::cout << "-> ";
@@ -1071,7 +1074,7 @@ bool is_redsigma(const RBGraph& g) {
 bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   RBGraph g1(g);
   
-  std::list<std::string>::const_iterator i = hasse[v].species.begin();
+  StringIter i = hasse[v].species.begin();
   for (; i != hasse[v].species.end(); ++i) {
     RBVertexIter u, u_end, in;
     std::tie(u, u_end) = vertices(g1);
@@ -1087,16 +1090,16 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   return !is_redsigma(g1);
 }
 
-std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
-                                                      const RBGraph& g_cm,
-                                                      const HDGraph& hasse) {
+std::pair<std::list<SignedCharacter>, bool> safe_chain(const RBGraph& g,
+                                                       const RBGraph& g_cm,
+                                                       const HDGraph& hasse) {
   /* TODO: implement safe_chain by using
    *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/depth_first_search.html
    * with an implementation of
    *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/DFSVisitor.html
    */
   
-  std::list<CharacterState> output;
+  std::list<SignedCharacter> output;
   bool safe = false;
   
   HDVertexIter v, v_end;
@@ -1110,11 +1113,11 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
       break;
     
     HDVertex curr = *v;
-    std::list<CharacterState> lc;
+    std::list<SignedCharacter> lc;
     
     #ifdef DEBUG
     std::cout << "Source: [ ";
-    std::list<std::string>::const_iterator kk = hasse[curr].species.begin();
+    StringIter kk = hasse[curr].species.begin();
     for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
     std::cout << "]" << std::endl
               << "C: < ";
@@ -1130,7 +1133,8 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
       
       HDOutEdgeIter edge;
       std::tie(edge, std::ignore) = out_edges(curr, hasse);
-      lc.insert(lc.end(), hasse[*edge].lcs.begin(), hasse[*edge].lcs.end());
+      lc.insert(lc.end(),hasse[*edge].signedcharacters.begin(),
+                hasse[*edge].signedcharacters.end());
       
       curr = target(*edge, hasse);
     }
@@ -1141,7 +1145,7 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
     for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
     std::cout << "] >" << std::endl 
               << "S(C): < ";
-    std::list<CharacterState>::const_iterator jj = lc.begin();
+    SignedCharacterIter jj = lc.begin();
     for (; jj != lc.end(); ++jj) std::cout << *jj << " ";
     std::cout << ">" << std::endl;
     #endif
@@ -1184,8 +1188,8 @@ std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
 //=============================================================================
 // Algorithm main functions
 
-std::list<CharacterState> reduce(RBGraph& g) {
-  std::list<CharacterState> output;
+std::list<SignedCharacter> reduce(RBGraph& g) {
+  std::list<SignedCharacter> output;
   
   #ifdef DEBUG
   std::cout << std::endl
@@ -1227,7 +1231,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      std::list<CharacterState> lc;
+      std::list<SignedCharacter> lc;
       std::tie(lc, std::ignore) = realize({ g[*v].name, State::lose }, g);
       
       output.splice(output.end(), lc);
@@ -1255,7 +1259,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      std::list<CharacterState> lc;
+      std::list<SignedCharacter> lc;
       std::tie(lc, std::ignore) = realize({ g[*v].name, State::gain }, g);
       
       output.splice(output.end(), lc);
@@ -1309,7 +1313,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
   #endif
   
   // sc = safe chain for g (Grb)
-  std::list<CharacterState> sc;
+  std::list<SignedCharacter> sc;
   bool s_safe;
   std::tie(sc, s_safe) = safe_chain(g, g_cm, p);
   
@@ -1317,7 +1321,7 @@ std::list<CharacterState> reduce(RBGraph& g) {
     // p has no safe source
     throw std::runtime_error("Could not reduce graph");
   
-  std::list<CharacterState> lc;
+  std::list<SignedCharacter> lc;
   std::tie(lc, std::ignore) = realize(sc, g);
   
   output.splice(output.end(), lc);
@@ -1327,9 +1331,9 @@ std::list<CharacterState> reduce(RBGraph& g) {
   return output;
 }
 
-std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
-                                                   RBGraph& g) {
-  std::list<CharacterState> output;
+std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
+                                                    RBGraph& g) {
+  std::list<SignedCharacter> output;
   
   // find vertex whose name is c.character in g
   RBVertexIter v, v_end, in;
@@ -1428,7 +1432,7 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
                 << std::endl << std::endl;
       #endif
       
-      std::list<CharacterState> lc;
+      std::list<SignedCharacter> lc;
       std::tie(lc, std::ignore) = realize({ g[*v].name, State::gain }, g);
       
       output.splice(output.end(), lc);
@@ -1449,7 +1453,7 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
                 << std::endl << std::endl;
       #endif
       
-      std::list<CharacterState> lc;
+      std::list<SignedCharacter> lc;
       std::tie(lc, std::ignore) = realize({ g[*v].name, State::lose }, g);
       
       output.splice(output.end(), lc);
@@ -1461,9 +1465,9 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
   return std::make_pair(output, true);
 }
 
-std::pair<std::list<CharacterState>, bool> realize(const RBVertex v,
-                                                   RBGraph& g) {
-  std::list<CharacterState> lc;
+std::pair<std::list<SignedCharacter>, bool> realize(const RBVertex v,
+                                                    RBGraph& g) {
+  std::list<SignedCharacter> lc;
   
   if (!is_species(v, g))
     return std::make_pair(lc, false);
@@ -1480,19 +1484,19 @@ std::pair<std::list<CharacterState>, bool> realize(const RBVertex v,
   return realize(lc, g);
 }
 
-std::pair<std::list<CharacterState>, bool> realize(
-    const std::list<CharacterState>& lc,
+std::pair<std::list<SignedCharacter>, bool> realize(
+    const std::list<SignedCharacter>& lc,
     RBGraph& g) {
-  std::list<CharacterState> output;
+  std::list<SignedCharacter> output;
   bool feasible = true;
   
-  std::list<CharacterState>::const_iterator i = lc.begin();
+  SignedCharacterIter i = lc.begin();
   for (; i != lc.end(); ++i) {
-    std::list<CharacterState> lcs;
+    std::list<SignedCharacter> signedcharacters;
     bool feasible_realize;
-    std::tie(lcs, feasible_realize) = realize(*i, g);
+    std::tie(signedcharacters, feasible_realize) = realize(*i, g);
     
-    output.splice(output.end(), lcs);
+    output.splice(output.end(), signedcharacters);
     
     if (!feasible_realize)
       feasible = false;

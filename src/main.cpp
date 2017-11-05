@@ -6,7 +6,7 @@ int main(int argc, const char* argv[]) {
   
   // TODO: fill g
   
-  std::list<CharacterState> output = reduce(g);
+  std::list<SignedCharacter> output = reduce(g);
   
   std::cout << "C-Reduction: < ";
   for (auto i = output.begin(); i != output.end(); ++i)

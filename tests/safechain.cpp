@@ -4,7 +4,7 @@
 int main(int argc, const char* argv[]) {
   HDGraph hasse;
   RBGraph g, g_cm;
-  std::list<CharacterState> lc;
+  std::list<SignedCharacter> lc;
   bool safe;
   
   std::tie(lc, safe) = safe_chain(g, g_cm, hasse);
@@ -20,9 +20,9 @@ int main(int argc, const char* argv[]) {
   std::tie(lc, safe) = safe_chain(g, g_cm, hasse);
   
   assert(safe == true);
-  assert(lc == std::list<CharacterState>({ { "c1", State::gain },
-                                           { "c2", State::gain },
-                                           { "c1", State::lose } }));
+  assert(lc == std::list<SignedCharacter>({ { "c1", State::gain },
+                                            { "c2", State::gain },
+                                            { "c1", State::lose } }));
   
   std::cout << "safechain: tests passed" << std::endl;
   

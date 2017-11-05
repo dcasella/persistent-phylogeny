@@ -3,7 +3,7 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
-  std::list<CharacterState> output;
+  std::list<SignedCharacter> output;
   
   read_graph("tests/no_6x3.txt", g);
   
