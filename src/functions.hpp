@@ -24,6 +24,7 @@ void remove_vertex(const RBVertex v, RBGraph& g);
   @param name Name
   @param type Type
   @param g    Red-black graph
+  @return     Vertex descriptor for the new vertex
 */
 RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g);
 
@@ -32,6 +33,7 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g);
   
   @param name Name
   @param g    Red-black graph
+  @return     Vertex descriptor for the new vertex
 */
 inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
   return add_vertex(name, Type::none, g);
@@ -44,6 +46,10 @@ inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
   @param v     Target Vertex
   @param color Color
   @param g     Red-black graph
+  @return      Edge descriptor for the new edge.
+               If the edge is already in the graph then a duplicate will not be
+               added and the bool flag will be false. When the flag is false,
+               the returned edge descriptor points to the already existing edge
 */
 std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
                                  const Color color, RBGraph& g);
@@ -57,6 +63,7 @@ std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
   @param species    List of species names
   @param characters List of character names
   @param hasse      Hasse diagram graph
+  @return           Vertex descriptor for the new vertex
 */
 HDVertex add_vertex(const std::list<std::string>& species,
                     const std::list<std::string>& characters, HDGraph& hasse);
@@ -68,6 +75,7 @@ HDVertex add_vertex(const std::list<std::string>& species,
   @param species    Species name
   @param characters List of character names
   @param hasse      Hasse diagram graph
+  @return           Vertex descriptor for the new vertex
 */
 inline HDVertex add_vertex(const std::string& species,
                            const std::list<std::string>& characters,
@@ -83,6 +91,10 @@ inline HDVertex add_vertex(const std::string& species,
   @param v     Target Vertex
   @param lcs   List of character names and states
   @param hasse Hasse diagram graph
+  @return      Edge descriptor for the new edge.
+               If the edge is already in the graph then a duplicate will not be
+               added and the bool flag will be false. When the flag is false,
+               the returned edge descriptor points to the already existing edge
 */
 std::pair<HDEdge, bool> add_edge(const HDVertex u, const HDVertex v,
                                  const std::list<CharacterState>& lcs,
@@ -98,6 +110,7 @@ std::pair<HDEdge, bool> add_edge(const HDVertex u, const HDVertex v,
   @brief Return the number of species in \c g
   
   @param g Red-black graph
+  @return  Reference to the number of species in \c g
 */
 inline size_t& num_species(RBGraph& g) {
   return g[boost::graph_bundle].num_species;
@@ -107,6 +120,7 @@ inline size_t& num_species(RBGraph& g) {
   @brief Return the number of species (const) in \c g
   
   @param g Red-black graph
+  @return  Constant number of species in \c g
 */
 inline const size_t num_species(const RBGraph& g) {
   return g[boost::graph_bundle].num_species;
@@ -116,6 +130,7 @@ inline const size_t num_species(const RBGraph& g) {
   @brief Return the number of characters in \c g
   
   @param g Red-black graph
+  @return  Reference to the number of characters in \c g
 */
 inline size_t& num_characters(RBGraph& g) {
   return g[boost::graph_bundle].num_characters;
@@ -125,6 +140,7 @@ inline size_t& num_characters(RBGraph& g) {
   @brief Return the number of characters (const) in \c g
   
   @param g Red-black graph
+  @return  Constant number of characters in \c g
 */
 inline const size_t num_characters(const RBGraph& g) {
   return g[boost::graph_bundle].num_characters;
@@ -294,7 +310,7 @@ bool is_free(const RBVertex v, const RBGraph& g);
 bool is_universal(const RBVertex v, const RBGraph& g);
 
 /**
-  @brief Build the Red-black subgraphs of \c g
+  @brief Build the Red-black subgraphs of \c g.
          Each subgraph is a copy of the respective connected component
   
   @param components Vector of unique pointers to each subgraph
@@ -397,7 +413,7 @@ bool is_included(const std::list<std::string>& a,
 void hasse_diagram(HDGraph& hasse, const RBGraph& g);
 
 /**
-  @brief Returns the vertex iterator of \c g if its name is \c name
+  @brief Returns the vertex iterator of \c g if its name is \c name.
          Returns the end of the iterator if a vertex could not be found
   
   @param v     Vertex iterator
@@ -410,7 +426,7 @@ RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
                          const std::string& name, const RBGraph& g);
 
 /**
-  @brief Returns the vertex iterator of \c hasse if it's a source
+  @brief Returns the vertex iterator of \c hasse if it's a source.
          Returns the end of the iterator if a source could not be found
   
   @param v     Vertex iterator
@@ -442,14 +458,15 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
   @brief Returns a safe chain if \c hasse has a one
   
   ...
-  Returns a safe chain and bool = True if \c hasse has a safe chain
+  Returns a safe chain and bool = True if \c hasse has a safe chain.
   Returns an empty chain and bool = False otherwise
   
   @param g     Red-black graph
   @param g_cm  Red-black maximal reducible graph
   @param hasse Hasse diagram graph
-  @return      Pair consisting in a safe chain and the outcome of the function
-               A safe chain is represented as a list of CharacterStates
+  @return      Safe chain (list of CharacterStates).
+               If \c hasse has a safe chain then the bool flag will be true.
+               When the flag is false, the returned chain is empty
 */
 std::pair<std::list<CharacterState>, bool> safe_chain(const RBGraph& g,
                                                       const RBGraph& g_cm,
@@ -472,13 +489,14 @@ std::list<CharacterState> reduce(RBGraph& g);
   
   ...
   Returns the list of realized characters and bool = True if the realization of
-  \c c is feasible for \c g
+  \c c is feasible for \c g.
   Returns an empty list and bool = False otherwise
   
   @param c Character name of \c g and state
   @param g Red-black graph
-  @return  Pair consisting in the list of realized characters and the outcome
-           of the realization
+  @return  Realized characters (list of CharacterStates).
+           If the realization was successful then the bool flag will be true.
+           When the flag is false, the returned list is empty
 */
 std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
                                                    RBGraph& g);
@@ -488,13 +506,14 @@ std::pair<std::list<CharacterState>, bool> realize(const CharacterState& c,
   
   ...
   Returns the list of realized characters and bool = True if the realization of
-  \c v is feasible for \c g
+  \c v is feasible for \c g.
   Returns an empty list and bool = False otherwise
   
   @param v Vertex
   @param g Red-black graph
-  @return  Pair consisting in the list of realized characters and the outcome
-           of the realization
+  @return  Realized characters (list of CharacterStates).
+           If the realization was successful then the bool flag will be true.
+           When the flag is false, the returned list is empty
 */
 std::pair<std::list<CharacterState>, bool> realize(const RBVertex v,
                                                    RBGraph& g);
@@ -504,13 +523,14 @@ std::pair<std::list<CharacterState>, bool> realize(const RBVertex v,
   
   ...
   Returns the list of realized characters and bool = True if the realizations
-  of \c lc are feasible for \c g
+  of \c lc are feasible for \c g.
   Returns an empty list and bool = False otherwise
   
   @param lc List of character names and states of \c g
   @param g  Red-black graph
-  @return   Pair consisting in the list of realized characters and the outcome
-            of the realizations
+  @return   Realized characters (list of CharacterStates).
+            If the realizations were successful then the bool flag will be
+            true. When the flag is false, the returned list is empty
 */
 std::pair<std::list<CharacterState>, bool> realize(
     const std::list<CharacterState>& lc,
