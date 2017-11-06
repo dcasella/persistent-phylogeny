@@ -6,6 +6,138 @@
 
 
 //=============================================================================
+// Auxiliary structs and classes
+
+/**
+  @brief Functor used in remove_vertex_if
+*/
+struct if_singleton {
+  /**
+    @param v Vertex
+    @param g Red-black graph
+    @return  True if \c v is a singleton in \c g
+  */
+  inline bool operator()(const RBVertex v, RBGraph& g) const {
+    return (out_degree(v, g) == 0);
+  }
+};
+
+/**
+  @brief Functor used in remove_vertex_if
+*/
+struct if_not_maximal {
+  /**
+    @param cm Maximal characters
+  */
+  if_not_maximal(std::list<RBVertex> cm) : cm_(cm) {};
+  
+  /**
+    @param v Vertex
+    @param g Red-black graph
+    @return  True if \c v is not maximal character of \c g
+  */
+  inline bool operator()(const RBVertex v, const RBGraph& g) const {
+    return (std::find(cm_.begin(), cm_.end(), v) == cm_.end());
+  }
+  
+private:
+  
+  std::list<RBVertex> cm_;
+};
+
+/**
+  @brief DFS Visitor used in depth_first_search
+*/
+class safe_chain_dfs_visitor : public boost::default_dfs_visitor {
+  std::list<SignedCharacter>& lsc_;
+  const RBGraph g_;
+  const RBGraph g_cm_;
+  HDVertex source_v;
+  HDVertex last_v;
+  
+public:
+  /**
+    @param lsc  List of SignedCharacters (which gets modified during the DFS)
+    @param g    Red-black graph
+    @param g_cm Maximal reducible red-black graph
+  */
+  safe_chain_dfs_visitor(std::list<SignedCharacter>& lsc,
+                         const RBGraph& g,
+                         const RBGraph& g_cm);
+  
+  /**
+    @brief Invoked on every vertex of the graph before the start of the graph
+           search
+    
+    @param v     Vertex
+    @param hasse Hasse diagram graph
+  */
+  void initialize_vertex(const HDVertex v, const HDGraph& hasse) const;
+  
+  /**
+    @brief Invoked on the source vertex once before the start of the search
+    
+    @param v     Vertex
+    @param hasse Hasse diagram graph
+  */
+  void start_vertex(const HDVertex v, const HDGraph& hasse);
+  
+  /**
+    @brief Invoked when a vertex is encountered for the first time
+    
+    @param v     Vertex
+    @param hasse Hasse diagram graph
+  */
+  void discover_vertex(const HDVertex v, const HDGraph& hasse);
+  
+  /**
+    @brief Invoked on every out-edge of each vertex after it is discovered
+    
+    @param e     Edge
+    @param hasse Hasse diagram graph
+  */
+  void examine_edge(const HDEdge e, const HDGraph& hasse);
+  
+  /**
+    @brief Invoked on each edge as it becomes a member of the edges that form
+           the search tree
+    
+    @param e     Edge
+    @param hasse Hasse diagram graph
+  */
+  void tree_edge(const HDEdge e, const HDGraph& hasse) const;
+  
+  /**
+    @brief Invoked on the back edges in the graph
+    
+    @param e     Edge
+    @param hasse Hasse diagram graph
+  */
+  void back_edge(const HDEdge e, const HDGraph& hasse) const;
+  
+  /**
+    @brief Invoked on forward or cross edges in the graph
+    
+    @param e     Edge
+    @param hasse Hasse diagram graph
+  */
+  void forward_or_cross_edge(const HDEdge e, const HDGraph& hasse) const;
+  
+  /**
+    @brief Invoked on vertex \c v after finish_vertex has been called for all
+           the vertices in the DFS-tree rooted at vertex \c v
+    
+    If vertex \c v is a leaf in the DFS-tree, then the finish_vertex function
+    is called on \c v after all the out-edges of \c v have been examined
+    
+    @param v     Vertex
+    @param hasse Hasse diagram graph
+  */
+  void finish_vertex(const HDVertex v, const HDGraph& hasse);
+};
+
+
+//=============================================================================
 // Boost functions (overloading)
 
 // Red-Black Graph
@@ -263,20 +395,6 @@ bool is_active(const RBVertex v, const RBGraph& g);
 bool is_inactive(const RBVertex v, const RBGraph& g);
 
 /**
-  @brief Functor used in remove_vertex_if
-*/
-struct if_singleton {
-  /**
-    @param v Vertex
-    @param g Red-black graph
-    @return  True if \c v is a singleton in \c g
-  */
-  inline bool operator()(const RBVertex v, RBGraph& g) const {
-    return (out_degree(v, g) == 0);
-  }
-};
-
-/**
   @brief Remove singleton vertices from \c g
   
   @param g Red-black graph
@@ -354,29 +472,6 @@ descending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
   @return  Maximal characters (vertices) of \c g
 */
 std::list<RBVertex> maximal_characters2(const RBGraph& g);
-
-/**
-  @brief Functor used in remove_vertex_if
-*/
-struct if_not_maximal {
-  /**
-    @param cm Maximal characters
-  */
-  if_not_maximal(std::list<RBVertex> cm) : cm_(cm) {};
-  
-  /**
-    @param v Vertex
-    @param g Red-black graph
-    @return  True if \c v is not maximal character of \c g
-  */
-  inline bool operator()(const RBVertex v, const RBGraph& g) const {
-    return (std::find(cm_.begin(), cm_.end(), v) == cm_.end());
-  }
-  
-private:
-  
-  std::list<RBVertex> cm_;
-};
 
 /**
   @brief Build the maximal reducible red-black graph of \c g given the maximal
@@ -460,97 +555,6 @@ bool is_redsigma(const RBGraph& g);
   @return      True if \c v is a safe source in \c hasse
 */
 bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
-
-/**
-  @brief DFS Visitor used in depth_first_search
-*/
-class safe_chain_dfs_visitor : public boost::default_dfs_visitor {
-  std::list<SignedCharacter>& lsc_;
-  const RBGraph g_;
-  const RBGraph g_cm_;
-  HDVertex source_v;
-  HDVertex last_v;
-  
-public:
-  /**
-    @param lsc  List of SignedCharacters (which gets modified during the DFS)
-    @param g    Red-black graph
-    @param g_cm Maximal reducible red-black graph
-  */
-  safe_chain_dfs_visitor(std::list<SignedCharacter>& lsc,
-                         const RBGraph& g,
-                         const RBGraph& g_cm);
-  
-  /**
-    @brief Invoked on every vertex of the graph before the start of the graph
-           search
-    
-    @param v     Vertex
-    @param hasse Hasse diagram graph
-  */
-  void initialize_vertex(const HDVertex v, const HDGraph& hasse) const;
-  
-  /**
-    @brief Invoked on the source vertex once before the start of the search
-    
-    @param v     Vertex
-    @param hasse Hasse diagram graph
-  */
-  void start_vertex(const HDVertex v, const HDGraph& hasse);
-  
-  /**
-    @brief Invoked when a vertex is encountered for the first time
-    
-    @param v     Vertex
-    @param hasse Hasse diagram graph
-  */
-  void discover_vertex(const HDVertex v, const HDGraph& hasse);
-  
-  /**
-    @brief Invoked on every out-edge of each vertex after it is discovered
-    
-    @param e     Edge
-    @param hasse Hasse diagram graph
-  */
-  void examine_edge(const HDEdge e, const HDGraph& hasse);
-  
-  /**
-    @brief Invoked on each edge as it becomes a member of the edges that form
-           the search tree
-    
-    @param e     Edge
-    @param hasse Hasse diagram graph
-  */
-  void tree_edge(const HDEdge e, const HDGraph& hasse) const;
-  
-  /**
-    @brief Invoked on the back edges in the graph
-    
-    @param e     Edge
-    @param hasse Hasse diagram graph
-  */
-  void back_edge(const HDEdge e, const HDGraph& hasse) const;
-  
-  /**
-    @brief Invoked on forward or cross edges in the graph
-    
-    @param e     Edge
-    @param hasse Hasse diagram graph
-  */
-  void forward_or_cross_edge(const HDEdge e, const HDGraph& hasse) const;
-  
-  /**
-    @brief Invoked on vertex \c v after finish_vertex has been called for all
-           the vertices in the DFS-tree rooted at vertex \c v
-    
-    If vertex \c v is a leaf in the DFS-tree, then the finish_vertex function
-    is called on \c v after all the out-edges of \c v have been examined
-    
-    @param v     Vertex
-    @param hasse Hasse diagram graph
-  */
-  void finish_vertex(const HDVertex v, const HDGraph& hasse);
-};
 
 /**
   @brief Returns a safe chain if \c hasse has a one
