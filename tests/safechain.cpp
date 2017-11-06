@@ -4,25 +4,25 @@
 int main(int argc, const char* argv[]) {
   HDGraph hasse;
   RBGraph g, g_cm;
-  std::list<SignedCharacter> lc;
+  std::list<SignedCharacter> lsc;
   bool safe;
   
-  std::tie(lc, safe) = safe_chain(g, g_cm, hasse);
+  std::tie(lsc, safe) = safe_chain(g, g_cm, hasse);
   
   assert(safe == false);
-  assert(lc.empty());
+  assert(lsc.empty());
   
   read_graph("tests/no_5x2.txt", g);
   hasse_diagram(hasse, g);
   g_cm = g;
   maximal_reducible_graph(maximal_characters2(g_cm), g_cm);
   
-  std::tie(lc, safe) = safe_chain(g, g_cm, hasse);
+  std::tie(lsc, safe) = safe_chain(g, g_cm, hasse);
   
   assert(safe == true);
-  assert(lc == std::list<SignedCharacter>({ { "c1", State::gain },
-                                            { "c2", State::gain },
-                                            { "c1", State::lose } }));
+  assert(lsc == std::list<SignedCharacter>({ { "c1", State::gain },
+                                             { "c2", State::gain },
+                                             { "c1", State::lose } }));
   
   std::cout << "safechain: tests passed" << std::endl;
   

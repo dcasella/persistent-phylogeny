@@ -51,8 +51,8 @@ inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
                added and the bool flag will be false. When the flag is false,
                the returned edge descriptor points to the already existing edge
 */
-std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
-                                 const Color color, RBGraph& g);
+std::pair<RBEdge, bool>
+add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
 
 // Hasse Diagram
 
@@ -65,8 +65,9 @@ std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
   @param hasse      Hasse diagram graph
   @return           Vertex descriptor for the new vertex
 */
-HDVertex add_vertex(const std::list<std::string>& species,
-                    const std::list<std::string>& characters, HDGraph& hasse);
+HDVertex
+add_vertex(const std::list<std::string>& species,
+           const std::list<std::string>& characters, HDGraph& hasse);
 
 /**
   @brief Add vertex with species \c species and characters \c characters to
@@ -77,9 +78,9 @@ HDVertex add_vertex(const std::list<std::string>& species,
   @param hasse      Hasse diagram graph
   @return           Vertex descriptor for the new vertex
 */
-inline HDVertex add_vertex(const std::string& species,
-                           const std::list<std::string>& characters,
-                           HDGraph& hasse) {
+inline HDVertex
+add_vertex(const std::string& species,
+           const std::list<std::string>& characters, HDGraph& hasse) {
   return add_vertex(std::list<std::string>({ species }), characters, hasse);
 }
 
@@ -97,11 +98,9 @@ inline HDVertex add_vertex(const std::string& species,
                           When the flag is false, the returned edge descriptor
                           points to the already existing edge
 */
-std::pair<HDEdge, bool> add_edge(
-    const HDVertex u,
-    const HDVertex v,
-    const std::list<SignedCharacter>& signedcharacters,
-    HDGraph& hasse);
+std::pair<HDEdge, bool>
+add_edge(const HDVertex u, const HDVertex v,
+         const std::list<SignedCharacter>& signedcharacters, HDGraph& hasse);
 
 
 //=============================================================================
@@ -340,8 +339,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g);
   @param b List of vertices
   @return  True if \c a has more elements than \c b
 */
-inline bool descending_size(const std::list<RBVertex>& a,
-                            const std::list<RBVertex>& b) {
+inline bool
+descending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
    return a.size() > b.size();
 }
 
@@ -392,8 +391,8 @@ void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g);
   @param b List of vertices
   @return  True if \c a has less elements than \c b
 */
-inline bool ascending_size(const std::list<RBVertex>& a,
-                           const std::list<RBVertex>& b) {
+inline bool
+ascending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
    return a.size() < b.size();
 }
 
@@ -404,8 +403,8 @@ inline bool ascending_size(const std::list<RBVertex>& a,
   @param b List of character names (strings)
   @return  True if \c a is included in \c b, False otherwise
 */
-bool is_included(const std::list<std::string>& a,
-                 const std::list<std::string>& b);
+bool
+is_included(const std::list<std::string>& a, const std::list<std::string>& b);
 
 /**
   @brief Build the Hasse diagram of \c g
@@ -425,8 +424,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g);
   @param g     Red-black graph
   @return      Vertex iterator of \c g if its name is \c name, or \c v_end
 */
-RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
-                         const std::string& name, const RBGraph& g);
+RBVertexIter
+find_vertex(RBVertexIter v, RBVertexIter v_end,
+            const std::string& name, const RBGraph& g);
 
 /**
   @brief Returns the vertex iterator of \c hasse if it's a source.
@@ -437,8 +437,8 @@ RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
   @param hasse Hasse diagram graph
   @return      Vertex iterator of \c hasse if it's a source, or \c v_end
 */
-HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
-                         const HDGraph& hasse);
+HDVertexIter
+find_source(HDVertexIter v, HDVertexIter v_end, const HDGraph& hasse);
 
 /**
   @brief Check if \c g is a red Σ-graph
@@ -471,9 +471,8 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
                If \c hasse has a safe chain then the bool flag will be true.
                When the flag is false, the returned chain is empty
 */
-std::pair<std::list<SignedCharacter>, bool> safe_chain(const RBGraph& g,
-                                                       const RBGraph& g_cm,
-                                                       const HDGraph& hasse);
+std::pair<std::list<SignedCharacter>, bool>
+safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse);
 
 
 //=============================================================================
@@ -492,17 +491,17 @@ std::list<SignedCharacter> reduce(RBGraph& g);
   
   ...
   Returns the list of realized characters and bool = True if the realization of
-  \c c is feasible for \c g.
+  \c sc is feasible for \c g.
   Returns an empty list and bool = False otherwise
   
-  @param c SignedCharacter of \c g
-  @param g Red-black graph
-  @return  Realized characters (list of SignedCharacters).
-           If the realization was successful then the bool flag will be true.
-           When the flag is false, the returned list is empty
+  @param sc SignedCharacter of \c g
+  @param g  Red-black graph
+  @return   Realized characters (list of SignedCharacters).
+            If the realization was successful then the bool flag will be true.
+            When the flag is false, the returned list is empty
 */
-std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
-                                                    RBGraph& g);
+std::pair<std::list<SignedCharacter>, bool>
+realize(const SignedCharacter& sc, RBGraph& g);
 
 /**
   @brief Realize the inactive characters of the species \c v in \c g
@@ -518,25 +517,24 @@ std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
            If the realization was successful then the bool flag will be true.
            When the flag is false, the returned list is empty
 */
-std::pair<std::list<SignedCharacter>, bool> realize(const RBVertex v,
-                                                    RBGraph& g);
+std::pair<std::list<SignedCharacter>, bool>
+realize(const RBVertex v, RBGraph& g);
 
 /**
-  @brief Realize the list of characters \c lc (+ or - each) in \c g
+  @brief Realize the list of characters \c lsc (+ or - each) in \c g
   
   ...
   Returns the list of realized characters and bool = True if the realizations
-  of \c lc are feasible for \c g.
+  of \c lsc are feasible for \c g.
   Returns an empty list and bool = False otherwise
   
-  @param lc List of SignedCharacters of \c g
-  @param g  Red-black graph
-  @return   Realized characters (list of SignedCharacters).
-            If the realizations were successful then the bool flag will be
-            true. When the flag is false, the returned list is empty
+  @param lsc List of SignedCharacters of \c g
+  @param g   Red-black graph
+  @return    Realized characters (list of SignedCharacters).
+             If the realizations were successful then the bool flag will be
+             true. When the flag is false, the returned list is empty
 */
-std::pair<std::list<SignedCharacter>, bool> realize(
-    const std::list<SignedCharacter>& lc,
-    RBGraph& g);
+std::pair<std::list<SignedCharacter>, bool>
+realize(const std::list<SignedCharacter>& lsc, RBGraph& g);
 
 #endif

@@ -29,8 +29,8 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
   return v;
 }
 
-std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
-                                 const Color color, RBGraph& g) {
+std::pair<RBEdge, bool>
+add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
   RBEdge e;
   bool exists;
   std::tie(e, exists) = boost::add_edge(u, v, g);
@@ -41,8 +41,9 @@ std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
 
 // Hasse Diagram
 
-HDVertex add_vertex(const std::list<std::string>& species,
-                    const std::list<std::string>& characters, HDGraph& hasse) {
+HDVertex
+add_vertex(const std::list<std::string>& species,
+           const std::list<std::string>& characters, HDGraph& hasse) {
   HDVertex v = boost::add_vertex(hasse);
   hasse[v].species = species;
   hasse[v].characters = characters;
@@ -50,11 +51,9 @@ HDVertex add_vertex(const std::list<std::string>& species,
   return v;
 }
 
-std::pair<HDEdge, bool> add_edge(
-    const HDVertex u,
-    const HDVertex v,
-    const std::list<SignedCharacter>& signedcharacters,
-    HDGraph& hasse) {
+std::pair<HDEdge, bool>
+add_edge(const HDVertex u, const HDVertex v,
+         const std::list<SignedCharacter>& signedcharacters, HDGraph& hasse) {
   HDEdge e;
   bool exists;
   std::tie(e, exists) = boost::add_edge(u, v, hasse);
@@ -121,13 +120,16 @@ void read_graph(const std::string& filename, RBGraph& g) {
       
       // insert species in the graph
       for (size_t j = 0; j < species.size(); ++j) {
-        species[j] = add_vertex("s" + std::to_string(j + 1), Type::species, g);
+        std::string v_name = "s" + std::to_string(j + 1);
+        
+        species[j] = add_vertex(v_name, Type::species, g);
       }
       
       // insert characters in the graph
       for (size_t j = 0; j < characters.size(); ++j) {
-        characters[j] = add_vertex("c" + std::to_string(j + 1),
-                                   Type::character, g);
+        std::string v_name = "c" + std::to_string(j + 1);
+        
+        characters[j] = add_vertex(v_name, Type::character, g);
       }
       
       first_line = false;
@@ -146,29 +148,31 @@ void read_graph(const std::string& filename, RBGraph& g) {
             red_edge = true;
           #endif
           
-          case '1': {
+          case '1':
             // add edge between species[s_idx] and characters[c_idx]
-            size_t s_idx = idx / characters.size(),
-                   c_idx = idx % characters.size();
-            
-            if (s_idx >= species.size() || c_idx >= characters.size()) {
-              // input file parsing error
-              throw std::runtime_error(
-                "Failed to read graph from file: oversized matrix"
+            {
+              size_t s_idx = idx / characters.size(),
+                     c_idx = idx % characters.size();
+              
+              if (s_idx >= species.size() || c_idx >= characters.size()) {
+                // input file parsing error
+                throw std::runtime_error(
+                  "Failed to read graph from file: oversized matrix"
+                );
+              }
+              
+              RBEdge edge;
+              std::tie(edge, std::ignore) = add_edge(
+                species[s_idx], characters[c_idx], g
               );
+              
+              if (red_edge)
+                g[edge].color = Color::red;
             }
-            
-            RBEdge edge;
-            std::tie(edge, std::ignore) = add_edge(species[s_idx],
-                                                   characters[c_idx], g);
-            
-            if (red_edge)
-              g[edge].color = Color::red;
-            
             break;
-          }
           
           case '0':
+            // do nothing
             break;
           
           default:
@@ -200,14 +204,16 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
     os << "[ ";
     
     StringIter i = hasse[*v].species.begin();
-    for (; i != hasse[*v].species.end(); ++i)
+    for (; i != hasse[*v].species.end(); ++i) {
       os << *i << " ";
+    }
     
     os << "( ";
     
     i = hasse[*v].characters.begin();
-    for (; i != hasse[*v].characters.end(); ++i)
+    for (; i != hasse[*v].characters.end(); ++i) {
       os << *i << " ";
+    }
     
     os << ") ]:";
     
@@ -229,14 +235,16 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
       os << "-> [ ";
       
       i = hasse[vt].species.begin();
-      for (; i != hasse[vt].species.end(); ++i)
+      for (; i != hasse[vt].species.end(); ++i) {
         os << *i << " ";
+      }
       
       os << "( ";
       
       i = hasse[vt].characters.begin();
-      for (; i != hasse[vt].characters.end(); ++i)
+      for (; i != hasse[vt].characters.end(); ++i) {
         os << *i << " ";
+      }
       
       os << ") ];";
     }
@@ -347,8 +355,9 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   }
   
   // get number of components and the components map
-  num_comps = boost::connected_components(g, c_map,
-                                          boost::vertex_index_map(i_map));
+  num_comps = boost::connected_components(
+    g, c_map, boost::vertex_index_map(i_map)
+  );
   
   if (num_comps > 1) {
     // graph is disconnected
@@ -398,13 +407,15 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
         RBVertex new_vt = vertices[target(*e, g)];
         
         RBEdge edge;
-        std::tie(edge, std::ignore) = add_edge(new_v, new_vt, g[*e].color,
-                                               *component);
+        std::tie(edge, std::ignore) = add_edge(
+          new_v, new_vt, g[*e].color, *component
+        );
       }
     }
     
     #ifdef DEBUG
     std::cout << "Connected components:" << std::endl;
+    
     for (size_t i = 0; i < num_comps; ++i) {
       std::cout << *components[i].get() << std::endl << std::endl;
     }
@@ -472,8 +483,12 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       
       #ifdef DEBUG
       std::cout << "curr Cm: " << g[*cmv].name << " = { ";
-      RBVertexIter kk = sets[*cmv].begin(), kk_end = sets[*cmv].end();
-      for (; kk != kk_end; ++kk) std::cout << g[*kk].name << " ";
+      
+      RBVertexIter kk = sets[*cmv].begin();
+      for (; kk != sets[*cmv].end(); ++kk) {
+        std::cout << g[*kk].name << " ";
+      }
+      
       std::cout << "}:" << std::endl;
       #endif
       
@@ -488,8 +503,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         #endif
         
         // find sv in the list of cmv's adjacent species
-        RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(),
-                                    *sv);
+        RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(), *sv);
         
         /* keep count of how many species are included (or not found) in
          * the list of cmv's adjacent species
@@ -575,10 +589,11 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
            * adjacent species to the characters in Cm, so v is a maximal
            * characters and can be added to the list of maximal characters Cm
            */
-          cm.push_front(*v);
           #ifdef DEBUG
           std::cout << "\tadd" << std::endl;
           #endif
+          
+          cm.push_front(*v);
         }
       }
       
@@ -667,8 +682,12 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       
       #ifdef DEBUG
       std::cout << "curr Cm: " << g[*cmv].name << " = { ";
-      RBVertexIter kk = v_map[*cmv].begin(), kk_end = v_map[*cmv].end();
-      for (; kk != kk_end; ++kk) std::cout << g[*kk].name << " ";
+      
+      RBVertexIter kk = v_map[*cmv].begin();
+      for (; kk != v_map[*cmv].end(); ++kk) {
+        std::cout << g[*kk].name << " ";
+      }
+      
       std::cout << "}:" << std::endl;
       #endif
       
@@ -683,8 +702,9 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         #endif
         
         // find sv in the list of cmv's adjacent species
-        RBVertexIter in = std::find(v_map[*cmv].begin(), v_map[*cmv].end(),
-                                    *sv);
+        RBVertexIter in = std::find(
+          v_map[*cmv].begin(), v_map[*cmv].end(), *sv
+        );
         
         /* keep count of how many species are included (or not found) in
          * the list of cmv's adjacent species
@@ -756,10 +776,11 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
            * adjacent species to the characters in Cm, so v is a maximal
            * characters and can be added to the list of maximal characters Cm
            */
-          cm.push_front(v);
           #ifdef DEBUG
           std::cout << "\tadd" << std::endl;
           #endif
+          
+          cm.push_front(v);
         }
       }
       
@@ -784,8 +805,8 @@ void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
   }
 }
 
-bool is_included(const std::list<std::string>& a,
-                 const std::list<std::string>& b) {
+bool
+is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
   StringIter i = a.begin();
   for (; i != a.end(); ++i) {
     StringIter in;
@@ -863,8 +884,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     // fill the list of characters names of v
     std::list<std::string> lcv;
     RBVertexIter cv = v_map[v].begin(), cv_end = v_map[v].end();
-    for (; cv != cv_end; ++cv)
+    for (; cv != cv_end; ++cv) {
       lcv.push_back(g[*cv].name);
+    }
     
     if (i == 0) {
       /* first iteration of the loop:
@@ -882,8 +904,12 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     
     #ifdef DEBUG
     std::cout << "C(" << g[v].name << ") = { ";
+    
     StringIter kk = lcv.begin();
-    for (; kk != lcv.end(); ++kk) std::cout << *kk << " ";
+    for (; kk != lcv.end(); ++kk) {
+      std::cout << *kk << " ";
+    }
+    
     std::cout << "}:" << std::endl;
     #endif
     
@@ -901,11 +927,19 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       // for each vertex in hasse
       #ifdef DEBUG
       std::cout << "hdv: ";
+      
       kk = hasse[*hdv].species.begin();
-      for (; kk != hasse[*hdv].species.end(); ++kk) std::cout << *kk << " ";
+      for (; kk != hasse[*hdv].species.end(); ++kk) {
+        std::cout << *kk << " ";
+      }
+      
       std::cout << "= { ";
+      
       kk = hasse[*hdv].characters.begin();
-      for (; kk != hasse[*hdv].characters.end(); ++kk) std::cout << *kk << " ";
+      for (; kk != hasse[*hdv].characters.end(); ++kk) {
+        std::cout << *kk << " ";
+      }
+      
       std::cout << "} -> ";
       #endif
       
@@ -927,8 +961,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       
       if (is_included(lhdv, lcv)) {
         // hdv is included in v
-        StringIter ci, ci_end;
-        ci = lcv.begin(); ci_end = lcv.end();
+        StringIter ci = lcv.begin(), ci_end = lcv.end();
         for (; ci != ci_end; ++ci) {
           // for each character in hdv
           StringIter in;
@@ -961,19 +994,29 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
           
           #ifdef DEBUG
           std::cout << "Hasse.addE ";
+          
           kk = hasse[ei->first].species.begin();
-          for (; kk != hasse[ei->first].species.end(); ++kk)
+          for (; kk != hasse[ei->first].species.end(); ++kk) {
             std::cout << *kk << " ";
+          }
+          
           std::cout << "-";
+          
           SignedCharacterIter jj = hasse[edge].signedcharacters.begin();
           for (; jj != hasse[edge].signedcharacters.end(); ++jj) {
             std::cout << *jj;
+            
             if (std::next(jj) != hasse[edge].signedcharacters.end())
               std::cout << ",";
           }
+          
           std::cout << "-> ";
+          
           kk = hasse[u].species.begin();
-          for (; kk != hasse[u].species.end(); ++kk) std::cout << *kk << " ";
+          for (; kk != hasse[u].species.end(); ++kk) {
+            std::cout << *kk << " ";
+          }
+          
           std::cout << std::endl;
           #endif
         }
@@ -1019,8 +1062,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
          */
         HDEdge e;
         bool exists;
-        std::tie(e, exists) = edge(source(*ie, hasse), target(*oe, hasse),
-                                   hasse);
+        std::tie(e, exists) = edge(
+          source(*ie, hasse), target(*oe, hasse), hasse
+        );
         
         if (!exists)
           // no transitivity between source and target
@@ -1036,8 +1080,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   }
 }
 
-RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
-                         const std::string& name, const RBGraph& g) {
+RBVertexIter
+find_vertex(RBVertexIter v, RBVertexIter v_end,
+            const std::string& name, const RBGraph& g) {
   for (; v != v_end; ++v) {
     if (g[*v].name == name)
       return v;
@@ -1046,8 +1091,8 @@ RBVertexIter find_vertex(RBVertexIter v, RBVertexIter v_end,
   return v_end;
 }
 
-HDVertexIter find_source(HDVertexIter v, HDVertexIter v_end,
-                         const HDGraph& hasse) {
+HDVertexIter
+find_source(HDVertexIter v, HDVertexIter v_end, const HDGraph& hasse) {
   for (; v != v_end; ++v) {
     if (in_degree(*v, hasse) == 0)
       return v;
@@ -1090,9 +1135,8 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   return !is_redsigma(g1);
 }
 
-std::pair<std::list<SignedCharacter>, bool> safe_chain(const RBGraph& g,
-                                                       const RBGraph& g_cm,
-                                                       const HDGraph& hasse) {
+std::pair<std::list<SignedCharacter>, bool>
+safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
   /* TODO: implement safe_chain by using
    *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/depth_first_search.html
    * with an implementation of
@@ -1113,12 +1157,16 @@ std::pair<std::list<SignedCharacter>, bool> safe_chain(const RBGraph& g,
       break;
     
     HDVertex curr = *v;
-    std::list<SignedCharacter> lc;
+    std::list<SignedCharacter> lsc;
     
     #ifdef DEBUG
     std::cout << "Source: [ ";
+    
     StringIter kk = hasse[curr].species.begin();
-    for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
+    for (; kk != hasse[curr].species.end(); ++kk) {
+      std::cout << *kk << " ";
+    }
+    
     std::cout << "]" << std::endl
               << "C: < ";
     #endif
@@ -1126,32 +1174,47 @@ std::pair<std::list<SignedCharacter>, bool> safe_chain(const RBGraph& g,
     while (out_degree(curr, hasse) > 0) {
       #ifdef DEBUG
       std::cout << "[ ";
+      
       kk = hasse[curr].species.begin();
-      for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
+      for (; kk != hasse[curr].species.end(); ++kk) {
+        std::cout << *kk << " ";
+      }
+      
       std::cout << "] ";
       #endif
       
       HDOutEdgeIter edge;
       std::tie(edge, std::ignore) = out_edges(curr, hasse);
-      lc.insert(lc.end(),hasse[*edge].signedcharacters.begin(),
-                hasse[*edge].signedcharacters.end());
+      lsc.insert(
+        lsc.end(),
+        hasse[*edge].signedcharacters.begin(),
+        hasse[*edge].signedcharacters.end()
+      );
       
       curr = target(*edge, hasse);
     }
     
     #ifdef DEBUG
     std::cout << "[ ";
+    
     kk = hasse[curr].species.begin();
-    for (; kk != hasse[curr].species.end(); ++kk) std::cout << *kk << " ";
+    for (; kk != hasse[curr].species.end(); ++kk) {
+      std::cout << *kk << " ";
+    }
+    
     std::cout << "] >" << std::endl 
               << "S(C): < ";
-    SignedCharacterIter jj = lc.begin();
-    for (; jj != lc.end(); ++jj) std::cout << *jj << " ";
+    
+    SignedCharacterIter jj = lsc.begin();
+    for (; jj != lsc.end(); ++jj) {
+      std::cout << *jj << " ";
+    }
+    
     std::cout << ">" << std::endl;
     #endif
     
     RBGraph g_cm_test(g_cm);
-    std::tie(output, std::ignore) = realize(lc, g_cm_test);
+    std::tie(output, std::ignore) = realize(lsc, g_cm_test);
     
     #ifdef DEBUG
     std::cout << g_cm_test << std::endl << std::endl;
@@ -1231,10 +1294,10 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      std::list<SignedCharacter> lc;
-      std::tie(lc, std::ignore) = realize({ g[*v].name, State::lose }, g);
+      std::list<SignedCharacter> lsc;
+      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
       
-      output.splice(output.end(), lc);
+      output.splice(output.end(), lsc);
       output.splice(output.end(), reduce(g));
       
       // return < v-, reduce(g) >
@@ -1259,10 +1322,10 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
                 << std::endl << std::endl;
       #endif
       
-      std::list<SignedCharacter> lc;
-      std::tie(lc, std::ignore) = realize({ g[*v].name, State::gain }, g);
+      std::list<SignedCharacter> lsc;
+      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
       
-      output.splice(output.end(), lc);
+      output.splice(output.end(), lsc);
       output.splice(output.end(), reduce(g));
       
       // return < v+, reduce(g) >
@@ -1281,8 +1344,9 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
      * build subgraphs (connected components) g1, g2, etc.
      * return < reduce(g1), reduce(g2), ... >
      */
-    for (size_t i = 0; i < num_comps; ++i)
+    for (size_t i = 0; i < num_comps; ++i) {
       output.splice(output.end(), reduce(*components[i].get()));
+    }
     
     return output;
   }
@@ -1296,10 +1360,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
+  
   std::list<RBVertex>::const_iterator kk = cm.begin();
-  for (; kk != cm.end(); ++kk) std::cout << g_cm[*kk].name << " ";
-  std::cout << "}" << std::endl
-            << "Gcm:" << std::endl
+  for (; kk != cm.end(); ++kk) {
+    std::cout << g_cm[*kk].name << " ";
+  }
+  
+  std::cout << "}" << std::endl << "Gcm:" << std::endl
             << g_cm << std::endl << std::endl;
   #endif
   
@@ -1321,24 +1388,24 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // p has no safe source
     throw std::runtime_error("Could not reduce graph");
   
-  std::list<SignedCharacter> lc;
-  std::tie(lc, std::ignore) = realize(sc, g);
+  std::list<SignedCharacter> lsc;
+  std::tie(lsc, std::ignore) = realize(sc, g);
   
-  output.splice(output.end(), lc);
+  output.splice(output.end(), lsc);
   output.splice(output.end(), reduce(g));
   
   // return < sc, reduce(g) >
   return output;
 }
 
-std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
-                                                    RBGraph& g) {
+std::pair<std::list<SignedCharacter>, bool>
+realize(const SignedCharacter& sc, RBGraph& g) {
   std::list<SignedCharacter> output;
   
   // find vertex whose name is c.character in g
   RBVertexIter v, v_end, in;
   std::tie(v, v_end) = vertices(g);
-  in = find_vertex(v, v_end, c.character, g);
+  in = find_vertex(v, v_end, sc.character, g);
   
   if (in == v_end)
     // vertex whose name is c.character doesn't exist in g
@@ -1358,10 +1425,10 @@ std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
   // build the components map
   boost::connected_components(g, c_map, boost::vertex_index_map(i_map));
   
-  if (c.state == State::gain && is_inactive(cv, g)) {
+  if (sc.state == State::gain && is_inactive(cv, g)) {
     // c+ and c is inactive
     #ifdef DEBUG
-    std::cout << c << " (+ and inactive):" << std::endl;
+    std::cout << sc << " (+ and inactive):" << std::endl;
     #endif
     
     std::tie(v, v_end) = vertices(g);
@@ -1400,23 +1467,23 @@ std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
     std::cout << std::endl;
     #endif
   }
-  else if (c.state == State::lose && is_active(cv, g)) {
+  else if (sc.state == State::lose && is_active(cv, g)) {
     // c- and c is active
     #ifdef DEBUG
-    std::cout << c << " (- and active)" << std::endl;
+    std::cout << sc << " (- and active)" << std::endl;
     #endif
     
     clear_vertex(cv, g);
   }
   else {
     #ifdef DEBUG
-    std::cout << "Could not realize " << c << std::endl;
+    std::cout << "Could not realize " << sc << std::endl;
     #endif
     
     return std::make_pair(output, false);
   }
   
-  output.push_back(c);
+  output.push_back(sc);
   
   remove_singletons(g);
   
@@ -1432,10 +1499,10 @@ std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
                 << std::endl << std::endl;
       #endif
       
-      std::list<SignedCharacter> lc;
-      std::tie(lc, std::ignore) = realize({ g[*v].name, State::gain }, g);
+      std::list<SignedCharacter> lsc;
+      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
       
-      output.splice(output.end(), lc);
+      output.splice(output.end(), lsc);
       
       return std::make_pair(output, true);
     }
@@ -1453,10 +1520,10 @@ std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
                 << std::endl << std::endl;
       #endif
       
-      std::list<SignedCharacter> lc;
-      std::tie(lc, std::ignore) = realize({ g[*v].name, State::lose }, g);
+      std::list<SignedCharacter> lsc;
+      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
       
-      output.splice(output.end(), lc);
+      output.splice(output.end(), lsc);
       
       return std::make_pair(output, true);
     }
@@ -1465,12 +1532,12 @@ std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& c,
   return std::make_pair(output, true);
 }
 
-std::pair<std::list<SignedCharacter>, bool> realize(const RBVertex v,
-                                                    RBGraph& g) {
-  std::list<SignedCharacter> lc;
+std::pair<std::list<SignedCharacter>, bool>
+realize(const RBVertex v, RBGraph& g) {
+  std::list<SignedCharacter> lsc;
   
   if (!is_species(v, g))
-    return std::make_pair(lc, false);
+    return std::make_pair(lsc, false);
   
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
@@ -1478,20 +1545,19 @@ std::pair<std::list<SignedCharacter>, bool> realize(const RBVertex v,
     RBVertex u = target(*e, g);
     
     if (is_inactive(u, g))
-      lc.push_back({ g[u].name, State::gain });
+      lsc.push_back({ g[u].name, State::gain });
   }
   
-  return realize(lc, g);
+  return realize(lsc, g);
 }
 
-std::pair<std::list<SignedCharacter>, bool> realize(
-    const std::list<SignedCharacter>& lc,
-    RBGraph& g) {
+std::pair<std::list<SignedCharacter>, bool>
+realize( const std::list<SignedCharacter>& lsc, RBGraph& g) {
   std::list<SignedCharacter> output;
   bool feasible = true;
   
-  SignedCharacterIter i = lc.begin();
-  for (; i != lc.end(); ++i) {
+  SignedCharacterIter i = lsc.begin();
+  for (; i != lsc.end(); ++i) {
     std::list<SignedCharacter> signedcharacters;
     bool feasible_realize;
     std::tie(signedcharacters, feasible_realize) = realize(*i, g);
