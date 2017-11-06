@@ -1,5 +1,7 @@
 #include "functions.hpp"
+#include "safe_chain_exception.hpp"
 #include <fstream>
+#include <boost/graph/depth_first_search.hpp>
 
 
 //=============================================================================
@@ -1091,6 +1093,7 @@ find_vertex(RBVertexIter v, RBVertexIter v_end,
   return v_end;
 }
 
+// TODO: delete find_source? (modify source.cpp)
 HDVertexIter
 find_source(HDVertexIter v, HDVertexIter v_end, const HDGraph& hasse) {
   for (; v != v_end; ++v) {
@@ -1135,113 +1138,285 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   return !is_redsigma(g1);
 }
 
-std::pair<std::list<SignedCharacter>, bool>
-safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
-  /* TODO: implement safe_chain by using
-   *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/depth_first_search.html
-   * with an implementation of
-   *   http://www.boost.org/doc/libs/1_62_0/libs/graph/doc/DFSVisitor.html
+safe_chain_dfs_visitor::safe_chain_dfs_visitor(
+    std::list<SignedCharacter>& lsc,
+    const RBGraph& g,
+    const RBGraph& g_cm)
+    : lsc_(lsc), g_(g), g_cm_(g_cm) {
+  lsc_.clear();
+}
+
+void
+safe_chain_dfs_visitor::initialize_vertex(
+    const HDVertex v,
+    const HDGraph& hasse) const {
+  #ifdef DEBUG
+  std::cout << "initialize_vertex: [ ";
+  
+  StringIter si = hasse[v].species.begin();
+  for (; si != hasse[v].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+}
+
+void
+safe_chain_dfs_visitor::start_vertex(const HDVertex v, const HDGraph& hasse) {
+  #ifdef DEBUG
+  std::cout << "start_vertex: [ ";
+  
+  StringIter si = hasse[v].species.begin();
+  for (; si != hasse[v].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+  
+  source_v = v;
+}
+
+void
+safe_chain_dfs_visitor::discover_vertex(
+    const HDVertex v,
+    const HDGraph& hasse) {
+  #ifdef DEBUG
+  std::cout << "discover_vertex: [ ";
+  
+  StringIter si = hasse[v].species.begin();
+  for (; si != hasse[v].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+  
+  last_v = v;
+}
+
+void
+safe_chain_dfs_visitor::examine_edge(const HDEdge e, const HDGraph& hasse) {
+  #ifdef DEBUG
+  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  
+  std::cout << "examine_edge: [ ";
+  
+  StringIter si = hasse[vs].species.begin();
+  for (; si != hasse[vs].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "] -";
+  
+  SignedCharacterIter sci = hasse[e].signedcharacters.begin();
+  for (; sci != hasse[e].signedcharacters.end(); ++sci) {
+    std::cout << *sci;
+    
+    if (std::next(sci) != hasse[e].signedcharacters.end())
+      std::cout << ",";
+  }
+  
+  std::cout << "-> [ ";
+  
+  si = hasse[vt].species.begin();
+  for (; si != hasse[vt].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+  
+  lsc_.insert(
+    lsc_.end(),
+    hasse[e].signedcharacters.begin(),
+    hasse[e].signedcharacters.end()
+  );
+}
+
+void
+safe_chain_dfs_visitor::tree_edge(const HDEdge e, const HDGraph& hasse) const {
+  #ifdef DEBUG
+  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  
+  std::cout << "tree_edge: [ ";
+  
+  StringIter si = hasse[vs].species.begin();
+  for (; si != hasse[vs].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "] -";
+  
+  SignedCharacterIter sci = hasse[e].signedcharacters.begin();
+  for (; sci != hasse[e].signedcharacters.end(); ++sci) {
+    std::cout << *sci;
+    
+    if (std::next(sci) != hasse[e].signedcharacters.end())
+      std::cout << ",";
+  }
+  
+  std::cout << "-> [ ";
+  
+  si = hasse[vt].species.begin();
+  for (; si != hasse[vt].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+}
+
+void
+safe_chain_dfs_visitor::back_edge(const HDEdge e, const HDGraph& hasse) const {
+  #ifdef DEBUG
+  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  
+  std::cout << "back_edge: [ ";
+  
+  StringIter si = hasse[vs].species.begin();
+  for (; si != hasse[vs].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "] -";
+  
+  SignedCharacterIter sci = hasse[e].signedcharacters.begin();
+  for (; sci != hasse[e].signedcharacters.end(); ++sci) {
+    std::cout << *sci;
+    
+    if (std::next(sci) != hasse[e].signedcharacters.end())
+      std::cout << ",";
+  }
+  
+  std::cout << "-> [ ";
+  
+  si = hasse[vt].species.begin();
+  for (; si != hasse[vt].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+}
+
+void
+safe_chain_dfs_visitor::forward_or_cross_edge(
+    const HDEdge e,
+    const HDGraph& hasse) const {
+  #ifdef DEBUG
+  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  
+  std::cout << "forward_or_cross_edge: [ ";
+  
+  StringIter si = hasse[vs].species.begin();
+  for (; si != hasse[vs].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "] -";
+  
+  SignedCharacterIter sci = hasse[e].signedcharacters.begin();
+  for (; sci != hasse[e].signedcharacters.end(); ++sci) {
+    std::cout << *sci;
+    
+    if (std::next(sci) != hasse[e].signedcharacters.end())
+      std::cout << ",";
+  }
+  
+  std::cout << "-> [ ";
+  
+  si = hasse[vt].species.begin();
+  for (; si != hasse[vt].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+}
+
+void
+safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
+  #ifdef DEBUG
+  std::cout << "finish_vertex: [ ";
+  
+  StringIter si = hasse[v].species.begin();
+  for (; si != hasse[v].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "]" << std::endl;
+  #endif
+  
+  if (last_v != v)
+    // v is not the last vertex in the chain
+    return;
+  
+  /* source_v holds the source vertex of the chain
+   * lsc_ holds the list of SignedCharacters representing the chain
    */
   
+  #ifdef DEBUG
+  std::cout << "S(C): < ";
+  
+  SignedCharacterIter sci = lsc_.begin();
+  for (; sci != lsc_.end(); ++sci) {
+    std::cout << *sci << " ";
+  }
+  
+  std::cout << ">" << std::endl;
+  #endif
+  
+  // test if lsc is a safe chain
+  RBGraph g_cm_test(g_cm_);
+  std::tie(lsc_, std::ignore) = realize(lsc_, g_cm_test);
+  
+  #ifdef DEBUG
+  std::cout << g_cm_test << std::endl << std::endl;
+  #endif
+  
+  if (is_redsigma(g_cm_test)) {
+    #ifdef DEBUG
+    std::cout << "Found red Σ-graph" << std::endl;
+    #endif
+    
+    lsc_.clear();
+    return;
+  }
+  
+  #ifdef DEBUG
+  std::cout << "No red Σ-graph" << std::endl;
+  #endif
+  
+  // TODO: test safe source?
+  
+  throw SafeChain();
+}
+
+std::pair<std::list<SignedCharacter>, bool>
+safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
   std::list<SignedCharacter> output;
   bool safe = false;
   
-  HDVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(hasse);
-  for (; v != v_end; ++v) {
-    v = find_source(v, v_end, hasse);
-    // for each source in hasse
-    
-    if (v == v_end)
-      // hasse has no sources left
-      break;
-    
-    HDVertex curr = *v;
-    std::list<SignedCharacter> lsc;
-    
+  try {
+    safe_chain_dfs_visitor vis(output, g, g_cm);
+    depth_first_search(hasse, boost::visitor(vis));
+  }
+  catch (const SafeChain& e) {
+    // output holds a safe chain
     #ifdef DEBUG
-    std::cout << "Source: [ ";
+    std::cout << "Safe chain: < ";
     
-    StringIter kk = hasse[curr].species.begin();
-    for (; kk != hasse[curr].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    SignedCharacterIter sci = output.begin();
+    for (; sci != output.end(); ++sci) {
+      std::cout << *sci << " ";
     }
     
-    std::cout << "]" << std::endl
-              << "C: < ";
+    std::cout << ">" << std::endl << std::endl;
     #endif
     
-    while (out_degree(curr, hasse) > 0) {
-      #ifdef DEBUG
-      std::cout << "[ ";
-      
-      kk = hasse[curr].species.begin();
-      for (; kk != hasse[curr].species.end(); ++kk) {
-        std::cout << *kk << " ";
-      }
-      
-      std::cout << "] ";
-      #endif
-      
-      HDOutEdgeIter edge;
-      std::tie(edge, std::ignore) = out_edges(curr, hasse);
-      lsc.insert(
-        lsc.end(),
-        hasse[*edge].signedcharacters.begin(),
-        hasse[*edge].signedcharacters.end()
-      );
-      
-      curr = target(*edge, hasse);
-    }
-    
-    #ifdef DEBUG
-    std::cout << "[ ";
-    
-    kk = hasse[curr].species.begin();
-    for (; kk != hasse[curr].species.end(); ++kk) {
-      std::cout << *kk << " ";
-    }
-    
-    std::cout << "] >" << std::endl 
-              << "S(C): < ";
-    
-    SignedCharacterIter jj = lsc.begin();
-    for (; jj != lsc.end(); ++jj) {
-      std::cout << *jj << " ";
-    }
-    
-    std::cout << ">" << std::endl;
-    #endif
-    
-    RBGraph g_cm_test(g_cm);
-    std::tie(output, std::ignore) = realize(lsc, g_cm_test);
-    
-    #ifdef DEBUG
-    std::cout << g_cm_test << std::endl << std::endl;
-    #endif
-    
-    if (!is_redsigma(g_cm_test)) {
-      #ifdef DEBUG
-      std::cout << "No red Σ-graph" << std::endl;
-      #endif
-      
-      // TODO: test safe source?
-      
-      safe = true;
-      
-      break;
-    }
-    else {
-      #ifdef DEBUG
-      std::cout << "Found red Σ-graph" << std::endl;
-      #endif
-      
-      output.clear();
-    }
-    
-    #ifdef DEBUG
-    std::cout << std::endl;
-    #endif
+    safe = true;
   }
   
   return std::make_pair(output, safe);
@@ -1495,8 +1670,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
        * realize v+
        */
       #ifdef DEBUG
-      std::cout << "G universal character " << g[*v].name
-                << std::endl << std::endl;
+      std::cout << "G universal character " << g[*v].name << std::endl;
       #endif
       
       std::list<SignedCharacter> lsc;
@@ -1516,8 +1690,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
        * realize v-
        */
       #ifdef DEBUG
-      std::cout << "G free character " << g[*v].name
-                << std::endl << std::endl;
+      std::cout << "G free character " << g[*v].name << std::endl;
       #endif
       
       std::list<SignedCharacter> lsc;
@@ -1552,7 +1725,7 @@ realize(const RBVertex v, RBGraph& g) {
 }
 
 std::pair<std::list<SignedCharacter>, bool>
-realize( const std::list<SignedCharacter>& lsc, RBGraph& g) {
+realize(const std::list<SignedCharacter>& lsc, RBGraph& g) {
   std::list<SignedCharacter> output;
   bool feasible = true;
   
