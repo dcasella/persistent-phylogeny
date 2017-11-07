@@ -2,6 +2,7 @@
 #define FUNCTIONS_HPP
 
 #include "defs.hpp"
+#include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
 
 
@@ -61,9 +62,10 @@ public:
     @param g    Red-black graph
     @param g_cm Maximal reducible red-black graph
   */
-  safe_chain_dfs_visitor(std::list<SignedCharacter>& lsc,
-                         const RBGraph& g,
-                         const RBGraph& g_cm);
+  safe_chain_dfs_visitor(
+      std::list<SignedCharacter>& lsc,
+      const RBGraph& g,
+      const RBGraph& g_cm);
   
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -198,8 +200,10 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
   @return           Vertex descriptor for the new vertex
 */
 HDVertex
-add_vertex(const std::list<std::string>& species,
-           const std::list<std::string>& characters, HDGraph& hasse);
+add_vertex(
+    const std::list<std::string>& species,
+    const std::list<std::string>& characters,
+    HDGraph& hasse);
 
 /**
   @brief Add vertex with species \c species and characters \c characters to
@@ -211,8 +215,10 @@ add_vertex(const std::list<std::string>& species,
   @return           Vertex descriptor for the new vertex
 */
 inline HDVertex
-add_vertex(const std::string& species,
-           const std::list<std::string>& characters, HDGraph& hasse) {
+add_vertex(
+    const std::string& species,
+    const std::list<std::string>& characters,
+    HDGraph& hasse) {
   return add_vertex(std::list<std::string>({ species }), characters, hasse);
 }
 
@@ -231,8 +237,11 @@ add_vertex(const std::string& species,
                           points to the already existing edge
 */
 std::pair<HDEdge, bool>
-add_edge(const HDVertex u, const HDVertex v,
-         const std::list<SignedCharacter>& signedcharacters, HDGraph& hasse);
+add_edge(
+    const HDVertex u,
+    const HDVertex v,
+    const std::list<SignedCharacter>& signedcharacters,
+    HDGraph& hasse);
 
 
 //=============================================================================

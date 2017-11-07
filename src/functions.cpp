@@ -68,7 +68,8 @@ safe_chain_dfs_visitor::discover_vertex(
 void
 safe_chain_dfs_visitor::examine_edge(const HDEdge e, const HDGraph& hasse) {
   #ifdef DEBUG
-  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  HDVertex vs, vt;
+  std::tie(vs, vt) = incident(e, hasse);
   
   std::cout << "examine_edge: [ ";
   
@@ -107,7 +108,8 @@ safe_chain_dfs_visitor::examine_edge(const HDEdge e, const HDGraph& hasse) {
 void
 safe_chain_dfs_visitor::tree_edge(const HDEdge e, const HDGraph& hasse) const {
   #ifdef DEBUG
-  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  HDVertex vs, vt;
+  std::tie(vs, vt) = incident(e, hasse);
   
   std::cout << "tree_edge: [ ";
   
@@ -140,7 +142,8 @@ safe_chain_dfs_visitor::tree_edge(const HDEdge e, const HDGraph& hasse) const {
 void
 safe_chain_dfs_visitor::back_edge(const HDEdge e, const HDGraph& hasse) const {
   #ifdef DEBUG
-  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  HDVertex vs, vt;
+  std::tie(vs, vt) = incident(e, hasse);
   
   std::cout << "back_edge: [ ";
   
@@ -175,7 +178,8 @@ safe_chain_dfs_visitor::forward_or_cross_edge(
     const HDEdge e,
     const HDGraph& hasse) const {
   #ifdef DEBUG
-  HDVertex vs = source(e, hasse), vt = target(e, hasse);
+  HDVertex vs, vt;
+  std::tie(vs, vt) = incident(e, hasse);
   
   std::cout << "forward_or_cross_edge: [ ";
   
@@ -237,7 +241,17 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   std::cout << ">" << std::endl;
   #endif
   
-  // test if lsc is a safe chain
+  // TODO: confirm this is correct
+  if (lsc_.empty()) {
+    // lsc_ being empty means it's not actually a chain
+    #ifdef DEBUG
+    std::cout << "Empty chain" << std::endl;
+    #endif
+    
+    return;
+  }
+  
+  // test if lsc_ is a safe chain
   RBGraph g_cm_test(g_cm_);
   std::tie(lsc_, std::ignore) = realize(lsc_, g_cm_test);
   
@@ -304,8 +318,10 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
 // Hasse Diagram
 
 HDVertex
-add_vertex(const std::list<std::string>& species,
-           const std::list<std::string>& characters, HDGraph& hasse) {
+add_vertex(
+    const std::list<std::string>& species,
+    const std::list<std::string>& characters,
+    HDGraph& hasse) {
   HDVertex v = boost::add_vertex(hasse);
   hasse[v].species = species;
   hasse[v].characters = characters;
@@ -314,8 +330,11 @@ add_vertex(const std::list<std::string>& species,
 }
 
 std::pair<HDEdge, bool>
-add_edge(const HDVertex u, const HDVertex v,
-         const std::list<SignedCharacter>& signedcharacters, HDGraph& hasse) {
+add_edge(
+    const HDVertex u,
+    const HDVertex v,
+    const std::list<SignedCharacter>& signedcharacters,
+    HDGraph& hasse) {
   HDEdge e;
   bool exists;
   std::tie(e, exists) = boost::add_edge(u, v, hasse);
@@ -642,11 +661,6 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
       RBGraph* component = components[comp].get();
       
       vertices[v] = add_vertex(g[v].name, g[v].type, *component);
-      
-      if (is_species(v, g))
-        num_species(*component)++;
-      else
-        num_characters(*component)++;
     }
     
     // add edges to their respective vertices and subgraph
@@ -654,13 +668,14 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
     for (; i != map_comp.end(); ++i) {
       // for each vertex
       RBVertex v = i->first;
+      
+      // prevent duplicate edges
+      if (!is_species(v, g))
+        continue;
+      
       RBVertex new_v = vertices[v];
       RBVertexSize comp = i->second;
       RBGraph* component = components[comp].get();
-      
-      // prevent duplicate edges
-      // if (!is_species(v, g))
-      //   continue;
       
       RBOutEdgeIter e, e_end;
       std::tie(e, e_end) = out_edges(v, g);
@@ -1578,6 +1593,10 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::cout << "Hasse:" << std::endl
             << p << std::endl << std::endl;
   #endif
+  
+  if (num_edges(p) == 0)
+    // no edges means there are no chains in the Hasse diagram
+    throw std::runtime_error("Could not reduce graph");
   
   // sc = safe chain for g (Grb)
   std::list<SignedCharacter> sc;
