@@ -2,6 +2,7 @@
 #define FUNCTIONS_HPP
 
 #include "defs.hpp"
+#include <boost/graph/random.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
 
@@ -357,6 +358,67 @@ void remove_vertex_if(const RBVertex v, Predicate pred, RBGraph& g) {
   @return   Updated output stream
 */
 std::ostream& operator<<(std::ostream& os, const RBGraph& g);
+
+/**
+  @brief Generate a random Red-black graph
+  
+  @param g   Red-black graph
+  @param S   Number of species
+  @param C   Number of characters
+  @param E   Number of edges
+  @param gen Random number generator
+*/
+template <class RandNumGen>
+void generate_random_rbgraph(
+    RBGraph& g,
+    const RBVertexSize S,
+    const RBVertexSize C,
+    const RBVertexSize E,
+    RandNumGen& gen) {
+  assert(E <= (S * C));
+  
+  generate_random_graph(g, (S + C), 0, gen, false, false);
+  
+  num_species(g) = S;
+  num_characters(g) = C;
+  
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(g);
+  
+  // name species in the graph
+  for (RBVertexSize i = 0; i < S; ++i, ++v) {
+    g[*v].name = "s" + std::to_string(i + 1);
+    g[*v].type = Type::species;
+  }
+  
+  // name characters in the graph
+  for (RBVertexSize i = 0; i < C; ++i, ++v) {
+    g[*v].name = "c" + std::to_string(i + 1);
+    g[*v].type = Type::character;
+  }
+  
+  // add edges between random species and characters
+  for (RBVertexSize i = 0; i < E; ++i) {
+    bool new_edge;
+    RBVertex vs, vt;
+    
+    do {
+      // search for a random vertex until vs holds a species
+      while ((vs = random_vertex(g, gen)) && g[vs].type != Type::species);
+      
+      // search for a random vertex until vt holds a character
+      while ((vt = random_vertex(g, gen)) && g[vt].type != Type::character);
+      
+      // add edge (if it doesn't exist)
+      std::tie(std::ignore, new_edge) = add_edge(vs, vt, g);
+    }
+    while (!new_edge);
+  }
+  
+  #ifdef DEBUG
+  std::cout << "G generated" << std::endl << std::endl;
+  #endif
+}
 
 // File I/O
 
