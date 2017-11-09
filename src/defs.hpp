@@ -6,40 +6,50 @@
 
 
 //=============================================================================
-// Data structuress
+// Data structures
 
 // General
 
 /**
-  @brief Strongly typed 8-bit enum class used for character state
+  Strongly typed 1-bit enum class used for character state.
+  
+  State is paired with a character in the struct SignedCharacter.
 */
-enum class State : unsigned char {
-  none, lose, gain
+enum class State : bool {
+  lose, ///< The paired character is lost
+  gain  ///< The paired character is gained
 };
 
 /**
-  @var character stores the character name
-  @var state stores the character state
+  @brief Struct used to represent a signed character
+  
+  Each character c+ and c− is called a signed character.
 */
 struct SignedCharacter {
-  std::string character = "c";
-  State state = State::none;
+  std::string character = "c"; ///< Character name
+  State state = State::gain;   ///< Character state
 };
 
 // Red-Black Graph
 
 /**
-  @brief Strongly typed boolean enum class used for edge color
+  Strongly typed 1-bit enum class used for edge color.
+  
+  Color is used to label edges in a red-black graph.
 */
 enum class Color : bool {
-  black, red
+  black, ///< The character incident on the labeled edge is inactive
+  red    ///< The character incident on the labeled edge is active
 };
 
 /**
-  @brief Strongly typed 8-bit enum class used for vertex type
+  Strongly typed 1-bit enum class used for vertex type.
+  
+  Type is used to label vertices in a red-black graph.
 */
-enum class Type : unsigned char {
-  none, species, character
+enum class Type : bool {
+  species,  ///< The labeled vertex is a species
+  character ///< The labeled vertex is a character
 };
 
 
@@ -49,48 +59,68 @@ enum class Type : unsigned char {
 // Red-Black Graph
 
 /**
-  @var color stores the edge color (Red or Black)
+  @brief Struct used to represent the properties of an edge (red-black graph)
+  
+  Each character c ∈ C is incident only on black edges (in this case c is
+  inactive), or it is incident only on red edges (in this case c is active).
 */
 struct RBEdgeProperties {
-  Color color = Color::black;
+  Color color = Color::black; ///< Edge color (Red or Black)
 };
 
 /**
-  @var name stores the vertex name
-  @var type stores the vertex type (Character or Species)
+  @brief Struct used to represent the properties of a vertex (red-black graph)
+  
+  A red-black graph on a set S of species and a set C of characters, is a
+  bipartite graph whose vertex set is S ∪ C.
 */
 struct RBVertexProperties {
-  std::string name = "v";
-  Type type = Type::none;
+  std::string name = "v";    ///< Vertex name
+  Type type = Type::species; ///< Vertex type (Character or Species)
 };
 
 /**
-  @var num_species stores the number of species in the graph
-  @var num_characters stores the number of characters in the graph
+  @brief Struct used to represent the properties of a red-black graph
 */
 struct RBGraphProperties {
-  size_t num_species = 0;
-  size_t num_characters = 0;
+  size_t num_species = 0;    ///< Number of species in the graph
+  size_t num_characters = 0; ///< Number of characters in the graph
 };
 
 // Hasse Diagram
 
 /**
-  @var signedcharacters stores the SignedCharacters which label the edge
+  @brief Struct used to represent the properties of an edge (Hasse diagram)
+  
+  The character c is gained in the edge (x, y) such that y is a child of x and
+  c has state 0 in x and state 1 in y.
+  In this case the edge (x, y) is labeled by c+.
+  Conversely, c is lost in the edge (x, y) if y is a child of x and character c
+  has state 1 in x and state 0 in y.
+  In the latter case the edge (x, y) is labeled by c−.
+  For each character c, we allow at most one edge labeled by c−.
 */
 struct HDEdgeProperties {
-  std::list<SignedCharacter> signedcharacters;
+  std::list<SignedCharacter> signedcharacters; ///< List of SignedCharacter
+                                               ///< that label the edge
 };
 
 /**
-  @var species stores the list of species which label the vertex
-  @var characters stores the list of characters of the species
+  @brief Struct used to represent the properties of a vertex (Hasse diagram)
+  
+  Given s a species, by C(s) we denote the set of characters of s.
+  Let GM be a maximal reducible graph.
+  Then the diagram P for GM is the Hasse diagram for the poset (Ps , ≤) of all
+  species of GM ordered by the relation ≤, where s1 ≤ s2 if C(s1) ⊆ C(s2).
 */
 struct HDVertexProperties {
-  std::list<std::string> species;
-  std::list<std::string> characters;
+  std::list<std::string> species;    ///< List of species that label the vertex
+  std::list<std::string> characters; ///< List of characters of the species
 };
 
+/**
+  @brief Struct used to represent the properties of a Hasse diagram
+*/
 struct HDGraphProperties {
   
 };
@@ -103,14 +133,23 @@ struct HDGraphProperties {
 
 // Iterators
 
+/**
+  Iterator (const) of a list of strings
+*/
 typedef std::list<std::string>::const_iterator StringIter;
 
+/**
+  Iterator (const) of a list of signed characters
+*/
 typedef std::list<SignedCharacter>::const_iterator SignedCharacterIter;
 
 // Red-Black Graph
 
 // Graph
 
+/**
+  Red-black graph
+*/
 typedef boost::adjacency_list<
   boost::setS,        // OutEdgeList
   boost::listS,       // VertexList
@@ -122,35 +161,66 @@ typedef boost::adjacency_list<
 
 // Descriptors
 
+/**
+  Edge of a red-black graph
+*/
 typedef boost::graph_traits<RBGraph>::edge_descriptor RBEdge;
+
+/**
+  Vertex of a red-black graph
+*/
 typedef boost::graph_traits<RBGraph>::vertex_descriptor RBVertex;
 
 // Iterators
 
+/**
+  Iterator of edges (red-black graph)
+*/
 typedef boost::graph_traits<RBGraph>::edge_iterator RBEdgeIter;
+
+/**
+  Iterator of vertices (red-black graph)
+*/
 typedef boost::graph_traits<RBGraph>::vertex_iterator RBVertexIter;
 
+/**
+  Iterator of outgoing edges (red-black graph)
+*/
 typedef boost::graph_traits<RBGraph>::out_edge_iterator RBOutEdgeIter;
-
-typedef boost::graph_traits<RBGraph>::adjacency_iterator RBAdjIter;
 
 // Size types
 
+/**
+  Size type of vertices (red-black graph)
+*/
 typedef boost::graph_traits<RBGraph>::vertices_size_type RBVertexSize;
 
 // Index Maps
 
+/**
+  Map of vertex indices (red-black graph)
+*/
 typedef std::map<RBVertex, RBVertexSize> RBIndexMap;
+
+/**
+  Associative property map of vertex indices (red-black graph)
+*/
 typedef boost::associative_property_map<RBIndexMap> RBAssocMap;
 
 // Containers
 
+/**
+  Vector of unique pointers to red-black graphs
+*/
 typedef std::vector<std::unique_ptr<RBGraph>> RBGraphVector;
 
 // Hasse Diagram
 
 // Graph
 
+/**
+  Hasse diagram
+*/
 typedef boost::adjacency_list<
   boost::setS,           // OutEdgeList
   boost::vecS,           // VertexList
@@ -162,22 +232,37 @@ typedef boost::adjacency_list<
 
 // Descriptors
 
+/**
+  Edge of a Hasse diagram
+*/
 typedef boost::graph_traits<HDGraph>::edge_descriptor HDEdge;
+
+/**
+  Vertex of a Hasse diagram
+*/
 typedef boost::graph_traits<HDGraph>::vertex_descriptor HDVertex;
 
 // Iterators
 
+/**
+  Iterator of edges (Hasse diagram)
+*/
 typedef boost::graph_traits<HDGraph>::edge_iterator HDEdgeIter;
+
+/**
+  Iterator of vertices (Hasse diagram)
+*/
 typedef boost::graph_traits<HDGraph>::vertex_iterator HDVertexIter;
 
+/**
+  Iterator of incoming edges (Hasse diagram)
+*/
 typedef boost::graph_traits<HDGraph>::in_edge_iterator HDInEdgeIter;
+
+/**
+  Iterator of outgoing edges (Hasse diagram)
+*/
 typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
-
-typedef boost::graph_traits<HDGraph>::adjacency_iterator HDAdjIter;
-
-// Size types
-
-typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
 
 //=============================================================================
 // Enum / Struct operator overloads
@@ -194,10 +279,8 @@ typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
 inline std::ostream& operator<<(std::ostream& os, const Type& t) {
   if (t == Type::species)
     os << "Species";
-  else if (t == Type::character)
-    os << "Character";
   else
-    os << "None";
+    os << "Character";
   
   return os;
 }
@@ -212,7 +295,7 @@ inline std::ostream& operator<<(std::ostream& os, const Type& t) {
 inline std::ostream& operator<<(std::ostream& os, const State& s) {
   if (s == State::lose)
     os << "-";
-  else if (s == State::gain)
+  else
     os << "+";
   
   return os;
@@ -230,7 +313,7 @@ inline std::ostream& operator<<(std::ostream& os, const SignedCharacter& sc) {
 }
 
 /**
-  @brief Overloading of operator== for a pair of SignedCharacter
+  @brief Overloading of operator== for a pair of signed characters
   
   @param a SignedCharacter
   @param b SignedCharacter

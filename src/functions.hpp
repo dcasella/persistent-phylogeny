@@ -171,7 +171,7 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g);
   @return     Vertex descriptor for the new vertex
 */
 inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
-  return add_vertex(name, Type::none, g);
+  return add_vertex(name, Type::species, g);
 }
 
 /**
@@ -360,7 +360,7 @@ void remove_vertex_if(const RBVertex v, Predicate pred, RBGraph& g) {
 std::ostream& operator<<(std::ostream& os, const RBGraph& g);
 
 /**
-  @brief Generate a random Red-black graph
+  @brief Generate a random red-black graph
   
   @param g   Red-black graph
   @param S   Number of species
@@ -501,7 +501,7 @@ bool is_free(const RBVertex v, const RBGraph& g);
 bool is_universal(const RBVertex v, const RBGraph& g);
 
 /**
-  @brief Build the Red-black subgraphs of \c g.
+  @brief Build the red-black subgraphs of \c g.
          Each subgraph is a copy of the respective connected component
   
   @param components Vector of unique pointers to each subgraph

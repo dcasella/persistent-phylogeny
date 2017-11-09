@@ -286,7 +286,7 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
 void remove_vertex(const RBVertex v, RBGraph& g) {
   if (is_species(v, g))
     num_species(g)--;
-  else if (is_character(v, g))
+  else
     num_characters(g)--;
   
   boost::remove_vertex(v, g);
@@ -299,7 +299,7 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
   
   if (is_species(v, g))
     num_species(g)++;
-  else if (is_character(v, g))
+  else
     num_characters(g)++;
   
   return v;
