@@ -272,9 +272,10 @@ typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
 /**
   @brief Overloading of operator<< for Type
   
-  @param os Output stream
-  @param t  Type
-  @return   Updated output stream
+  @param[in] os Output stream
+  @param[in] t  Type
+  
+  @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const Type& t) {
   if (t == Type::species)
@@ -288,9 +289,10 @@ inline std::ostream& operator<<(std::ostream& os, const Type& t) {
 /**
   @brief Overloading of operator<< for State
   
-  @param os Output stream
-  @param s  State
-  @return   Updated output stream
+  @param[in] os Output stream
+  @param[in] s  State
+  
+  @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const State& s) {
   if (s == State::lose)
@@ -304,9 +306,10 @@ inline std::ostream& operator<<(std::ostream& os, const State& s) {
 /**
   @brief Overloading of operator<< for SignedCharacter
   
-  @param os Output stream
-  @param sc SignedCharacter
-  @return   Updated output stream
+  @param[in] os Output stream
+  @param[in] sc SignedCharacter
+  
+  @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const SignedCharacter& sc) {
   return os << sc.character << sc.state;
@@ -315,9 +318,10 @@ inline std::ostream& operator<<(std::ostream& os, const SignedCharacter& sc) {
 /**
   @brief Overloading of operator== for a pair of signed characters
   
-  @param a SignedCharacter
-  @param b SignedCharacter
-  @return  True if a is equal to b
+  @param[in] a SignedCharacter
+  @param[in] b SignedCharacter
+  
+  @return True if a is equal to b
 */
 inline bool operator==(const SignedCharacter& a, const SignedCharacter& b) {
   return (a.character == b.character && a.state == b.state);

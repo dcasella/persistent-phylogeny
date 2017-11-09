@@ -550,7 +550,7 @@ bool is_active(const RBVertex v, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (is_black(*e, g) || !is_species(target(*e, g), g))
+    if (!is_red(*e, g) || !is_species(target(*e, g), g))
       return false;
   }
   
@@ -564,7 +564,7 @@ bool is_inactive(const RBVertex v, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (is_red(*e, g) || !is_species(target(*e, g), g))
+    if (!is_black(*e, g) || !is_species(target(*e, g), g))
       return false;
   }
   
@@ -589,7 +589,7 @@ bool is_free(const RBVertex v, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (is_black(*e, g) || !is_species(target(*e, g), g))
+    if (!is_red(*e, g) || !is_species(target(*e, g), g))
       return false;
     
     count_species++;
@@ -610,7 +610,7 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (is_red(*e, g) || !is_species(target(*e, g), g))
+    if (!is_black(*e, g) || !is_species(target(*e, g), g))
       return false;
     
     count_species++;
@@ -1476,7 +1476,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   #endif
   
   // cleanup graph from dead vertices
-  // TODO: check if this is needed (realize already removes singletons)
+  // TODO: check if this is needed (realize already does this?)
   remove_singletons(g);
   
   if (is_empty(g)) {
@@ -1495,6 +1495,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::cout << "G not empty" << std::endl;
   #endif
   
+  // realize free characters in the graph
+  // TODO: check if this is needed (realize already does this?)
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
@@ -1524,6 +1526,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::cout << "G no free characters" << std::endl;
   #endif
   
+  // realize universal characters in the graph
+  // TODO: check if this is needed (realize already does this?)
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
