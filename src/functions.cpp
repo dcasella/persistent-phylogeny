@@ -137,6 +137,8 @@ safe_chain_dfs_visitor::tree_edge(const HDEdge e, const HDGraph& hasse) const {
   
   std::cout << "]" << std::endl;
   #endif
+  
+  // ignore
 }
 
 void
@@ -171,6 +173,8 @@ safe_chain_dfs_visitor::back_edge(const HDEdge e, const HDGraph& hasse) const {
   
   std::cout << "]" << std::endl;
   #endif
+  
+  // ignore
 }
 
 void
@@ -207,6 +211,8 @@ safe_chain_dfs_visitor::forward_or_cross_edge(
   
   std::cout << "]" << std::endl;
   #endif
+  
+  // ignore
 }
 
 void
@@ -223,12 +229,12 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   #endif
   
   if (last_v != v)
-    // v is not the last vertex in the chain
+    // v is not the last vertex in the chain, which means the visit is
+    // backtracking, so ignore it and keep going
     return;
   
-  /* source_v holds the source vertex of the chain
-   * lsc_ holds the list of SignedCharacters representing the chain
-   */
+  // source_v holds the source vertex of the chain
+  // lsc_ holds the list of SignedCharacters representing the chain
   
   #ifdef DEBUG
   std::cout << "S(C): < ";
@@ -377,7 +383,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
   std::string line;
   std::ifstream file(filename);
   
-  size_t idx = 0;
+  size_t index = 0;
   while (std::getline(file, line)) {
     // for each line in file
     std::istringstream iss(line);
@@ -430,12 +436,12 @@ void read_graph(const std::string& filename, RBGraph& g) {
           #endif
           
           case '1':
-            // add edge between species[s_idx] and characters[c_idx]
+            // add edge between species[s_index] and characters[c_index]
             {
-              size_t s_idx = idx / characters.size(),
-                     c_idx = idx % characters.size();
+              size_t s_index = index / characters.size(),
+                     c_index = index % characters.size();
               
-              if (s_idx >= species.size() || c_idx >= characters.size()) {
+              if (s_index >= species.size() || c_index >= characters.size()) {
                 // input file parsing error
                 throw std::runtime_error(
                   "Failed to read graph from file: oversized matrix"
@@ -444,7 +450,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
               
               RBEdge edge;
               std::tie(edge, std::ignore) = add_edge(
-                species[s_idx], characters[c_idx], g
+                species[s_index], characters[c_index], g
               );
               
               if (red_edge)
@@ -453,17 +459,17 @@ void read_graph(const std::string& filename, RBGraph& g) {
             break;
           
           case '0':
-            // do nothing
+            // ignore
             break;
           
           default:
             // input file parsing error
             throw std::runtime_error(
-              "Failed to read graph from file: unexcepted value in matrix"
+              "Failed to read graph from file: unexpected value in matrix"
             );
         }
         
-        ++idx;
+        index++;
       }
     }
   }
@@ -575,7 +581,7 @@ void remove_singletons(RBGraph& g) {
   RBVertexIter v, v_end, next;
   std::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
-    ++next;
+    next++;
     remove_vertex_if(*v, if_singleton(), g);
   }
 }
@@ -629,10 +635,10 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   
   // fill vertex index map
   RBVertexIter v, v_end;
-  size_t idx = 0;
+  size_t index = 0;
   std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v, ++idx) {
-    boost::put(i_map, *v, idx);
+  for (; v != v_end; ++v, ++index) {
+    boost::put(i_map, *v, index);
   }
   
   // get number of components and the components map
@@ -640,12 +646,20 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
     g, c_map, boost::vertex_index_map(i_map)
   );
   
+  // how map_comp is structured (after running boost::connected_components):
+  // map_comp[i] => < vertex_in_g, component_index >
+  
+  components.clear();
+  
   if (num_comps > 1) {
     // graph is disconnected
+    std::map<RBVertex, RBVertex> vertices;
+    
+    // how vertices is going to be structured:
+    // vertices[vertex_in_g] => vertex_in_component
+    
     // resize subgraph components
     components.resize(num_comps);
-    // vertices: graphVertex => compVertex
-    std::map<RBVertex, RBVertex> vertices;
     
     // initialize subgraph components
     for (size_t i = 0; i < num_comps; ++i) {
@@ -660,6 +674,7 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
       RBVertexSize comp = i->second;
       RBGraph* component = components[comp].get();
       
+      // add the vertex to *component and copy its descriptor in vertices[v]
       vertices[v] = add_vertex(g[v].name, g[v].type, *component);
     }
     
@@ -713,9 +728,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
   size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
   
-  /* How sets is going to be structured:
-   * sets[C] => < List of adjacent species to C >
-   */
+  // how sets is going to be structured:
+  // sets[C] => < List of adjacent species to C >
   
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
@@ -782,9 +796,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(), *sv);
         
-        /* keep count of how many species are included (or not found) in
-         * the list of cmv's adjacent species
-         */
+        // keep count of how many species are included (or not found) in
+        // the list of cmv's adjacent species
         if (in != sets[*cmv].end())
           count_incl++;
         else
@@ -797,10 +810,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
           if (count_incl == sets[*cmv].size() && count_excl > 0) {
-            /* the list of adjacent species to v is a superset of the list of
-             * adjacent species to cmv, which means cmv can be replaced
-             * by v in the list of maximal characters Cm
-             */
+            // the list of adjacent species to v is a superset of the list of
+            // adjacent species to cmv, which means cmv can be replaced
+            // by v in the list of maximal characters Cm
             #ifdef DEBUG
             std::cout << " subst" << std::endl;
             #endif
@@ -811,10 +823,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             break;
           }
           else if (count_incl < sets[*cmv].size() && count_excl > 0) {
-            /* the list of adjacent species to v is neither a superset nor a
-             * subset of the list of adjacent species to cmv, which means
-             * v may be a new maximal character
-             */
+            // the list of adjacent species to v is neither a superset nor a
+            // subset of the list of adjacent species to cmv, which means
+            // v may be a new maximal character
             #ifdef DEBUG
             std::cout << " add, not subset";
             #endif
@@ -822,10 +833,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             keep_char = true;
           }
           else if (count_incl == sets[*cmv].size()) {
-            /* the list of adjacent species to v is the same as the list of
-             * adjacent species to cmv, so v can be ignored in the next
-             * iterations on the characters in Cm
-             */
+            // the list of adjacent species to v is the same as the list of
+            // adjacent species to cmv, so v can be ignored in the next
+            // iterations on the characters in Cm
             #ifdef DEBUG
             std::cout << " ignore, same set" << std::endl;
             #endif
@@ -834,10 +844,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             break;
           }
           else if (count_excl == 0) {
-            /* the list of adjacent species to v is a subset of the list of
-             * adjacent species to cmv, meaning v can be ignored in the
-             * next iterations on the characters in Cm
-             */
+            // the list of adjacent species to v is a subset of the list of
+            // adjacent species to cmv, meaning v can be ignored in the
+            // next iterations on the characters in Cm
             #ifdef DEBUG
             std::cout << " ignore, subset" << std::endl;
             #endif
@@ -861,11 +870,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       if (std::next(cmv) == cmv_end) {
         // last iteration on the characters in the list has been performed
         if (keep_char) {
-          /* after all the iterations keep_char is true if the list of adjacent
-           * species to v is neither a superset nor a subset of the lists of
-           * adjacent species to the characters in Cm, so v is a maximal
-           * characters and can be added to the list of maximal characters Cm
-           */
+          // after all the iterations keep_char is true if the list of adjacent
+          // species to v is neither a superset nor a subset of the lists of
+          // adjacent species to the characters in Cm, so v is a maximal
+          // characters and can be added to the list of maximal characters Cm
           #ifdef DEBUG
           std::cout << "\tadd" << std::endl;
           #endif
@@ -892,18 +900,17 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   size_t count_incl, count_excl;
   bool keep_char, skip_cycle;
   
-  /* How sets is going to be structured:
-   * sets[index] => < C, List of adjacent species to C >
-   *
-   * sets is used to sort the lists by number of elements, this is why we store
-   * the list of adjacent species to C. While we store C to be able to access
-   * v_map[C] in costant time
-   *
-   * How v_map is going to be structured:
-   * v_map[C] => < List of adjacent species to C >
-   */
+  // how sets is going to be structured:
+  // sets[index] => < C, List of adjacent species to C >
   
-  size_t idx = 0;
+  // sets is used to sort the lists by number of elements, this is why we store
+  // the list of adjacent species to C. While we store C to be able to access
+  // v_map[C] in costant time
+  
+  // how v_map is going to be structured:
+  // v_map[C] => < List of adjacent species to C >
+  
+  size_t index = 0;
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
@@ -911,7 +918,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       continue;
     // for each character vertex
     
-    sets[idx].push_back(*v);
+    sets[index].push_back(*v);
     
     // build v's set of adjacent species
     RBOutEdgeIter e, e_end;
@@ -923,11 +930,11 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       if (is_red(*e, g) || !is_species(vt, g))
         break;
       
-      sets[idx].push_back(vt);
+      sets[index].push_back(vt);
       v_map[*v].push_back(vt);
     }
     
-    ++idx;
+    index++;
   }
   
   // sort sets by size in descending order
@@ -983,9 +990,8 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
           v_map[*cmv].begin(), v_map[*cmv].end(), *sv
         );
         
-        /* keep count of how many species are included (or not found) in
-         * the list of cmv's adjacent species
-         */
+        // keep count of how many species are included (or not found) in
+        // the list of cmv's adjacent species
         if (in != v_map[*cmv].end())
           count_incl++;
         else
@@ -998,10 +1004,9 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
           if (count_incl < v_map[*cmv].size() && count_excl > 0) {
-            /* the list of adjacent species to v is neither a superset nor a
-             * subset of the list of adjacent species to cmv, which means
-             * v may be a new maximal character
-             */
+            // the list of adjacent species to v is neither a superset nor a
+            // subset of the list of adjacent species to cmv, which means
+            // v may be a new maximal character
             #ifdef DEBUG
             std::cout << " add, not subset";
             #endif
@@ -1009,10 +1014,9 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             keep_char = true;
           }
           else if (count_incl == v_map[*cmv].size()) {
-            /* the list of adjacent species to v is the same as the list of
-             * adjacent species to cmv, so v can be ignored in the next
-             * iterations on the characters in Cm
-             */
+            // the list of adjacent species to v is the same as the list of
+            // adjacent species to cmv, so v can be ignored in the next
+            // iterations on the characters in Cm
             #ifdef DEBUG
             std::cout << " ignore, same set" << std::endl;
             #endif
@@ -1021,10 +1025,9 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             break;
           }
           else if (count_excl == 0) {
-            /* the list of adjacent species to v is a subset of the list of
-             * adjacent species to cmv, meaning v can be ignored in the
-             * next iterations on the characters in Cm
-             */
+            // the list of adjacent species to v is a subset of the list of
+            // adjacent species to cmv, meaning v can be ignored in the
+            // next iterations on the characters in Cm
             #ifdef DEBUG
             std::cout << " ignore, subset" << std::endl;
             #endif
@@ -1048,11 +1051,10 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       if (std::next(cmv) == cmv_end) {
         // last iteration on the characters in the list has been performed
         if (keep_char) {
-          /* after all the iterations keep_char is true if the list of adjacent
-           * species to v is neither a superset nor a subset of the lists of
-           * adjacent species to the characters in Cm, so v is a maximal
-           * characters and can be added to the list of maximal characters Cm
-           */
+          // after all the iterations keep_char is true if the list of adjacent
+          // species to v is neither a superset nor a subset of the lists of
+          // adjacent species to the characters in Cm, so v is a maximal
+          // characters and can be added to the list of maximal characters Cm
           #ifdef DEBUG
           std::cout << "\tadd" << std::endl;
           #endif
@@ -1075,7 +1077,7 @@ void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
   RBVertexIter v, v_end, next;
   std::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
-    ++next;
+    next++;
     
     if (is_character(*v, g))
       remove_vertex_if(*v, if_not_maximal(cm), g);
@@ -1101,18 +1103,17 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   std::vector<std::list<RBVertex>> sets(num_species(g));
   std::map<RBVertex, std::list<RBVertex>> v_map;
   
-  /* How sets is going to be structured:
-   * sets[index] => < S, List of adjacent characters to S >
-   *
-   * sets is used to sort the lists by number of elements, this is why we store
-   * the list of adjacent characters to S. While we store S to be able to
-   * access v_map[S] in costant time
-   *
-   * How v_map is going to be structured:
-   * v_map[S] => < List of adjacent characters to S >
-   */
+  // how sets is going to be structured:
+  // sets[index] => < S, List of adjacent characters to S >
   
-  size_t idx = 0;
+  // sets is used to sort the lists by number of elements, this is why we store
+  // the list of adjacent characters to S. While we store S to be able to
+  // access v_map[S] in costant time
+  
+  // how v_map is going to be structured:
+  // v_map[S] => < List of adjacent characters to S >
+  
+  size_t index = 0;
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
@@ -1124,7 +1125,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     std::cout << "C(" << g[*v].name << ") = { ";
     #endif
     
-    sets[idx].push_back(*v);
+    sets[index].push_back(*v);
     
     // build v's set of adjacent characters
     RBOutEdgeIter e, e_end;
@@ -1136,7 +1137,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       std::cout << g[vt].name << " ";
       #endif
       
-      sets[idx].push_back(vt);
+      sets[index].push_back(vt);
       v_map[*v].push_back(vt);
     }
     
@@ -1144,7 +1145,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     std::cout << "}" << std::endl;
     #endif
     
-    ++idx;
+    index++;
   }
   
   #ifdef DEBUG
@@ -1166,10 +1167,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     }
     
     if (i == 0) {
-      /* first iteration of the loop:
-       * add v to the Hasse diagram, and being the first vertex of the graph
-       * there's no need to do any work.
-       */
+      // first iteration of the loop:
+      // add v to the Hasse diagram, and being the first vertex of the graph
+      // there's no need to do any work.
       #ifdef DEBUG
       std::cout << "Hasse.addV " << g[v].name << std::endl << std::endl;
       #endif
@@ -1190,14 +1190,12 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     std::cout << "}:" << std::endl;
     #endif
     
-    /* new_edges will contain the list of edges that may be added to the
-     * Hasse diagram: HDVertex is the source, std::string is the edge label
-     */
+    // new_edges will contain the list of edges that may be added to the
+    // Hasse diagram: HDVertex is the source, std::string is the edge label
     std::list<std::pair<HDVertex, std::string>> new_edges;
     
-    /* check if there is a vertex with the same characters as v or
-     * if v needs to be added to the Hasse diagram
-     */
+    // check if there is a vertex with the same characters as v or
+    // if v needs to be added to the Hasse diagram
     HDVertexIter hdv, hdv_end;
     std::tie(hdv, hdv_end) = vertices(hasse);
     for (; hdv != hdv_end; ++hdv) {
@@ -1334,9 +1332,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       HDOutEdgeIter oe, oe_end;
       std::tie(oe, oe_end) = out_edges(*u, hasse);
       for (; oe != oe_end; ++oe) {
-        /* for each out-edge
-         * source -> u -> target
-         */
+        // for each out-edge
+        // source -> u -> target
         HDEdge e;
         bool exists;
         std::tie(e, exists) = edge(
@@ -1347,10 +1344,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
           // no transitivity between source and target
           continue;
         
-        /* remove source -> target, which breaks the no-transitivty rule in
-         * the Hasse diagram we need, because a path between source and target
-         * already exists in the form: source -> u -> target
-         */
+        // remove source -> target, which breaks the no-transitivty rule in
+        // the Hasse diagram we need, because a path between source and target
+        // already exists in the form: source -> u -> target
         remove_edge(e, hasse);
       }
     }
@@ -1418,23 +1414,23 @@ safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
   std::list<SignedCharacter> output;
   bool safe = false;
   
-  /* try block:
-   * The only way to stop depth_first_search from iterating on the Hasse
-   * diagram is to throw an exception (this is documented by the BGL FAQ at
-   * (1.) http://www.boost.org/doc/libs/1_65_1/libs/graph/doc/faq.html).
-   *
-   * catch block:
-   * SafeChain is a simple exception inheriting from std::exception which is
-   * thrown when the visitor of depth_first_search finds a safe chain.
-   *
-   * About the safe_chain_dfs_visitor:
-   * The visitor continuosly modifies the output variable (passed as reference)
-   * in search of safe chains. When one is found (and the SafeChain exception
-   * thrown), output already holds the chain of the Hasse diagram considered
-   * to be safe by the algorithm.
-   * This behaviour is considered standard practice within the BGL (as
-   * documented in the BGL FAQ at (2.))
-   */
+  // try block:
+  // the only way to stop depth_first_search from iterating on the Hasse
+  // diagram is to throw an exception (this is documented by the BGL FAQ at
+  // (1.) http://www.boost.org/doc/libs/1_65_1/libs/graph/doc/faq.html).
+  
+  // catch block:
+  // SafeChain is a simple exception inheriting from std::exception which is
+  // thrown when the visitor of depth_first_search finds a safe chain.
+  
+  // about the safe_chain_dfs_visitor:
+  // the visitor continuosly modifies the output variable (passed as reference)
+  // in search of safe chains. When one is found (and the SafeChain exception
+  // thrown), output already holds the chain of the Hasse diagram considered
+  // to be safe by the algorithm.
+  // This behaviour is considered standard practice within the BGL (as
+  // documented in the BGL FAQ at (2.))
+  
   try {
     safe_chain_dfs_visitor vis(output, g, g_cm);
     depth_first_search(hasse, boost::visitor(vis));
@@ -1455,9 +1451,8 @@ safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
     safe = true;
   }
   
-  /* if the visitor didn't raise a SafeChain exception then output is empty and
-   * safe is still false (as declared at the start of the function)
-   */
+  // if the visitor didn't raise a SafeChain exception then output is empty and
+  // safe is still false (as declared at the start of the function)
   
   return std::make_pair(output, safe);
 }
@@ -1480,9 +1475,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   remove_singletons(g);
   
   if (is_empty(g)) {
-    /* if graph is empty
-     * return the empty sequence
-     */
+    // if graph is empty
+    // return the empty sequence
     #ifdef DEBUG
     std::cout << "G empty"
               << std::endl << std::endl;
@@ -1502,10 +1496,9 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   for (; v != v_end; ++v) {
     // for each vertex
     if (is_free(*v, g)) {
-      /* if v is free
-       * realize v-
-       * return < v-, reduce(g) >
-       */
+      // if v is free
+      // realize v-
+      // return < v-, reduce(g) >
       #ifdef DEBUG
       std::cout << "G free character " << g[*v].name
                 << std::endl << std::endl;
@@ -1532,10 +1525,9 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   for (; v != v_end; ++v) {
     // for each vertex
     if (is_universal(*v, g)) {
-      /* if v is universal
-       * realize v+
-       * return < v+, reduce(g) >
-       */
+      // if v is universal
+      // realize v+
+      // return < v+, reduce(g) >
       #ifdef DEBUG
       std::cout << "G universal character " << g[*v].name
                 << std::endl << std::endl;
@@ -1559,10 +1551,9 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   RBGraphVector components;
   size_t num_comps = connected_components(components, g);
   if (num_comps > 1) {
-    /* if graph is not connected
-     * build subgraphs (connected components) g1, g2, etc.
-     * return < reduce(g1), reduce(g2), ... >
-     */
+    // if graph is not connected
+    // build subgraphs (connected components) g1, g2, etc.
+    // return < reduce(g1), reduce(g2), ... >
     for (size_t i = 0; i < num_comps; ++i) {
       output.splice(output.end(), reduce(*components[i].get()));
     }
@@ -1570,9 +1561,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     return output;
   }
   
-  /* cm = Cm, maximal characters of g (Grb)
-   * g_cm = Grb|Cm, maximal reducible graph of g (Grb)
-   */
+  // cm = Cm, maximal characters of g (Grb)
+  // g_cm = Grb|Cm, maximal reducible graph of g (Grb)
   RBGraph g_cm(g);
   std::list<RBVertex> cm = maximal_characters2(g_cm);
   maximal_reducible_graph(cm, g_cm);
@@ -1641,8 +1631,8 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   
   // fill vertex index map
   std::tie(v, v_end) = vertices(g);
-  for (size_t idx = 0; v != v_end; ++v, ++idx) {
-    boost::put(i_map, *v, idx);
+  for (size_t index = 0; v != v_end; ++v, ++index) {
+    boost::put(i_map, *v, index);
   }
   
   // build the components map
@@ -1714,9 +1704,8 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   for (; v != v_end; ++v) {
     // for each vertex
     if (is_universal(*v, g)) {
-      /* if v is universal
-       * realize v+
-       */
+      // if v is universal
+      // realize v+
       #ifdef DEBUG
       std::cout << "G universal character " << g[*v].name << std::endl;
       #endif
@@ -1734,9 +1723,8 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   for (; v != v_end; ++v) {
     // for each vertex
     if (is_free(*v, g)) {
-      /* if v is free
-       * realize v-
-       */
+      // if v is free
+      // realize v-
       #ifdef DEBUG
       std::cout << "G free character " << g[*v].name << std::endl;
       #endif

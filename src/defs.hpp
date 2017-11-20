@@ -174,11 +174,6 @@ typedef boost::graph_traits<RBGraph>::vertex_descriptor RBVertex;
 // Iterators
 
 /**
-  Iterator of edges (red-black graph)
-*/
-typedef boost::graph_traits<RBGraph>::edge_iterator RBEdgeIter;
-
-/**
   Iterator of vertices (red-black graph)
 */
 typedef boost::graph_traits<RBGraph>::vertex_iterator RBVertexIter;
@@ -245,11 +240,6 @@ typedef boost::graph_traits<HDGraph>::vertex_descriptor HDVertex;
 // Iterators
 
 /**
-  Iterator of edges (Hasse diagram)
-*/
-typedef boost::graph_traits<HDGraph>::edge_iterator HDEdgeIter;
-
-/**
   Iterator of vertices (Hasse diagram)
 */
 typedef boost::graph_traits<HDGraph>::vertex_iterator HDVertexIter;
@@ -263,6 +253,7 @@ typedef boost::graph_traits<HDGraph>::in_edge_iterator HDInEdgeIter;
   Iterator of outgoing edges (Hasse diagram)
 */
 typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
+
 
 //=============================================================================
 // Enum / Struct operator overloads
@@ -278,12 +269,7 @@ typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const Type& t) {
-  if (t == Type::species)
-    os << "Species";
-  else
-    os << "Character";
-  
-  return os;
+  return os << (t == Type::species ? "Species" : "Character");
 }
 
 /**
@@ -295,12 +281,7 @@ inline std::ostream& operator<<(std::ostream& os, const Type& t) {
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const State& s) {
-  if (s == State::lose)
-    os << "-";
-  else
-    os << "+";
-  
-  return os;
+  return os << (s == State::lose ? "-" : "+");
 }
 
 /**
