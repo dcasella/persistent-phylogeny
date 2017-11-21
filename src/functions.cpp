@@ -1073,15 +1073,21 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
 }
 
 void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
-  // remove non-maximal characters
+  // destructive algorithm: remove non-maximal characters from the graph.
+  // cm has to be a list of vertices of g for this implementation to work
   RBVertexIter v, v_end, next;
   std::tie(v, v_end) = vertices(g);
   for (next = v; v != v_end; v = next) {
     next++;
     
-    if (is_character(*v, g))
-      remove_vertex_if(*v, if_not_maximal(cm), g);
+    if (!is_character(*v, g))
+      // skip non-character vertices
+      continue;
+    
+    remove_vertex_if(*v, if_not_maximal(cm), g);
   }
+  
+  // TODO: add removesingletons(g);?
 }
 
 bool
@@ -1104,15 +1110,17 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   std::map<RBVertex, std::list<RBVertex>> v_map;
   
   // how sets is going to be structured:
-  // sets[index] => < S, List of adjacent characters to S >
+  // sets[index] => < S, List of characters adjacent to S >
+  
+  // how v_map is going to be structured:
+  // v_map[S] => < List of characters adjacent to S >
   
   // sets is used to sort the lists by number of elements, this is why we store
   // the list of adjacent characters to S. While we store S to be able to
-  // access v_map[S] in costant time
+  // access v_map[S] in costant time, instead of iterating on sets to find the
+  // correct list
   
-  // how v_map is going to be structured:
-  // v_map[S] => < List of adjacent characters to S >
-  
+  // initialize sets and v_map for each species in the graph
   size_t index = 0;
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
@@ -1125,19 +1133,23 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     std::cout << "C(" << g[*v].name << ") = { ";
     #endif
     
+    // sets[index]'s first element is the species vertex
     sets[index].push_back(*v);
     
     // build v's set of adjacent characters
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, g);
     for (; e != e_end; ++e) {
+      // vt = one of the characters adjacent to *v
       RBVertex vt = target(*e, g);
       
       #ifdef DEBUG
       std::cout << g[vt].name << " ";
       #endif
       
+      // sets[index]'s other elements are the characters adjacent to S
       sets[index].push_back(vt);
+      // v_map[S]'s elements are the characters adjacent to S
       v_map[*v].push_back(vt);
     }
     
@@ -1157,6 +1169,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   
   for (size_t i = 0; i < sets.size(); ++i) {
     // for each set of characters
+    // v = species of g
     RBVertex v = sets[i].front();
     
     // fill the list of characters names of v
@@ -1190,12 +1203,12 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     std::cout << "}:" << std::endl;
     #endif
     
-    // new_edges will contain the list of edges that may be added to the
-    // Hasse diagram: HDVertex is the source, std::string is the edge label
+    // new_edges will contain the list of edges that may be added to the Hasse
+    // diagram: HDVertex is the source, std::string is the edge label
     std::list<std::pair<HDVertex, std::string>> new_edges;
     
-    // check if there is a vertex with the same characters as v or
-    // if v needs to be added to the Hasse diagram
+    // check if there is a vertex with the same characters as v or if v needs
+    // to be added to the Hasse diagram
     HDVertexIter hdv, hdv_end;
     std::tie(hdv, hdv_end) = vertices(hasse);
     for (; hdv != hdv_end; ++hdv) {
@@ -1224,7 +1237,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
         std::cout << "mod" << std::endl;
         #endif
         
-        // add v (species) to the list of vertices in hdv
+        // add v to the list of species in hdv
         hasse[*hdv].species.push_back(g[v].name);
         
         break;
@@ -1232,8 +1245,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       
       std::list<std::string> lhdv = hasse[*hdv].characters;
       
-      // TODO: find the correct way to build the edges
+      // TODO: check if edge building is done right
       
+      // initialize new_edges if lhdv is a subset of lcv, with the structure:
+      // *hdv -*ci-> v
       if (is_included(lhdv, lcv)) {
         // hdv is included in v
         StringIter ci = lcv.begin(), ci_end = lcv.end();
@@ -1249,6 +1264,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
         }
       }
       
+      // on the last iteration of the cycle, after having collected all the
+      // pairs in new_edges, add vertex and edges to the Hasse diagram
       if (std::next(hdv) == hdv_end) {
         // last iteration on the characters in the list has been performed
         #ifdef DEBUG
@@ -1364,7 +1381,8 @@ find_vertex(RBVertexIter v, RBVertexIter v_end,
   return v_end;
 }
 
-// TODO: delete find_source? (modify source.cpp)
+// TODO: delete find_source since it's not used in safe_chain/safe_source?
+//       (-> modify source.cpp)
 HDVertexIter
 find_source(HDVertexIter v, HDVertexIter v_end, const HDGraph& hasse) {
   for (; v != v_end; ++v) {
@@ -1395,17 +1413,20 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   
   StringIter i = hasse[v].species.begin();
   for (; i != hasse[v].species.end(); ++i) {
+    // for each species (name) in v
     RBVertexIter u, u_end, in;
     std::tie(u, u_end) = vertices(g1);
+    // get the corresponding vertex in g1
     in = find_vertex(u, u_end, *i, g1);
-    // for each species in v
     
     if (in == u_end)
       return false;
     
+    // realize the species (= realize its characters)
     realize(*in, g1);
   }
   
+  // if the realization didn't induce a red Σ-graph, v is a safe source
   return !is_redsigma(g1);
 }
 
@@ -1482,6 +1503,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
               << std::endl << std::endl;
     #endif
     
+    // return < >
     return output;
   }
   
@@ -1558,12 +1580,16 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       output.splice(output.end(), reduce(*components[i].get()));
     }
     
+    // return < reduce(g1), reduce(g2), ... >
     return output;
   }
   
+  // initialize g_cm as a copy of g; this way g_cm can be made into the maximal
+  // reducible graph without affecting g. Note that this is done before the
+  // call to maximal_characters2 because cm must be a list of vertices of g_cm
+  RBGraph g_cm(g);
   // cm = Cm, maximal characters of g (Grb)
   // g_cm = Grb|Cm, maximal reducible graph of g (Grb)
-  RBGraph g_cm(g);
   std::list<RBVertex> cm = maximal_characters2(g_cm);
   maximal_reducible_graph(cm, g_cm);
   
@@ -1592,22 +1618,27 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // no edges means there are no chains in the Hasse diagram
     throw std::runtime_error("Could not reduce graph");
   
+  // TODO: understand safesource/safechain correlation
   // sc = safe chain for g (Grb)
   std::list<SignedCharacter> sc;
   bool s_safe;
   std::tie(sc, s_safe) = safe_chain(g, g_cm, p);
   
   if (!s_safe)
-    // p has no safe source
+    // p has no safe [source|chain]
     throw std::runtime_error("Could not reduce graph");
   
+  // realize the characters of the safe chain
   std::list<SignedCharacter> lsc;
   std::tie(lsc, std::ignore) = realize(sc, g);
   
+  // append the list of realized characters and the recursive call to the
+  // output in constant time (std::list::splice simply moves pointers around
+  // instead of copying the data)
   output.splice(output.end(), lsc);
   output.splice(output.end(), reduce(g));
   
-  // return < sc, reduce(g) >
+  // return < lsc, reduce(g) >
   return output;
 }
 
@@ -1615,15 +1646,16 @@ std::pair<std::list<SignedCharacter>, bool>
 realize(const SignedCharacter& sc, RBGraph& g) {
   std::list<SignedCharacter> output;
   
-  // find vertex whose name is c.character in g
+  // find the vertex in g whose name is sc.character
   RBVertexIter v, v_end, in;
   std::tie(v, v_end) = vertices(g);
   in = find_vertex(v, v_end, sc.character, g);
   
   if (in == v_end)
-    // vertex whose name is c.character doesn't exist in g
+    // g has no vertex named sc.character
     return std::make_pair(output, false);
   
+  // cv = current character vertex
   RBVertex cv = *in;
   
   RBIndexMap map_index, map_comp;
@@ -1644,6 +1676,9 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     std::cout << sc << " (+ and inactive):" << std::endl;
     #endif
     
+    // realize the character c+:
+    // - add a red edge between c and each species in D(c) \ N(c)
+    // - delete all black edges incident on c
     std::tie(v, v_end) = vertices(g);
     for (; v != v_end; ++v) {
       if (is_character(*v, g) || map_comp[*v] != map_comp[cv])
@@ -1686,6 +1721,8 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     std::cout << sc << " (- and active)" << std::endl;
     #endif
     
+    // realize the character c-:
+    // - delete all edges incident on c
     clear_vertex(cv, g);
   }
   else {
@@ -1693,13 +1730,17 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     std::cout << "Could not realize " << sc << std::endl;
     #endif
     
+    // this should never happen during the algorithm, but it is handled just in
+    // case something breaks (or user input happens)
     return std::make_pair(output, false);
   }
   
   output.push_back(sc);
   
+  // delete all isolated vertices
   remove_singletons(g);
   
+  // realize all universal characters that came up after realizing sc
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
@@ -1719,6 +1760,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     }
   }
   
+  // realize all free characters that came up after realizing sc
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
@@ -1748,6 +1790,7 @@ realize(const RBVertex v, RBGraph& g) {
   if (!is_species(v, g))
     return std::make_pair(lsc, false);
   
+  // build the list of inactive characters adjacent to v (species)
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
@@ -1765,6 +1808,9 @@ realize(const std::list<SignedCharacter>& lsc, RBGraph& g) {
   std::list<SignedCharacter> output;
   bool feasible = true;
   
+  // realize the list of signed characters lsc; the algorithm doesn't stop when
+  // a non-feasible realization is encountered, instead it sets the boolean
+  // flag to false and keeps going (TODO: maybe change this behaviour)
   SignedCharacterIter i = lsc.begin();
   for (; i != lsc.end(); ++i) {
     std::list<SignedCharacter> signedcharacters;
