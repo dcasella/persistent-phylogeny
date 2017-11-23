@@ -1,6 +1,8 @@
 #ifndef SAFECHAINEXCEPTION_HPP
 #define SAFECHAINEXCEPTION_HPP
 
+#include <exception>
+
 
 /**
   @brief Safe chain DFS Visitor exception

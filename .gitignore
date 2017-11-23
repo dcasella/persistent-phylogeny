@@ -1,5 +1,6 @@
-# Compiled Object files
-*.o
+# Objects and binaries folders
+bin/
+obj/
 
 # Binaries
 *

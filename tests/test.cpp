@@ -35,5 +35,3 @@ int main(int argc, const char* argv[]) {
   
   return 0;
 }
-
-// make CEXTRA="-Wfatal-errors -DDEBUG" tests/test && ./tests/test s c e && rm -f tests/test

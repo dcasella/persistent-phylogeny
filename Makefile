@@ -17,33 +17,41 @@ TEST_DIR = tests
 
 # Main
 
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
+SOURCES = $(filter-out $(SRC_DIR)/main.cpp, $(wildcard $(SRC_DIR)/*.cpp))
 HEADERS = $(wildcard $(SRC_DIR)/*.hpp)
-OBJECTS = $(SOURCES:%.cpp=$(OBJ_DIR)/%.o)
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TARGET  = $(BIN_DIR)/ppp
 
 # Tests
 
 TEST_SOURCES = $(wildcard $(TEST_DIR)/*.cpp)
+TEST_OBJECTS = $(TEST_SOURCES:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TEST_TARGETS = $(TEST_SOURCES:.cpp=)
 
 
 # Main
 
-$(TARGET): $(SRC_DIR)/main.cpp $(HEADERS)
-	$(CC_FULL) -o $@ $< $(SRC_DIR)/functions.cpp
+$(TARGET): $(OBJECTS) $(OBJ_DIR)/main.o
+	mkdir -p $(BIN_DIR)
+	$(CC) -o $@ $^
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
+	mkdir -p $(OBJ_DIR)
+	$(CC_FULL) -c -o $@ $<
 
 clean:
-	# rm -f $(OBJ_DIR)/*.o
-	rm -f $(TARGET)
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 # Tests
 
 $(TEST_DIR): $(TEST_TARGETS)
 
-$(TEST_DIR)/%: $(TEST_DIR)/%.cpp $(HEADERS)
-	$(CC_FULL) -o $@ $< $(SRC_DIR)/functions.cpp
+$(TEST_TARGETS): $(TEST_DIR)/%: $(OBJ_DIR)/%.o $(OBJECTS)
+	$(CC) -o $@ $^
+
+$(TEST_OBJECTS): $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp $(HEADERS)
+	mkdir -p $(OBJ_DIR)
+	$(CC_FULL) -c -o $@ $<
 
 tests_clean:
-	# rm -f $(TEST_DIR)/*.o
-	rm -f $(TEST_TARGETS)
+	rm -rf $(OBJ_DIR) $(TEST_TARGETS)
