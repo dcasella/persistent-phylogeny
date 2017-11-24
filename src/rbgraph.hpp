@@ -169,7 +169,7 @@ struct if_singleton {
     
     @return True if \e v is a singleton in \e g
   */
-  inline bool operator()(const RBVertex v, RBGraph& g) const {
+  inline bool operator()(const RBVertex v, const RBGraph& g) const {
     return (out_degree(v, g) == 0);
   }
 };
