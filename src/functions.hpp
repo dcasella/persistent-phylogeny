@@ -16,14 +16,14 @@ public:
   /**
     @brief DFS Visitor constructor
     
-    @param[out] lsc  List of signed characters (which gets modified during the DFS)
-    @param[in]  g    Red-black graph
-    @param[in]  g_cm Maximal reducible red-black graph
+    @param[out] lsc List of signed characters (which gets modified during the DFS)
+    @param[in]  g   Red-black graph
+    @param[in]  gm  Maximal reducible red-black graph
   */
   safe_chain_dfs_visitor(
       std::list<SignedCharacter>& lsc,
       const RBGraph& g,
-      const RBGraph& g_cm);
+      const RBGraph& gm);
   
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -96,9 +96,9 @@ public:
   void finish_vertex(const HDVertex v, const HDGraph& hasse);
   
 private:
-  std::list<SignedCharacter>& lsc_;
-  const RBGraph g_;
-  const RBGraph g_cm_;
+  std::list<SignedCharacter>* m_lsc;
+  RBGraph m_g;
+  RBGraph m_gm;
   HDVertex source_v;
   HDVertex last_v;
 };
@@ -134,7 +134,7 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
   applying S(C) to GM results in a graph that has no red Σ-graph.
   
   @param[in] g     Red-black graph
-  @param[in] g_cm  Maximal reducible red-black graph
+  @param[in] gm    Maximal reducible red-black graph
   @param[in] hasse Hasse diagram graph
   
   @return Safe chain (list of signed characters).
@@ -142,7 +142,7 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
           When the flag is false, the returned chain is empty
 */
 std::pair<std::list<SignedCharacter>, bool>
-safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse);
+safe_chain(const RBGraph& g, const RBGraph& gm, const HDGraph& hasse);
 
 
 //=============================================================================

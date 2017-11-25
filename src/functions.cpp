@@ -10,9 +10,9 @@
 safe_chain_dfs_visitor::safe_chain_dfs_visitor(
     std::list<SignedCharacter>& lsc,
     const RBGraph& g,
-    const RBGraph& g_cm)
-    : lsc_(lsc), g_(g), g_cm_(g_cm) {
-  lsc_.clear();
+    const RBGraph& gm)
+    : m_lsc(&lsc), m_g(g), m_gm(gm) {
+  m_lsc->clear();
 }
 
 void
@@ -29,6 +29,8 @@ safe_chain_dfs_visitor::initialize_vertex(
   
   std::cout << "]" << std::endl;
   #endif
+  
+  // ignore
 }
 
 void
@@ -98,8 +100,12 @@ safe_chain_dfs_visitor::examine_edge(const HDEdge e, const HDGraph& hasse) {
   std::cout << "]" << std::endl;
   #endif
   
-  lsc_.insert(
-    lsc_.end(),
+  if (m_lsc == nullptr)
+    // m_lsc is uninitialized
+    return;
+  
+  m_lsc->insert(
+    m_lsc->end(),
     hasse[e].signedcharacters.begin(),
     hasse[e].signedcharacters.end()
   );
@@ -228,19 +234,23 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   std::cout << "]" << std::endl;
   #endif
   
+  if (m_lsc == nullptr)
+    // m_lsc is uninitialized
+    return;
+  
   if (last_v != v)
     // v is not the last vertex in the chain, which means the visit is
     // backtracking, so ignore it and keep going
     return;
   
   // source_v holds the source vertex of the chain
-  // lsc_ holds the list of SignedCharacters representing the chain
+  // m_lsc holds the list of SignedCharacters representing the chain
   
   #ifdef DEBUG
   std::cout << "S(C): < ";
   
-  SignedCharacterIter sci = lsc_.begin();
-  for (; sci != lsc_.end(); ++sci) {
+  SignedCharacterIter sci = m_lsc->begin();
+  for (; sci != m_lsc->end(); ++sci) {
     std::cout << *sci << " ";
   }
   
@@ -248,8 +258,8 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   #endif
   
   // TODO: confirm this is correct
-  if (lsc_.empty()) {
-    // lsc_ being empty means it's not actually a chain
+  if (m_lsc->empty()) {
+    // m_lsc being empty means it's not actually a chain
     #ifdef DEBUG
     std::cout << "Empty chain" << std::endl;
     #endif
@@ -257,20 +267,19 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
     return;
   }
   
-  // test if lsc_ is a safe chain
-  RBGraph g_cm_test(g_cm_);
-  std::tie(lsc_, std::ignore) = realize(lsc_, g_cm_test);
+  // test if m_lsc is a safe chain
+  std::tie(*m_lsc, std::ignore) = realize(*m_lsc, m_gm);
   
   #ifdef DEBUG
-  std::cout << g_cm_test << std::endl << std::endl;
+  std::cout << m_gm << std::endl << std::endl;
   #endif
   
-  if (is_redsigma(g_cm_test)) {
+  if (is_redsigma(m_gm)) {
     #ifdef DEBUG
     std::cout << "Found red Σ-graph" << std::endl;
     #endif
     
-    lsc_.clear();
+    m_lsc->clear();
     return;
   }
   
@@ -288,29 +297,29 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
 // Algorithm functions
 
 bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
-  RBGraph g1(g);
+  RBGraph g_test(g);
   
   std::list<std::string>::const_iterator i = hasse[v].species.begin();
   for (; i != hasse[v].species.end(); ++i) {
     // for each species (name) in v
     RBVertexIter u, u_end, in;
-    std::tie(u, u_end) = vertices(g1);
-    // get the corresponding vertex in g1
-    in = find_vertex(u, u_end, *i, g1);
+    std::tie(u, u_end) = vertices(g_test);
+    // get the corresponding vertex in g_test
+    in = find_vertex(u, u_end, *i, g_test);
     
     if (in == u_end)
       return false;
     
     // realize the species (= realize its characters)
-    realize(*in, g1);
+    realize(*in, g_test);
   }
   
   // if the realization didn't induce a red Σ-graph, v is a safe source
-  return !is_redsigma(g1);
+  return !is_redsigma(g_test);
 }
 
 std::pair<std::list<SignedCharacter>, bool>
-safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
+safe_chain(const RBGraph& g, const RBGraph& gm, const HDGraph& hasse) {
   std::list<SignedCharacter> output;
   bool safe = false;
   
@@ -332,7 +341,7 @@ safe_chain(const RBGraph& g, const RBGraph& g_cm, const HDGraph& hasse) {
   // documented in the BGL FAQ at (2.))
   
   try {
-    safe_chain_dfs_visitor vis(output, g, g_cm);
+    safe_chain_dfs_visitor vis(output, g, gm);
     depth_first_search(hasse, boost::visitor(vis));
   }
   catch (const SafeChain& e) {
@@ -463,30 +472,30 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     return output;
   }
   
-  // initialize g_cm as a copy of g; this way g_cm can be made into the maximal
+  // initialize gm as a copy of g; this way gm can be made into the maximal
   // reducible graph without affecting g. Note that this is done before the
-  // call to maximal_characters2 because cm must be a list of vertices of g_cm
-  RBGraph g_cm(g);
+  // call to maximal_characters2 because cm must be a list of vertices of gm
+  RBGraph gm(g);
   // cm = Cm, maximal characters of g (Grb)
-  // g_cm = Grb|Cm, maximal reducible graph of g (Grb)
-  std::list<RBVertex> cm = maximal_characters2(g_cm);
-  maximal_reducible_graph(cm, g_cm);
+  // gm = Grb|Cm, maximal reducible graph of g (Grb)
+  std::list<RBVertex> cm = maximal_characters2(gm);
+  maximal_reducible_graph(cm, gm);
   
   #ifdef DEBUG
   std::cout << "Cm = { ";
   
   std::list<RBVertex>::const_iterator kk = cm.begin();
   for (; kk != cm.end(); ++kk) {
-    std::cout << g_cm[*kk].name << " ";
+    std::cout << gm[*kk].name << " ";
   }
   
   std::cout << "}" << std::endl << "Gcm:" << std::endl
-            << g_cm << std::endl << std::endl;
+            << gm << std::endl << std::endl;
   #endif
   
-  // p = Hasse diagram for g_cm (Grb|Cm)
+  // p = Hasse diagram for gm (Grb|Cm)
   HDGraph p;
-  hasse_diagram(p, g_cm);
+  hasse_diagram(p, gm);
   
   #ifdef DEBUG
   std::cout << "Hasse:" << std::endl
@@ -501,7 +510,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   // sc = safe chain for g (Grb)
   std::list<SignedCharacter> sc;
   bool s_safe;
-  std::tie(sc, s_safe) = safe_chain(g, g_cm, p);
+  std::tie(sc, s_safe) = safe_chain(g, gm, p);
   
   if (!s_safe)
     // p has no safe [source|chain]

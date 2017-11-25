@@ -260,9 +260,9 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b);
   s1 < s2 and there does not exist a species s3 such that s1 < s3 < s2.
   
   @param[out] hasse Hasse diagram graph
-  @param[in]  g     Maximal reducible red-black graph
+  @param[in]  gm    Maximal reducible red-black graph
 */
-void hasse_diagram(HDGraph& hasse, const RBGraph& g);
+void hasse_diagram(HDGraph& hasse, const RBGraph& gm);
 
 /**
   @brief Returns the vertex iterator of \e hasse if it's a source.

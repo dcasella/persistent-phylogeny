@@ -183,7 +183,7 @@ struct if_not_maximal {
     
     @param[in] cm Maximal characters
   */
-  if_not_maximal(const std::list<RBVertex>& cm) : cm_(cm) {};
+  if_not_maximal(const std::list<RBVertex>& cm) : m_cm(&cm) {};
   
   /**
     @brief Overloading of operator() for if_not_maximal
@@ -194,12 +194,12 @@ struct if_not_maximal {
     @return True if \e v is not maximal character of \e g
   */
   inline bool operator()(const RBVertex v, const RBGraph& g) const {
-    return (std::find(cm_.begin(), cm_.end(), v) == cm_.end());
+    return (std::find(m_cm->begin(), m_cm->end(), v) == m_cm->end());
   }
   
 private:
   
-  const std::list<RBVertex> cm_;
+  const std::list<RBVertex>* m_cm;
 };
 
 
@@ -257,8 +257,6 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
 
 //=============================================================================
 // General functions
-
-// Red-Black Graph
 
 /**
   @brief Return the number of species in \e g
@@ -452,8 +450,6 @@ void read_graph(const std::string& filename, RBGraph& g);
 
 //=============================================================================
 // Algorithm functions
-
-// Red-Black Graph
 
 /**
   @brief Check if \e v is active in \e g

@@ -12,7 +12,7 @@ int main(int argc, const char* argv[]) {
     try {
       std::list<SignedCharacter> output = reduce(g);
       
-      std::cout << "Ok < ";
+      std::cout << "Ok (graph " << i << ") < ";
       
       for (auto i = output.begin(); i != output.end(); ++i) {
         std::cout << *i << " ";
@@ -21,7 +21,7 @@ int main(int argc, const char* argv[]) {
       std::cout << ">" << std::endl;
     }
     catch (const std::runtime_error& e) {
-      std::cout << "No" << std::endl;
+      std::cout << "No (graph " << i << ")" << std::endl;
     }
   }
   

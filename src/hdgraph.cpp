@@ -116,8 +116,8 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
   return true;
 }
 
-void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
-  std::vector<std::list<RBVertex>> sets(num_species(g));
+void hasse_diagram(HDGraph& hasse, const RBGraph& gm) {
+  std::vector<std::list<RBVertex>> sets(num_species(gm));
   std::map<RBVertex, std::list<RBVertex>> v_map;
   
   // how sets is going to be structured:
@@ -134,14 +134,14 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   // initialize sets and v_map for each species in the graph
   size_t index = 0;
   RBVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
+  std::tie(v, v_end) = vertices(gm);
   for (; v != v_end; ++v) {
-    if (!is_species(*v, g))
+    if (!is_species(*v, gm))
       continue;
     // for each species vertex
     
     #ifdef DEBUG
-    std::cout << "C(" << g[*v].name << ") = { ";
+    std::cout << "C(" << gm[*v].name << ") = { ";
     #endif
     
     // sets[index]'s first element is the species vertex
@@ -149,13 +149,13 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
     
     // build v's set of adjacent characters
     RBOutEdgeIter e, e_end;
-    std::tie(e, e_end) = out_edges(*v, g);
+    std::tie(e, e_end) = out_edges(*v, gm);
     for (; e != e_end; ++e) {
       // vt = one of the characters adjacent to *v
-      RBVertex vt = target(*e, g);
+      RBVertex vt = target(*e, gm);
       
       #ifdef DEBUG
-      std::cout << g[vt].name << " ";
+      std::cout << gm[vt].name << " ";
       #endif
       
       // sets[index]'s other elements are the characters adjacent to S
@@ -180,14 +180,14 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
   
   for (size_t i = 0; i < sets.size(); ++i) {
     // for each set of characters
-    // v = species of g
+    // v = species of gm
     RBVertex v = sets[i].front();
     
     // fill the list of characters names of v
     std::list<std::string> lcv;
     RBVertexIter cv = v_map[v].begin(), cv_end = v_map[v].end();
     for (; cv != cv_end; ++cv) {
-      lcv.push_back(g[*cv].name);
+      lcv.push_back(gm[*cv].name);
     }
     
     if (i == 0) {
@@ -195,16 +195,16 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
       // add v to the Hasse diagram, and being the first vertex of the graph
       // there's no need to do any work.
       #ifdef DEBUG
-      std::cout << "Hasse.addV " << g[v].name << std::endl << std::endl;
+      std::cout << "Hasse.addV " << gm[v].name << std::endl << std::endl;
       #endif
       
-      add_vertex(g[v].name, lcv, hasse);
+      add_vertex(gm[v].name, lcv, hasse);
       
       continue;
     }
     
     #ifdef DEBUG
-    std::cout << "C(" << g[v].name << ") = { ";
+    std::cout << "C(" << gm[v].name << ") = { ";
     
     std::list<std::string>::const_iterator kk = lcv.begin();
     for (; kk != lcv.end(); ++kk) {
@@ -249,7 +249,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
         #endif
         
         // add v to the list of species in hdv
-        hasse[*hdv].species.push_back(g[v].name);
+        hasse[*hdv].species.push_back(gm[v].name);
         
         break;
       }
@@ -284,7 +284,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g) {
         #endif
         
         // build a vertex for v and add it to the Hasse diagram
-        HDVertex u = add_vertex(g[v].name, lcv, hasse);
+        HDVertex u = add_vertex(gm[v].name, lcv, hasse);
         
         // build in_edges for the vertex and add them to the Hasse diagram
         std::list<std::pair<HDVertex, std::string>>::iterator ei, ei_end;
