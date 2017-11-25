@@ -40,7 +40,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CC_FULL) -c -o $@ $<
 
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(TEST_TARGETS)
 
 # Tests
 
@@ -52,6 +52,3 @@ $(TEST_TARGETS): $(TEST_DIR)/%: $(OBJ_DIR)/%.o $(OBJECTS)
 $(TEST_OBJECTS): $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp $(HEADERS)
 	mkdir -p $(OBJ_DIR)
 	$(CC_FULL) -c -o $@ $<
-
-tests_clean:
-	rm -rf $(OBJ_DIR) $(TEST_TARGETS)
