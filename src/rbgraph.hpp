@@ -590,18 +590,18 @@ descending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
 std::list<RBVertex> maximal_characters2(const RBGraph& g);
 
 /**
-  @brief Build the maximal reducible red-black graph of \e g
+  @brief Build the maximal reducible red-black graph of \e gm
   
   Let GRB be a red-black graph and CM the set of maximal characters of GRB.
   A maximal reducible graph consists of a reducible red-black graph whose
   characters are all maximal and inactive in the graph.
   Then GRB|CM is the maximal reducible graph induced by CM in graph GRB.
   
-  @param[in] g Red-black graph
+  @param[in] gm Red-black graph
   
   @return Maximal reducible graph
 */
-RBGraph maximal_reducible_graph(const RBGraph& g);
+RBGraph maximal_reducible_graph(const RBGraph& gm);
 
 /**
   @brief Predicate used to sort a vector of lists of vertices

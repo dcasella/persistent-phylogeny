@@ -3,10 +3,11 @@
 
 int main(int argc, const char* argv[]) {
   HDGraph hasse;
-  RBGraph g;
+  RBGraph g, gm;
   
   read_graph("tests/no_5x2.txt", g);
-  hasse_diagram(hasse, g);
+  gm = maximal_reducible_graph(g);
+  hasse_diagram(hasse, g, gm);
   
   HDVertexIter v, v_end, a, b, c;
   std::tie(v, v_end) = vertices(hasse);
@@ -20,7 +21,7 @@ int main(int argc, const char* argv[]) {
   assert(hasse[*a].species == std::list<std::string>({ "s1" }));
   assert(hasse[*b].species == std::list<std::string>({ "s3" }));
   assert(c == v_end);
-  assert(safe_source(*a, g, hasse) && safe_source(*b, g, hasse));
+  assert(safe_source(*a, hasse) && safe_source(*b, hasse));
   
   std::cout << "source: tests passed" << std::endl;
   

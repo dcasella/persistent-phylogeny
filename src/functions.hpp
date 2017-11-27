@@ -14,16 +14,16 @@
 class safe_chain_dfs_visitor : public boost::default_dfs_visitor {
 public:
   /**
+    @brief DFS Visitor default constructor
+  */
+  safe_chain_dfs_visitor();
+  
+  /**
     @brief DFS Visitor constructor
     
     @param[out] lsc List of signed characters (which gets modified during the DFS)
-    @param[in]  g   Red-black graph
-    @param[in]  gm  Maximal reducible red-black graph
   */
-  safe_chain_dfs_visitor(
-      std::list<SignedCharacter>& lsc,
-      const RBGraph& g,
-      const RBGraph& gm);
+  safe_chain_dfs_visitor(std::list<SignedCharacter>& lsc);
   
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -97,8 +97,6 @@ public:
   
 private:
   std::list<SignedCharacter>* m_lsc;
-  RBGraph m_g;
-  RBGraph m_gm;
   HDVertex source_v;
   HDVertex last_v;
 };
@@ -115,12 +113,11 @@ private:
   does not induce red Σ-graphs in GRB.
   
   @param[in] v     Vertex
-  @param[in] g     Red-black graph
   @param[in] hasse Hasse diagram graph
   
   @return True if \e v is a safe source in \e hasse
 */
-bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
+bool safe_source(const HDVertex v, const HDGraph& hasse);
 
 /**
   @brief Returns a safe chain if \e hasse has a one
@@ -133,16 +130,13 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse);
   Then C is safe if the c-reduction S(C) of C is feasible for the graph GM and
   applying S(C) to GM results in a graph that has no red Σ-graph.
   
-  @param[in] g     Red-black graph
-  @param[in] gm    Maximal reducible red-black graph
   @param[in] hasse Hasse diagram graph
   
   @return Safe chain (list of signed characters).
           If \e hasse has a safe chain then the bool flag will be true.
           When the flag is false, the returned chain is empty
 */
-std::pair<std::list<SignedCharacter>, bool>
-safe_chain(const RBGraph& g, const RBGraph& gm, const HDGraph& hasse);
+std::pair<std::list<SignedCharacter>, bool> safe_chain(const HDGraph& hasse);
 
 
 //=============================================================================

@@ -7,11 +7,11 @@
 //=============================================================================
 // Auxiliary structs and classes
 
-safe_chain_dfs_visitor::safe_chain_dfs_visitor(
-    std::list<SignedCharacter>& lsc,
-    const RBGraph& g,
-    const RBGraph& gm)
-    : m_lsc(&lsc), m_g(g), m_gm(gm) {
+safe_chain_dfs_visitor::safe_chain_dfs_visitor()
+    : m_lsc(nullptr), source_v(0), last_v(0) {}
+
+safe_chain_dfs_visitor::safe_chain_dfs_visitor(std::list<SignedCharacter>& lsc)
+    : m_lsc(&lsc), source_v(0), last_v(0) {
   m_lsc->clear();
 }
 
@@ -223,6 +223,13 @@ safe_chain_dfs_visitor::forward_or_cross_edge(
 
 void
 safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
+  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
+    // orig_g or orig_gm are uninitialized
+    return;
+  
+  RBGraph g = *orig_g(hasse);
+  RBGraph gm = *orig_gm(hasse);
+  
   #ifdef DEBUG
   std::cout << "finish_vertex: [ ";
   
@@ -267,14 +274,32 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
     return;
   }
   
+  RBGraph gm_test;
+  RBVertexIMap map_index;
+  RBVertexIAssocMap i_map(map_index);
+  
+  // fill the vertex index map i_map
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(gm);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_map, *u, index);
+  }
+  
+  // copy gm to gm_test
+  copy_graph(gm, gm_test, boost::vertex_index_map(i_map));
+  
+  // update gm_test's number of species and characters
+  num_species(gm_test) = num_species(gm);
+  num_characters(gm_test) = num_characters(gm);
+  
   // test if m_lsc is a safe chain
-  std::tie(*m_lsc, std::ignore) = realize(*m_lsc, m_gm);
+  std::tie(*m_lsc, std::ignore) = realize(*m_lsc, gm_test);
   
   #ifdef DEBUG
-  std::cout << m_gm << std::endl << std::endl;
+  std::cout << gm_test << std::endl << std::endl;
   #endif
   
-  if (is_redsigma(m_gm)) {
+  if (is_redsigma(gm_test)) {
     #ifdef DEBUG
     std::cout << "Found red Σ-graph" << std::endl;
     #endif
@@ -296,9 +321,38 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
 //=============================================================================
 // Algorithm functions
 
-bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
-  RBGraph g_test(g);
+bool safe_source(const HDVertex v, const HDGraph& hasse) {
+  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
+    // uninitialized graph properties
+    return false;
   
+  RBGraph g_test;
+  RBVertexMap map_vertex;
+  RBVertexIMap map_index;
+  RBVertexAssocMap v_map(map_vertex);
+  RBVertexIAssocMap i_map(map_index);
+  
+  // retrieve graphs and maps from hasse
+  RBGraph g = *orig_g(hasse);
+  RBGraph gm = *orig_gm(hasse);
+  
+  // fill the vertex index map i_map
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_map, *u, index);
+  }
+  
+  // copy g to g_test, fill the vertex map v_map (and map_vertex)
+  copy_graph(
+    g, g_test, boost::vertex_index_map(i_map).orig_to_copy(v_map)
+  );
+  
+  // update g_test's number of species and characters
+  num_species(g_test) = num_species(g);
+  num_characters(g_test) = num_characters(g);
+  
+  // realize the list of species of v in g_test
   std::list<std::string>::const_iterator i = hasse[v].species.begin();
   for (; i != hasse[v].species.end(); ++i) {
     // for each species (name) in v
@@ -318,8 +372,11 @@ bool safe_source(const HDVertex v, const RBGraph& g, const HDGraph& hasse) {
   return !is_redsigma(g_test);
 }
 
-std::pair<std::list<SignedCharacter>, bool>
-safe_chain(const RBGraph& g, const RBGraph& gm, const HDGraph& hasse) {
+std::pair<std::list<SignedCharacter>, bool> safe_chain(const HDGraph& hasse) {
+  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
+    // uninitialized graph properties
+    return std::make_pair(std::list<SignedCharacter>(), false);
+  
   std::list<SignedCharacter> output;
   bool safe = false;
   
@@ -341,7 +398,7 @@ safe_chain(const RBGraph& g, const RBGraph& gm, const HDGraph& hasse) {
   // documented in the BGL FAQ at (2.))
   
   try {
-    safe_chain_dfs_visitor vis(output, g, gm);
+    safe_chain_dfs_visitor vis(output);
     depth_first_search(hasse, boost::visitor(vis));
   }
   catch (const SafeChain& e) {
@@ -481,7 +538,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   
   // p = Hasse diagram for gm (Grb|Cm)
   HDGraph p;
-  hasse_diagram(p, gm);
+  hasse_diagram(p, g, gm);
   
   #ifdef DEBUG
   std::cout << "Hasse:" << std::endl
@@ -496,7 +553,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   // sc = safe chain for g (Grb)
   std::list<SignedCharacter> sc;
   bool s_safe;
-  std::tie(sc, s_safe) = safe_chain(g, gm, p);
+  std::tie(sc, s_safe) = safe_chain(p);
   
   if (!s_safe)
     // p has no safe [source|chain]
@@ -547,7 +604,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   if (sc.state == State::gain && is_inactive(cv, g)) {
     // c+ and c is inactive
     #ifdef DEBUG
-    std::cout << sc << " (+ and inactive):" << std::endl;
+    std::cout << sc << " (+ and inactive): ";
     #endif
     
     // realize the character c+:
@@ -570,7 +627,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
       if (exists) {
         // there is an edge (black) between *v and cv
         #ifdef DEBUG
-        std::cout << "rm;\t";
+        std::cout << "del; ";
         #endif
         
         remove_edge(e, g);
@@ -578,7 +635,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
       else {
         // there isn't an edge between *v and cv
         #ifdef DEBUG
-        std::cout << "red;\t";
+        std::cout << "red; ";
         #endif
         
         add_edge(*v, cv, Color::red, g);

@@ -261,9 +261,8 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   
   // fill the vertex index map i_map
   RBVertexIter v, v_end;
-  size_t index = 0;
   std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v, ++index) {
+  for (size_t index = 0; v != v_end; ++v, ++index) {
     boost::put(i_map, *v, index);
   }
   
@@ -536,10 +535,9 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   // how v_map is going to be structured:
   // v_map[C] => < List of adjacent species to C >
   
-  size_t index = 0;
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v) {
+  for (size_t index = 0; v != v_end; ++v) {
     if (!is_character(*v, g))
       continue;
     // for each character vertex
@@ -699,7 +697,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
 }
 
 RBGraph maximal_reducible_graph(const RBGraph& g) {
-  // cm has to be a list of vertices of g for this implementation to work
   RBGraph gm;
   std::list<RBVertex> cm;
   RBVertexIMap map_index;
@@ -707,18 +704,19 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
   
   // fill the vertex index map i_map
   RBVertexIter v, v_end;
-  size_t index = 0;
   std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v, ++index) {
+  for (size_t index = 0; v != v_end; ++v, ++index) {
     boost::put(i_map, *v, index);
   }
   
-  // copy g to gm, fill the vertex map v_map
+  // copy g to gm
   copy_graph(g, gm, boost::vertex_index_map(i_map));
   
+  // update gm's number of species and characters
   num_species(gm) = num_species(g);
   num_characters(gm) = num_characters(g);
   
+  // compute the maximal characters of gm
   cm = maximal_characters2(gm);
   
   #ifdef DEBUG
@@ -728,6 +726,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
   std::cout << "}" << std::endl;
   #endif
   
+  // remove non-maximal characters of gm
   RBVertexIter next;
   std::tie(v, v_end) = vertices(gm);
   for (next = v; v != v_end; v = next) {

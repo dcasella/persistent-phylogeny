@@ -3,20 +3,20 @@
 
 int main(int argc, const char* argv[]) {
   HDGraph hasse;
-  RBGraph g, gm;
   std::list<SignedCharacter> lsc;
   bool safe;
   
-  std::tie(lsc, safe) = safe_chain(g, gm, hasse);
+  std::tie(lsc, safe) = safe_chain(hasse);
   
   assert(safe == false);
   assert(lsc.empty());
   
+  RBGraph g, gm;
   read_graph("tests/no_5x2.txt", g);
-  hasse_diagram(hasse, g);
   gm = maximal_reducible_graph(g);
+  hasse_diagram(hasse, g, gm);
   
-  std::tie(lsc, safe) = safe_chain(g, gm, hasse);
+  std::tie(lsc, safe) = safe_chain(hasse);
   
   assert(safe == true);
   assert(lsc == std::list<SignedCharacter>({ { "c1", State::gain },

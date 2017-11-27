@@ -44,7 +44,7 @@ struct SignedCharacter {
   For each character c, we allow at most one edge labeled by c−.
 */
 struct HDEdgeProperties {
-  std::list<SignedCharacter> signedcharacters; ///< List of SignedCharacter
+  std::list<SignedCharacter> signedcharacters; ///< List of SignedCharacters
                                                ///< that label the edge
 };
 
@@ -65,7 +65,8 @@ struct HDVertexProperties {
   @brief Struct used to represent the properties of a Hasse diagram
 */
 struct HDGraphProperties {
-  
+  const RBGraph* g = nullptr;           ///< Original red-black graph
+  const RBGraph* gm = nullptr;          ///< Original maximal reducible graph
 };
 
 
@@ -223,6 +224,28 @@ add_edge(
 // General functions
 
 /**
+  @brief Return a pointer to the original red-black graph of \e hasse
+  
+  @param[in] hasse Hasse diagram graph
+  
+  @return Pointer to the the original red-black graph of \e hasse
+*/
+inline const RBGraph* orig_g(const HDGraph& hasse) {
+  return hasse[boost::graph_bundle].g;
+}
+
+/**
+  @brief Return a pointer to the original maximal reducible graph of \e hasse
+  
+  @param[in] hasse Hasse diagram graph
+  
+  @return Pointer to the the original maximal reducible graph of \e hasse
+*/
+inline const RBGraph* orig_gm(const HDGraph& hasse) {
+  return hasse[boost::graph_bundle].gm;
+}
+
+/**
   @brief Overloading of operator<< for HDGraph
   
   @param[in] os    Output stream
@@ -248,7 +271,7 @@ bool
 is_included(const std::list<std::string>& a, const std::list<std::string>& b);
 
 /**
-  @brief Build the Hasse diagram of \e g
+  @brief Build the Hasse diagram of \e gm
   
   Let GM be a maximal reducible graph.
   Then the diagram P for GM is the Hasse diagram for the poset (Ps, ≤) of all
@@ -260,9 +283,10 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b);
   s1 < s2 and there does not exist a species s3 such that s1 < s3 < s2.
   
   @param[out] hasse Hasse diagram graph
+  @param[in]  g     Red-black graph
   @param[in]  gm    Maximal reducible red-black graph
 */
-void hasse_diagram(HDGraph& hasse, const RBGraph& gm);
+void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm);
 
 /**
   @brief Returns the vertex iterator of \e hasse if it's a source.

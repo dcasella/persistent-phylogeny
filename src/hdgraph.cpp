@@ -116,7 +116,7 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
   return true;
 }
 
-void hasse_diagram(HDGraph& hasse, const RBGraph& gm) {
+void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   std::vector<std::list<RBVertex>> sets(num_species(gm));
   std::map<RBVertex, std::list<RBVertex>> v_map;
   
@@ -132,10 +132,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& gm) {
   // correct list
   
   // initialize sets and v_map for each species in the graph
-  size_t index = 0;
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
-  for (; v != v_end; ++v) {
+  for (size_t index = 0; v != v_end; ++v) {
     if (!is_species(*v, gm))
       continue;
     // for each species vertex
@@ -258,12 +257,13 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& gm) {
       
       // TODO: check if edge building is done right
       
+      // TODO: is_included might be superfluous
       // initialize new_edges if lhdv is a subset of lcv, with the structure:
       // *hdv -*ci-> v
       if (is_included(lhdv, lcv)) {
         // hdv is included in v
-        std::list<std::string>::const_iterator ci = lcv.begin(), ci_end = lcv.end();
-        for (; ci != ci_end; ++ci) {
+        std::list<std::string>::const_iterator ci = lcv.begin();
+        for (; ci != lcv.end(); ++ci) {
           // for each character in hdv
           std::list<std::string>::const_iterator in;
           in = std::find(lhdv.begin(), lhdv.end(), *ci);
@@ -339,6 +339,13 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& gm) {
     std::cout << std::endl;
     #endif
   }
+  
+  // Store the graph pointer into the Hasse diagram's graph properties
+  hasse[boost::graph_bundle].g = &g;
+  
+  // Store the maximal reducible graph pointer into the Hasse diagram's graph
+  // properties
+  hasse[boost::graph_bundle].gm = &gm;
   
   #ifdef DEBUG
   std::cout << "Before transitive reduction:" << std::endl
