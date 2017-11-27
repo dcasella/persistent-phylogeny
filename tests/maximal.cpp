@@ -40,18 +40,12 @@ int main(int argc, const char* argv[]) {
   
   std::list<RBVertex> cm_check({c2, c3});
   std::list<RBVertex> cm = maximal_characters2(g);
-  maximal_reducible_graph(cm, g);
+  
+  RBGraph gm = maximal_reducible_graph(g);
   
   assert(cm == cm_check);
-  assert(num_species(g) == 5);
-  assert(num_characters(g) == 2);
-  
-  #ifdef DEBUG
-  std::cout << "Cm = { ";
-  std::list<RBVertex>::iterator i = cm.begin();
-  for (; i != cm.end(); ++i) std::cout << g[*i].name << " ";
-  std::cout << "}" << std::endl;
-  #endif
+  assert(num_species(gm) == 5);
+  assert(num_characters(gm) == 2);
   
   std::cout << "maximal: tests passed" << std::endl;
   

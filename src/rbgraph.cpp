@@ -2,6 +2,7 @@
 #include <fstream>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/copy.hpp>
 
 
 //=============================================================================
@@ -258,7 +259,7 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   RBVertexIMap map_index, map_comp;
   RBVertexIAssocMap i_map(map_index), c_map(map_comp);
   
-  // fill vertex index map
+  // fill the vertex index map i_map
   RBVertexIter v, v_end;
   size_t index = 0;
   std::tie(v, v_end) = vertices(g);
@@ -697,22 +698,51 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   return cm;
 }
 
-void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g) {
-  // destructive algorithm: remove non-maximal characters from the graph.
+RBGraph maximal_reducible_graph(const RBGraph& g) {
   // cm has to be a list of vertices of g for this implementation to work
-  RBVertexIter v, v_end, next;
+  RBGraph gm;
+  std::list<RBVertex> cm;
+  RBVertexIMap map_index;
+  RBVertexIAssocMap i_map(map_index);
+  
+  // fill the vertex index map i_map
+  RBVertexIter v, v_end;
+  size_t index = 0;
   std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v, ++index) {
+    boost::put(i_map, *v, index);
+  }
+  
+  // copy g to gm, fill the vertex map v_map
+  copy_graph(g, gm, boost::vertex_index_map(i_map));
+  
+  num_species(gm) = num_species(g);
+  num_characters(gm) = num_characters(g);
+  
+  cm = maximal_characters2(gm);
+  
+  #ifdef DEBUG
+  std::cout << "Cm = { ";
+  std::list<RBVertex>::iterator i = cm.begin();
+  for (; i != cm.end(); ++i) std::cout << gm[*i].name << " ";
+  std::cout << "}" << std::endl;
+  #endif
+  
+  RBVertexIter next;
+  std::tie(v, v_end) = vertices(gm);
   for (next = v; v != v_end; v = next) {
     next++;
     
-    if (!is_character(*v, g))
+    if (!is_character(*v, gm))
       // skip non-character vertices
       continue;
     
-    remove_vertex_if(*v, if_not_maximal(cm), g);
+    remove_vertex_if(*v, if_not_maximal(cm), gm);
   }
   
-  // TODO: add removesingletons(g);?
+  // TODO: add removesingletons(gm);?
+  
+  return gm;
 }
 
 RBVertexIter

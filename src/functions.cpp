@@ -472,25 +472,11 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     return output;
   }
   
-  // initialize gm as a copy of g; this way gm can be made into the maximal
-  // reducible graph without affecting g. Note that this is done before the
-  // call to maximal_characters2 because cm must be a list of vertices of gm
-  RBGraph gm(g);
-  // cm = Cm, maximal characters of g (Grb)
   // gm = Grb|Cm, maximal reducible graph of g (Grb)
-  std::list<RBVertex> cm = maximal_characters2(gm);
-  maximal_reducible_graph(cm, gm);
+  RBGraph gm = maximal_reducible_graph(gm);
   
   #ifdef DEBUG
-  std::cout << "Cm = { ";
-  
-  std::list<RBVertex>::const_iterator kk = cm.begin();
-  for (; kk != cm.end(); ++kk) {
-    std::cout << gm[*kk].name << " ";
-  }
-  
-  std::cout << "}" << std::endl << "Gcm:" << std::endl
-            << gm << std::endl << std::endl;
+  std::cout << "Gm:" << std::endl << gm << std::endl << std::endl;
   #endif
   
   // p = Hasse diagram for gm (Grb|Cm)

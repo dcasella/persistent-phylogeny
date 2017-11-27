@@ -113,7 +113,7 @@ typedef boost::graph_traits<RBGraph>::out_edge_iterator RBOutEdgeIter;
 */
 typedef boost::graph_traits<RBGraph>::vertices_size_type RBVertexSize;
 
-// Index Maps
+// Maps
 
 /**
   Map of vertex indices (red-black graph)
@@ -126,9 +126,14 @@ typedef std::map<RBVertex, RBVertexSize> RBVertexIMap;
 typedef boost::associative_property_map<RBVertexIMap> RBVertexIAssocMap;
 
 /**
-  Map of vertex booleans (red-black graph)
+  Map of vertices (red-black graph)
 */
-typedef std::map<RBVertex, bool> RBVertexBMap;
+typedef std::map<RBVertex, RBVertex> RBVertexMap;
+
+/**
+  Associative property map of vertices (red-black graph)
+*/
+typedef boost::associative_property_map<RBVertexMap> RBVertexAssocMap;
 
 // Containers
 
@@ -198,7 +203,6 @@ struct if_not_maximal {
   }
   
 private:
-  
   const std::list<RBVertex>* m_cm;
 };
 
@@ -586,18 +590,18 @@ descending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
 std::list<RBVertex> maximal_characters2(const RBGraph& g);
 
 /**
-  @brief Build the maximal reducible red-black graph of \e g given the maximal
-         characters \e cm, removing non-maximal characters directly from \e g
+  @brief Build the maximal reducible red-black graph of \e g
   
   Let GRB be a red-black graph and CM the set of maximal characters of GRB.
   A maximal reducible graph consists of a reducible red-black graph whose
   characters are all maximal and inactive in the graph.
   Then GRB|CM is the maximal reducible graph induced by CM in graph GRB.
   
-  @param[in]     cm List of maximal characters of \e g
-  @param[in,out] g  Red-black graph (out: Maximal reducible red-black graph)
+  @param[in] g Red-black graph
+  
+  @return Maximal reducible graph
 */
-void maximal_reducible_graph(const std::list<RBVertex>& cm, RBGraph& g);
+RBGraph maximal_reducible_graph(const RBGraph& g);
 
 /**
   @brief Predicate used to sort a vector of lists of vertices
