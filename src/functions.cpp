@@ -530,7 +530,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   }
   
   // gm = Grb|Cm, maximal reducible graph of g (Grb)
-  RBGraph gm = maximal_reducible_graph(gm);
+  RBGraph gm = maximal_reducible_graph(g);
   
   #ifdef DEBUG
   std::cout << "Gm:" << std::endl << gm << std::endl << std::endl;
