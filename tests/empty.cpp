@@ -2,7 +2,9 @@
 
 
 int main(int argc, const char* argv[]) {
-  RBGraph g(1);
+  RBGraph g;
+  
+  add_vertex(g);
   
   assert(!is_empty(g));
   
