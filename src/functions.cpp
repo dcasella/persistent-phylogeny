@@ -292,6 +292,9 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   num_species(gm_test) = num_species(gm);
   num_characters(gm_test) = num_characters(gm);
   
+  // rebuild gm_test's bimap
+  build_bimap(gm_test);
+  
   // test if m_lsc is a safe chain
   std::tie(*m_lsc, std::ignore) = realize(*m_lsc, gm_test);
   
@@ -312,7 +315,70 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   std::cout << "No red Σ-graph" << std::endl;
   #endif
   
-  // TODO: test safe source?
+  // TODO: is testing the safe source here correct?
+  RBGraph g_test;
+  
+  // fill the vertex index map i_map
+  std::tie(u, u_end) = vertices(g);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_map, *u, index);
+  }
+  
+  // copy g to g_test
+  copy_graph(g, g_test, boost::vertex_index_map(i_map));
+  
+  // update g_test's number of species and characters
+  num_species(g_test) = num_species(g);
+  num_characters(g_test) = num_characters(g);
+  
+  // rebuild g_test's bimap
+  build_bimap(g_test);
+  
+  // initialize the list of characters of source_v
+  std::list<SignedCharacter> source_lsc;
+  StringIter ci = hasse[source_v].characters.begin();
+  for (; ci != hasse[source_v].characters.end(); ++ci) {
+    source_lsc.push_back({ *ci, State::gain });
+  }
+  
+  #ifdef DEBUG
+  std::cout << "Source: [ ";
+  
+  si = hasse[source_v].species.begin();
+  for (; si != hasse[source_v].species.end(); ++si) {
+    std::cout << *si << " ";
+  }
+  
+  std::cout << "( ";
+  
+  sci = source_lsc.begin();
+  for (; sci != source_lsc.end(); ++sci) {
+    std::cout << *sci << " ";
+  }
+  
+  std::cout << ") ]" << std::endl << std::endl;
+  #endif
+  
+  // test if source_v is a safe source
+  std::tie(source_lsc, std::ignore) = realize(source_lsc, g_test);
+  
+  #ifdef DEBUG
+  std::cout << std::endl
+            << "G test:" << std::endl
+            << g_test << std::endl << std::endl;
+  #endif
+  
+  if (is_redsigma(g_test)) {
+    #ifdef DEBUG
+    std::cout << "Found red Σ-graph in G" << std::endl;
+    #endif
+    
+    return;
+  }
+  
+  #ifdef DEBUG
+  std::cout << "No red Σ-graph in G" << std::endl << std::endl;
+  #endif
   
   throw SafeChain();
 }
@@ -352,20 +418,25 @@ bool safe_source(const HDVertex v, const HDGraph& hasse) {
   num_species(g_test) = num_species(g);
   num_characters(g_test) = num_characters(g);
   
+  // rebuild g_test's bimap
+  build_bimap(g_test);
+  
   // realize the list of species of v in g_test
   std::list<std::string>::const_iterator i = hasse[v].species.begin();
   for (; i != hasse[v].species.end(); ++i) {
     // for each species (name) in v
-    RBVertexIter u, u_end, in;
-    std::tie(u, u_end) = vertices(g_test);
-    // get the corresponding vertex in g_test
-    in = find_vertex(u, u_end, *i, g_test);
+    RBVertex u;
+    bool u_exists;
     
-    if (in == u_end)
+    // get the corresponding vertex in g_test
+    std::tie(u, u_exists) = get_vertex(*i, g_test);
+    
+    if (!u_exists)
+      // abort if the species could not be found in g_test
       return false;
     
     // realize the species (= realize its characters)
-    realize(*in, g_test);
+    realize(u, g_test);
   }
   
   // if the realization didn't induce a red Σ-graph, v is a safe source
@@ -576,23 +647,21 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 std::pair<std::list<SignedCharacter>, bool>
 realize(const SignedCharacter& sc, RBGraph& g) {
   std::list<SignedCharacter> output;
+  RBVertex cv; // cv = current character vertex
+  bool cv_exists;
   
-  // find the vertex in g whose name is sc.character
-  RBVertexIter v, v_end, in;
-  std::tie(v, v_end) = vertices(g);
-  in = find_vertex(v, v_end, sc.character, g);
+  // get the vertex in g whose name is sc.character
+  std::tie(cv, cv_exists) = get_vertex(sc.character, g);
   
-  if (in == v_end)
+  if (!cv_exists)
     // g has no vertex named sc.character
     return std::make_pair(output, false);
-  
-  // cv = current character vertex
-  RBVertex cv = *in;
   
   RBVertexIMap map_index, map_comp;
   RBVertexIAssocMap i_map(map_index), c_map(map_comp);
   
   // fill vertex index map
+  RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (size_t index = 0; v != v_end; ++v, ++index) {
     boost::put(i_map, *v, index);

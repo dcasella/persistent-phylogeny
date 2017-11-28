@@ -14,11 +14,43 @@ void remove_vertex(const RBVertex v, RBGraph& g) {
   else
     num_characters(g)--;
   
+  // delete v from the bimap
+  bimap(g).right.erase(v);
+  
   boost::remove_vertex(v, g);
 }
 
+void remove_vertex(const std::string& v, RBGraph& g) {
+  // find v in the bimap
+  RBVertex u = bimap(g).left.at(v);
+  
+  if (is_species(u, g))
+    num_species(g)--;
+  else
+    num_characters(g)--;
+  
+  // delete v from the bimap
+  bimap(g).left.erase(v);
+  
+  boost::remove_vertex(u, g);
+}
+
 RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
+  try {
+    // if a vertex with the same name already exists
+    RBVertex u = bimap(g).left.at(name);
+    // return its descriptor and do nothing
+    return u;
+  }
+  catch (const std::out_of_range& e) {
+    // continue with the algorithm
+  }
+  
   RBVertex v = boost::add_vertex(g);
+  
+  // insert v in the bimap
+  bimap(g).insert(RBVertexBimap::value_type(name, v));
+  
   g[v].name = name;
   g[v].type = type;
   
@@ -43,6 +75,31 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
 
 //=============================================================================
 // General functions
+
+void build_bimap(RBGraph& g) {
+  bimap(g).clear();
+  
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    bimap(g).insert(RBVertexBimap::value_type(g[*v].name, *v));
+  }
+}
+
+std::pair<RBVertex, bool> get_vertex(const std::string& v, const RBGraph& g) {
+  RBVertex u = 0;
+  bool exists = false;
+  
+  try {
+    u = bimap(g).left.at(v);
+    exists = true;
+  }
+  catch (const std::out_of_range& e) {
+    // continue
+  }
+  
+  return std::make_pair(u, exists);
+}
 
 std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
   RBVertexIter v, v_end;
@@ -716,6 +773,9 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
   num_species(gm) = num_species(g);
   num_characters(gm) = num_characters(g);
   
+  // rebuild gm's bimap
+  build_bimap(gm);
+  
   // compute the maximal characters of gm
   cm = maximal_characters2(gm);
   
@@ -742,17 +802,6 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
   // TODO: add removesingletons(gm);?
   
   return gm;
-}
-
-RBVertexIter
-find_vertex(RBVertexIter v, RBVertexIter v_end,
-            const std::string& name, const RBGraph& g) {
-  for (; v != v_end; ++v) {
-    if (g[*v].name == name)
-      return v;
-  }
-  
-  return v_end;
 }
 
 bool is_redsigma(const RBGraph& g) {

@@ -121,6 +121,11 @@ typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
 */
 typedef std::list<SignedCharacter>::const_iterator SignedCharacterIter;
 
+/**
+  Iterator (const) of a list of strings
+*/
+typedef std::list<std::string>::const_iterator StringIter;
+
 
 //=============================================================================
 // Enum / Struct operator overloads

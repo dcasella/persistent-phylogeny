@@ -3,7 +3,38 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/random.hpp>
+#include <boost/bimap.hpp>
+#include <boost/bimap/unordered_set_of.hpp>
 #include <iostream>
+
+
+//=============================================================================
+// Forward declaration for typedefs
+
+/**
+  Red-black graph traits
+*/
+typedef boost::adjacency_list_traits<
+  boost::setS,       // OutEdgeList
+  boost::listS,      // VertexList
+  boost::undirectedS // Directed
+> RBTraits;
+
+/**
+  Bidirectional map of strings and vertices (red-black graph)
+*/
+typedef boost::bimap<
+  boost::bimaps::unordered_set_of<std::string>,
+  boost::bimaps::unordered_set_of<RBTraits::vertex_descriptor>
+> RBVertexBimap;
+
+/**
+  Associative property bidirectional map of strings and vertices (red-black
+  graph)
+*/
+// typedef boost::associative_property_map<
+//   RBVertexBimap::right_map
+// > RBVertexAssocBimap;
 
 
 //=============================================================================
@@ -33,8 +64,6 @@ enum class Type : bool {
 //=============================================================================
 // Bundled properties
 
-// Red-Black Graph
-
 /**
   @brief Struct used to represent the properties of an edge (red-black graph)
   
@@ -52,8 +81,8 @@ struct RBEdgeProperties {
   bipartite graph whose vertex set is S ∪ C.
 */
 struct RBVertexProperties {
-  std::string name = "v";    ///< Vertex name
-  Type type = Type::species; ///< Vertex type (Character or Species)
+  std::string name; ///< Vertex name
+  Type type;        ///< Vertex type (Character or Species)
 };
 
 /**
@@ -62,6 +91,9 @@ struct RBVertexProperties {
 struct RBGraphProperties {
   size_t num_species = 0;    ///< Number of species in the graph
   size_t num_characters = 0; ///< Number of characters in the graph
+  
+  RBVertexBimap bimap; ///< Bidirectional map for vertex names and vertices in
+                       ///< the graph
 };
 
 
@@ -219,6 +251,14 @@ private:
 void remove_vertex(const RBVertex v, RBGraph& g);
 
 /**
+  @brief Remove \e v from \e g
+  
+  @param[in]     v Vertex name
+  @param[in,out] g Red-black graph
+*/
+void remove_vertex(const std::string& v, RBGraph& g);
+
+/**
   @brief Add vertex with \e name and \e type to \e g
   
   @param[in]     name Name
@@ -257,6 +297,24 @@ inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
 */
 std::pair<RBEdge, bool>
 add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
+
+/**
+  @brief Add edge between \e u and \e v to \e g
+  
+  @param[in]     u     Source Vertex
+  @param[in]     v     Target Vertex
+  @param[in,out] g     Red-black graph
+  
+  @return Edge descriptor for the new edge.
+          If the edge is already in the graph then a duplicate will not be
+          added and the bool flag will be false.
+          When the flag is false, the returned edge descriptor points to the
+          already existing edge
+*/
+inline std::pair<RBEdge, bool>
+add_edge(const RBVertex u, const RBVertex v, RBGraph& g) {
+  return add_edge(u, v, Color::black, g);
+}
 
 
 //=============================================================================
@@ -304,6 +362,28 @@ inline size_t& num_characters(RBGraph& g) {
 */
 inline const size_t num_characters(const RBGraph& g) {
   return g[boost::graph_bundle].num_characters;
+}
+
+/**
+  @brief Return the bidirectional map in \e g
+  
+  @param[in] g Red-black graph
+  
+  @return Reference to the bidirectional map in \e g
+*/
+inline RBVertexBimap& bimap(RBGraph& g) {
+  return g[boost::graph_bundle].bimap;
+}
+
+/**
+  @brief Return the bidirectional map (const) in \e g
+  
+  @param[in] g Red-black graph
+  
+  @return Constant bidirectional map in \e g
+*/
+inline const RBVertexBimap bimap(const RBGraph& g) {
+  return g[boost::graph_bundle].bimap;
 }
 
 /**
@@ -371,6 +451,23 @@ void remove_vertex_if(const RBVertex v, Predicate predicate, RBGraph& g) {
 }
 
 /**
+  @brief Build the bimap in \c g
+  
+  @param[in] g Red-black graph
+*/
+void build_bimap(RBGraph& g);
+
+/**
+  @brief Return the vertex descriptor of the vertex named \c v in \c g
+  
+  @param[in] v Vertex name
+  @param[in] g Red-black graph
+  
+  @return Vertex
+*/
+std::pair<RBVertex, bool> get_vertex(const std::string& v, const RBGraph& g);
+
+/**
   @brief Overloading of operator<< for RBGraph
   
   @param[in] os Output stream
@@ -379,67 +476,6 @@ void remove_vertex_if(const RBVertex v, Predicate predicate, RBGraph& g) {
   @return Updated output stream
 */
 std::ostream& operator<<(std::ostream& os, const RBGraph& g);
-
-/**
-  @brief Generate a random red-black graph
-  
-  @param[out] g   Red-black graph
-  @param[in]  S   Number of species
-  @param[in]  C   Number of characters
-  @param[in]  E   Number of edges
-  @param[in]  gen Random number generator
-*/
-template <class RandNumGen>
-void generate_random_rbgraph(
-    RBGraph& g,
-    const RBVertexSize S,
-    const RBVertexSize C,
-    const RBVertexSize E,
-    RandNumGen& gen) {
-  assert(E <= (S * C));
-  
-  generate_random_graph(g, (S + C), 0, gen, false, false);
-  
-  num_species(g) = S;
-  num_characters(g) = C;
-  
-  RBVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
-  
-  // name species in the graph
-  for (RBVertexSize i = 0; i < S; ++i, ++v) {
-    g[*v].name = "s" + std::to_string(i + 1);
-    g[*v].type = Type::species;
-  }
-  
-  // name characters in the graph
-  for (RBVertexSize i = 0; i < C; ++i, ++v) {
-    g[*v].name = "c" + std::to_string(i + 1);
-    g[*v].type = Type::character;
-  }
-  
-  // add edges between random species and characters
-  for (RBVertexSize i = 0; i < E; ++i) {
-    bool new_edge;
-    RBVertex vs, vt;
-    
-    do {
-      // search for a random vertex until vs holds a species
-      while ((vs = random_vertex(g, gen)) && g[vs].type != Type::species);
-      
-      // search for a random vertex until vt holds a character
-      while ((vt = random_vertex(g, gen)) && g[vt].type != Type::character);
-      
-      // add edge (if it doesn't exist)
-      std::tie(std::ignore, new_edge) = add_edge(vs, vt, g);
-    }
-    while (!new_edge);
-  }
-  
-  #ifdef DEBUG
-  std::cout << "G generated" << std::endl << std::endl;
-  #endif
-}
 
 // File I/O
 
@@ -615,21 +651,6 @@ inline bool
 ascending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
   return a.size() < b.size();
 }
-
-/**
-  @brief Returns the vertex iterator of \e g if its name is \e name.
-         Returns the end of the iterator if a vertex could not be found
-  
-  @param[in] v     Vertex iterator
-  @param[in] v_end Vertex end iterator
-  @param[in] name  Vertex name
-  @param[in] g     Red-black graph
-  
-  @return Vertex iterator of \e g if its name is \e name, or \e v_end
-*/
-RBVertexIter
-find_vertex(RBVertexIter v, RBVertexIter v_end,
-            const std::string& name, const RBGraph& g);
 
 /**
   @brief Check if \e g is a red Σ-graph
