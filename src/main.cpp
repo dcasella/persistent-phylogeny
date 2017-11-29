@@ -8,15 +8,21 @@ int main(int argc, const char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     RBGraph g;
     read_graph(argv[i], g);
-    std::list<SignedCharacter> output = reduce(g);
     
-    std::cout << "C-Reduction: < ";
-    
-    for (auto i = output.begin(); i != output.end(); ++i) {
-      std::cout << *i << " ";
+    try {
+      std::list<SignedCharacter> output = reduce(g);
+      
+      std::cout << "Ok < ";
+      
+      for (auto i = output.begin(); i != output.end(); ++i) {
+        std::cout << *i << " ";
+      }
+      
+      std::cout << ">" << std::endl;
     }
-    
-    std::cout << ">" << std::endl;
+    catch (const std::runtime_error& e) {
+      std::cout << "No" << std::endl;
+    }
   }
   
   return 0;
