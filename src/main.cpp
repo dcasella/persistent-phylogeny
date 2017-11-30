@@ -7,21 +7,36 @@ int main(int argc, const char* argv[]) {
 
   for (int i = 1; i < argc; ++i) {
     RBGraph g;
-    read_graph(argv[i], g);
+
+    try {
+      read_graph(argv[i], g);
+    }
+    catch (const std::runtime_error& e) {
+      std::cerr << "No (" << argv[i] << ") " << e.what() << std::endl;
+
+      continue;
+    }
 
     try {
       std::list<SignedCharacter> output = reduce(g);
 
-      std::cout << "Ok (graph " << i << ") < ";
+      std::cout << "Ok (" << argv[i] << ")";
 
-      for (auto i = output.begin(); i != output.end(); ++i) {
+      #ifdef DEBUG
+      std::cout << " < ";
+
+      SignedCharacterIter i = output.begin();
+      for (; i != output.end(); ++i) {
         std::cout << *i << " ";
       }
 
-      std::cout << ">" << std::endl;
+      std::cout << ">";
+      #endif
+
+      std::cout << std::endl;
     }
     catch (const std::runtime_error& e) {
-      std::cout << "No (graph " << i << ")" << std::endl;
+      std::cerr << "No (" << argv[i] << ")" << std::endl;
     }
   }
 
