@@ -1,12 +1,10 @@
 # G++
 
-CC          = g++
-CFLAGS      = -O3 -Wall
-CEXTRA      =
-BOOST_LIB_G = /usr/include/boost/libs/graph/build
-BOOST_LIB_R = /usr/include/boost/libs/regex/build
-BOOST_LIBS  = -L$(BOOST_LIB_G) -L$(BOOST_LIB_R)
-CC_FULL     = $(CC) $(CFLAGS) $(CEXTRA) -I$(SRC_DIR)
+CC         = g++
+CFLAGS     = -O3 -Wall
+CEXTRA     =
+BOOST_LIBS =
+CC_FULL    = $(CC) $(CFLAGS) $(CEXTRA) -I$(SRC_DIR)
 
 # Folders
 
@@ -32,7 +30,6 @@ TEST_TARGETS = $(TEST_SOURCES:.cpp=)
 # Main
 
 $(TARGET): $(OBJECTS) $(OBJ_DIR)/main.o
-	mkdir -p $(BIN_DIR)
 	$(CC) -o $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
@@ -40,7 +37,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CC_FULL) -c -o $@ $<
 
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(TEST_TARGETS)
+	rm -rf $(OBJ_DIR) $(TARGET) $(TEST_TARGETS)
 
 # Tests
 
