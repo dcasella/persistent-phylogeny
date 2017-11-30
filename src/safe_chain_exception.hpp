@@ -11,7 +11,7 @@ class SafeChain : public std::exception {
 public:
   /**
     @brief Returns the reason of the exception
-    
+
     @return C String
   */
   inline const char* what() {

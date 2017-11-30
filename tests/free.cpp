@@ -5,7 +5,7 @@ int main(int argc, const char* argv[]) {
   RBGraph g;
   RBVertex s3, s4, s5,
            c1, c2, c3, c4, c5, c7;
-  
+
   s3 = add_vertex("s3", Type::species, g);
   s4 = add_vertex("s4", Type::species, g);
   s5 = add_vertex("s5", Type::species, g);
@@ -17,7 +17,7 @@ int main(int argc, const char* argv[]) {
        add_vertex("c6", Type::character, g);
   c7 = add_vertex("c7", Type::character, g);
        add_vertex("c8", Type::character, g);
-  
+
   add_edge(s3, c2, g);
   add_edge(s3, c3, g);
   add_edge(s3, c4, Color::red, g);
@@ -30,12 +30,12 @@ int main(int argc, const char* argv[]) {
   add_edge(s5, c4, Color::red, g);
   add_edge(s5, c5, g);
   add_edge(s5, c7, g);
-  
+
   assert(is_free(s3, g) == false);
   assert(is_free(c5, g) == false);
   assert(is_free(c4, g) == true);
-  
+
   std::cout << "free: tests passed" << std::endl;
-  
+
   return 0;
 }

@@ -5,7 +5,7 @@ int main(int argc, const char* argv[]) {
   RBGraph g;
   RBVertex s1, s2, s3, s4, s5, s6,
            c1, c2, c3, c4, c5, c6, c7, c8;
-  
+
   s1 = add_vertex("s1", Type::species, g);
   s2 = add_vertex("s2", Type::species, g);
   s3 = add_vertex("s3", Type::species, g);
@@ -20,7 +20,7 @@ int main(int argc, const char* argv[]) {
   c6 = add_vertex("c6", Type::character, g);
   c7 = add_vertex("c7", Type::character, g);
   c8 = add_vertex("c8", Type::character, g);
-  
+
   add_edge(s1, c8, g);
   add_edge(s2, c3, g);
   add_edge(s2, c5, g);
@@ -40,27 +40,27 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c2, g);
   add_edge(s6, c3, g);
   add_edge(s6, c5, g);
-  
+
   RBGraph g1(g);
   build_bimap(g1);
-  
+
   realize({ "c3", State::gain }, g);
   realize({ "c5", State::gain }, g);
   realize({ "c2", State::gain }, g);
   realize({ "c4", State::lose }, g);
-  
+
   realize({ { "c3", State::gain }, { "c5", State::gain },
             { "c2", State::gain }, { "c4", State::lose } }, g1);
-  
+
   assert(num_species(g) == num_species(g1));
   assert(num_characters(g) == num_characters(g1));
   assert(num_edges(g) == num_edges(g1));
-  
+
   #ifdef DEBUG
   std::cout << g << std::endl;
   #endif
-  
+
   std::cout << "realize: tests passed" << std::endl;
-  
+
   return 0;
 }

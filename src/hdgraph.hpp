@@ -10,7 +10,7 @@
 
 /**
   Strongly typed 1-bit enum class used for character state.
-  
+
   State is paired with a character in the struct SignedCharacter.
 */
 enum class State : bool {
@@ -20,7 +20,7 @@ enum class State : bool {
 
 /**
   @brief Struct used to represent a signed character
-  
+
   Each character c+ and c− is called a signed character.
 */
 struct SignedCharacter {
@@ -34,7 +34,7 @@ struct SignedCharacter {
 
 /**
   @brief Struct used to represent the properties of an edge (Hasse diagram)
-  
+
   The character c is gained in the edge (x, y) such that y is a child of x and
   c has state 0 in x and state 1 in y.
   In this case the edge (x, y) is labeled by c+.
@@ -50,7 +50,7 @@ struct HDEdgeProperties {
 
 /**
   @brief Struct used to represent the properties of a vertex (Hasse diagram)
-  
+
   Given s a species, by C(s) we denote the set of characters of s.
   Let GM be a maximal reducible graph.
   Then the diagram P for GM is the Hasse diagram for the poset (Ps , ≤) of all
@@ -132,10 +132,10 @@ typedef std::list<std::string>::const_iterator StringIter;
 
 /**
   @brief Overloading of operator<< for State
-  
+
   @param[in] os Output stream
   @param[in] s  State
-  
+
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const State s) {
@@ -144,10 +144,10 @@ inline std::ostream& operator<<(std::ostream& os, const State s) {
 
 /**
   @brief Overloading of operator<< for SignedCharacter
-  
+
   @param[in] os Output stream
   @param[in] sc SignedCharacter
-  
+
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const SignedCharacter sc) {
@@ -156,10 +156,10 @@ inline std::ostream& operator<<(std::ostream& os, const SignedCharacter sc) {
 
 /**
   @brief Overloading of operator== for a pair of signed characters
-  
+
   @param[in] a SignedCharacter
   @param[in] b SignedCharacter
-  
+
   @return True if a is equal to b
 */
 inline bool operator==(const SignedCharacter& a, const SignedCharacter b) {
@@ -172,11 +172,11 @@ inline bool operator==(const SignedCharacter& a, const SignedCharacter b) {
 
 /**
   @brief Add vertex with \e species and \e characters to \e hasse
-  
+
   @param[in]     species    List of species names
   @param[in]     characters List of character names
   @param[in,out] hasse      Hasse diagram graph
-  
+
   @return Vertex descriptor for the new vertex
 */
 HDVertex
@@ -187,11 +187,11 @@ add_vertex(
 
 /**
   @brief Add vertex with \e species and \e characters to \e hasse
-  
+
   @param[in]     species    Species name
   @param[in]     characters List of character names
   @param[in,out] hasse      Hasse diagram graph
-  
+
   @return Vertex descriptor for the new vertex
 */
 inline HDVertex
@@ -205,12 +205,12 @@ add_vertex(
 /**
   @brief Add edge between \e u and \e v with a list of signed characters to
          \e hasse
-  
+
   @param[in]     u                Source Vertex
   @param[in]     v                Target Vertex
   @param[in]     signedcharacters List of signed characters
   @param[in,out] hasse            Hasse diagram graph
-  
+
   @return Edge descriptor for the new edge.
           If the edge is already in the graph then a duplicate will not be
           added and the bool flag will be false.
@@ -230,9 +230,9 @@ add_edge(
 
 /**
   @brief Return a pointer to the original red-black graph of \e hasse
-  
+
   @param[in] hasse Hasse diagram graph
-  
+
   @return Pointer to the the original red-black graph of \e hasse
 */
 inline const RBGraph* orig_g(const HDGraph& hasse) {
@@ -241,9 +241,9 @@ inline const RBGraph* orig_g(const HDGraph& hasse) {
 
 /**
   @brief Return a pointer to the original maximal reducible graph of \e hasse
-  
+
   @param[in] hasse Hasse diagram graph
-  
+
   @return Pointer to the the original maximal reducible graph of \e hasse
 */
 inline const RBGraph* orig_gm(const HDGraph& hasse) {
@@ -252,10 +252,10 @@ inline const RBGraph* orig_gm(const HDGraph& hasse) {
 
 /**
   @brief Overloading of operator<< for HDGraph
-  
+
   @param[in] os    Output stream
   @param[in] hasse Hasse diagram graph
-  
+
   @return Updated output stream
 */
 std::ostream& operator<<(std::ostream& os, const HDGraph& hasse);
@@ -266,10 +266,10 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse);
 
 /**
   @brief Returns True if \e a is included in \e b
-  
+
   @param[in] a List of character names (strings)
   @param[in] b List of character names (strings)
-  
+
   @return True if \e a is included in \e b, False otherwise
 */
 bool
@@ -277,7 +277,7 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b);
 
 /**
   @brief Build the Hasse diagram of \e gm
-  
+
   Let GM be a maximal reducible graph.
   Then the diagram P for GM is the Hasse diagram for the poset (Ps, ≤) of all
   species of GM ordered by the relation ≤, where s1 ≤ s2 if C(s1) ⊆ C(s2).
@@ -286,7 +286,7 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b);
   represented by a directed acyclic graph P.
   More precisely, two species s1 and s2 are connected by the arc (s1, s2) if
   s1 < s2 and there does not exist a species s3 such that s1 < s3 < s2.
-  
+
   @param[out] hasse Hasse diagram graph
   @param[in]  g     Red-black graph
   @param[in]  gm    Maximal reducible red-black graph
@@ -296,13 +296,13 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm);
 /**
   @brief Returns the vertex iterator of \e hasse if it's a source.
          Returns the end of the iterator if a source could not be found
-  
+
   A source is a node of indegree 0.
-  
+
   @param[in] v     Vertex iterator
   @param[in] v_end Vertex end iterator
   @param[in] hasse Hasse diagram graph
-  
+
   @return Vertex iterator of \e hasse if it's a source, or \e v_end
 */
 HDVertexIter

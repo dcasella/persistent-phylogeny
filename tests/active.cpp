@@ -5,7 +5,7 @@ int main(int argc, const char* argv[]) {
   RBGraph g;
   RBVertex s1, s2, s3, s4, s5, s6,
            c1, c2, c3, c4, c5, c6, c7, c8;
-  
+
   s1 = add_vertex("s1", Type::species, g);
   s2 = add_vertex("s2", Type::species, g);
   s3 = add_vertex("s3", Type::species, g);
@@ -20,7 +20,7 @@ int main(int argc, const char* argv[]) {
   c6 = add_vertex("c6", Type::character, g);
   c7 = add_vertex("c7", Type::character, g);
   c8 = add_vertex("c8", Type::character, g);
-  
+
   add_edge(s1, c8, g);
   add_edge(s2, c3, g);
   add_edge(s2, c5, g);
@@ -40,12 +40,12 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c2, g);
   add_edge(s6, c3, g);
   add_edge(s6, c5, g);
-  
+
   assert(!is_active(c2, g));
   assert(!is_active(s5, g));
   assert(is_active(c4, g));
-  
+
   std::cout << "active: tests passed" << std::endl;
-  
+
   return 0;
 }
