@@ -86,19 +86,51 @@ void build_bimap(RBGraph& g) {
   }
 }
 
-std::pair<RBVertex, bool> get_vertex(const std::string& v, const RBGraph& g) {
-  RBVertex u = 0;
-  bool exists = false;
+void copy_graph(const RBGraph& g, RBGraph& g_copy) {
+  RBVertexIMap map_index;
+  RBVertexIAssocMap i_map(map_index);
 
-  try {
-    u = bimap(g).left.at(v);
-    exists = true;
-  }
-  catch (const std::out_of_range& e) {
-    // continue
+  // fill the vertex index map i_map
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_map, *u, index);
   }
 
-  return std::make_pair(u, exists);
+  // copy g to g_copy
+  copy_graph(g, g_copy, boost::vertex_index_map(i_map));
+
+  // update g_copy's number of species and characters
+  num_species(g_copy) = num_species(g);
+  num_characters(g_copy) = num_characters(g);
+
+  // rebuild g_copy's bimap
+  build_bimap(g_copy);
+}
+
+void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
+  RBVertexIMap i_map;
+  RBVertexAssocMap v_assocmap(v_map);
+  RBVertexIAssocMap i_assocmap(i_map);
+
+  // fill the vertex index map i_assocmap
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_assocmap, *u, index);
+  }
+
+  // copy g to g_copy, fill the vertex map v_assocmap (and v_map)
+  copy_graph(
+    g, g_copy, boost::vertex_index_map(i_assocmap).orig_to_copy(v_assocmap)
+  );
+
+  // update g_copy's number of species and characters
+  num_species(g_copy) = num_species(g);
+  num_characters(g_copy) = num_characters(g);
+
+  // rebuild g_copy's bimap
+  build_bimap(g_copy);
 }
 
 std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
@@ -754,27 +786,11 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
 }
 
 RBGraph maximal_reducible_graph(const RBGraph& g) {
-  RBGraph gm;
   std::list<RBVertex> cm;
-  RBVertexIMap map_index;
-  RBVertexIAssocMap i_map(map_index);
-
-  // fill the vertex index map i_map
-  RBVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
-  for (size_t index = 0; v != v_end; ++v, ++index) {
-    boost::put(i_map, *v, index);
-  }
 
   // copy g to gm
-  copy_graph(g, gm, boost::vertex_index_map(i_map));
-
-  // update gm's number of species and characters
-  num_species(gm) = num_species(g);
-  num_characters(gm) = num_characters(g);
-
-  // rebuild gm's bimap
-  build_bimap(gm);
+  RBGraph gm;
+  copy_graph(g, gm);
 
   // compute the maximal characters of gm
   cm = maximal_characters2(gm);
@@ -787,7 +803,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
   #endif
 
   // remove non-maximal characters of gm
-  RBVertexIter next;
+  RBVertexIter v, v_end, next;
   std::tie(v, v_end) = vertices(gm);
   for (next = v; v != v_end; v = next) {
     next++;

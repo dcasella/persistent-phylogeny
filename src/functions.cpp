@@ -274,26 +274,9 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
     return;
   }
 
-  RBGraph gm_test;
-  RBVertexIMap map_index;
-  RBVertexIAssocMap i_map(map_index);
-
-  // fill the vertex index map i_map
-  RBVertexIter u, u_end;
-  std::tie(u, u_end) = vertices(gm);
-  for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_map, *u, index);
-  }
-
   // copy gm to gm_test
-  copy_graph(gm, gm_test, boost::vertex_index_map(i_map));
-
-  // update gm_test's number of species and characters
-  num_species(gm_test) = num_species(gm);
-  num_characters(gm_test) = num_characters(gm);
-
-  // rebuild gm_test's bimap
-  build_bimap(gm_test);
+  RBGraph gm_test;
+  copy_graph(gm, gm_test);
 
   // test if m_lsc is a safe chain
   std::tie(*m_lsc, std::ignore) = realize(*m_lsc, gm_test);
@@ -304,7 +287,7 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
 
   if (is_redsigma(gm_test)) {
     #ifdef DEBUG
-    std::cout << "Found red Σ-graph" << std::endl;
+    std::cout << "Found red Σ-graph in Gm" << std::endl;
     #endif
 
     m_lsc->clear();
@@ -312,27 +295,13 @@ safe_chain_dfs_visitor::finish_vertex(const HDVertex v, const HDGraph& hasse) {
   }
 
   #ifdef DEBUG
-  std::cout << "No red Σ-graph" << std::endl;
+  std::cout << "No red Σ-graph in Gm" << std::endl;
   #endif
 
   // TODO: is testing the safe source here correct?
-  RBGraph g_test;
-
-  // fill the vertex index map i_map
-  std::tie(u, u_end) = vertices(g);
-  for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_map, *u, index);
-  }
-
   // copy g to g_test
-  copy_graph(g, g_test, boost::vertex_index_map(i_map));
-
-  // update g_test's number of species and characters
-  num_species(g_test) = num_species(g);
-  num_characters(g_test) = num_characters(g);
-
-  // rebuild g_test's bimap
-  build_bimap(g_test);
+  RBGraph g_test;
+  copy_graph(g, g_test);
 
   // initialize the list of characters of source_v
   std::list<SignedCharacter> source_lsc;
@@ -392,51 +361,31 @@ bool safe_source(const HDVertex v, const HDGraph& hasse) {
     // uninitialized graph properties
     return false;
 
-  RBGraph g_test;
-  RBVertexMap map_vertex;
-  RBVertexIMap map_index;
-  RBVertexAssocMap v_map(map_vertex);
-  RBVertexIAssocMap i_map(map_index);
-
   // retrieve graphs and maps from hasse
   RBGraph g = *orig_g(hasse);
   RBGraph gm = *orig_gm(hasse);
 
-  // fill the vertex index map i_map
-  RBVertexIter u, u_end;
-  std::tie(u, u_end) = vertices(g);
-  for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_map, *u, index);
-  }
-
   // copy g to g_test, fill the vertex map v_map (and map_vertex)
-  copy_graph(
-    g, g_test, boost::vertex_index_map(i_map).orig_to_copy(v_map)
-  );
-
-  // update g_test's number of species and characters
-  num_species(g_test) = num_species(g);
-  num_characters(g_test) = num_characters(g);
-
-  // rebuild g_test's bimap
-  build_bimap(g_test);
+  RBGraph g_test;
+  copy_graph(g, g_test);
 
   // realize the list of species of v in g_test
   std::list<std::string>::const_iterator i = hasse[v].species.begin();
   for (; i != hasse[v].species.end(); ++i) {
     // for each species (name) in v
-    RBVertex u;
-    bool u_exists;
 
+    RBVertex cv = 0; // cv = current species vertex
     // get the corresponding vertex in g_test
-    std::tie(u, u_exists) = get_vertex(*i, g_test);
-
-    if (!u_exists)
+    try {
+      cv = get_vertex(*i, g_test);
+    }
+    catch (const std::out_of_range& e) {
       // abort if the species could not be found in g_test
       return false;
+    }
 
     // realize the species (= realize its characters)
-    realize(u, g_test);
+    realize(cv, g_test);
   }
 
   // if the realization didn't induce a red Σ-graph, v is a safe source
@@ -647,15 +596,16 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 std::pair<std::list<SignedCharacter>, bool>
 realize(const SignedCharacter& sc, RBGraph& g) {
   std::list<SignedCharacter> output;
-  RBVertex cv; // cv = current character vertex
-  bool cv_exists;
 
+  RBVertex cv = 0; // cv = current character vertex
   // get the vertex in g whose name is sc.character
-  std::tie(cv, cv_exists) = get_vertex(sc.character, g);
-
-  if (!cv_exists)
+  try {
+    cv = get_vertex(sc.character, g);
+  }
+  catch (const std::out_of_range& e) {
     // g has no vertex named sc.character
     return std::make_pair(output, false);
+  }
 
   RBVertexIMap map_index, map_comp;
   RBVertexIAssocMap i_map(map_index), c_map(map_comp);

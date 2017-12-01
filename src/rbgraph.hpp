@@ -465,7 +465,26 @@ void build_bimap(RBGraph& g);
 
   @return Vertex
 */
-std::pair<RBVertex, bool> get_vertex(const std::string& v, const RBGraph& g);
+inline RBVertex get_vertex(const std::string& v, const RBGraph& g) {
+  return bimap(g).left.at(v);
+}
+
+/**
+  @brief Copy graph \c g to graph \c g_copy
+
+  @param[in]     g      Red-black graph
+  @param[in,out] g_copy Red-black graph
+*/
+void copy_graph(const RBGraph& g, RBGraph& g_copy);
+
+/**
+  @brief Copy graph \c g to graph \c g_copy and fill its vertex map
+
+  @param[in]     g      Red-black graph
+  @param[in,out] g_copy Red-black graph
+  @param[in,out] v_map  Vertex map, mapping vertices from g to g_copy
+*/
+void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map);
 
 /**
   @brief Overloading of operator<< for RBGraph
