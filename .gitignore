@@ -10,3 +10,6 @@ obj/
 # Doxygen
 Doxyfile
 docs/
+
+# Python byte code
+*.pyc
