@@ -1,10 +1,12 @@
 # G++
 
-CC         = g++
-CFLAGS     = -O3 -Wall
-CEXTRA     =
-BOOST_LIBS =
-CC_FULL    = $(CC) $(CFLAGS) $(CEXTRA) -I$(SRC_DIR)
+CC           = g++
+CFLAGS       = -O3 -Wall
+CEXTRA       =
+CXX11_ABI    = -D_GLIBCXX_USE_CXX11_ABI=1
+BOOST_LIB_PO = boost_program_options
+BOOST_LIBS   = -l$(BOOST_LIB_PO)
+CC_FULL      = $(CC) $(CFLAGS) $(CEXTRA) $(CXX11_ABI) -I$(SRC_DIR)
 
 # Folders
 
@@ -30,7 +32,7 @@ TEST_TARGETS = $(TEST_SOURCES:.cpp=)
 # Main
 
 $(TARGET): $(OBJECTS) $(OBJ_DIR)/main.o
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(BOOST_LIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	mkdir -p $(OBJ_DIR)
