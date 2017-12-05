@@ -9,6 +9,40 @@
 // Auxiliary structs and classes
 
 /**
+  @brief Safe chain DFS Visitor exception
+
+  Thrown when \c safe_chain_dfs_visitor finds a safe chain with a safe source
+*/
+class SafeChain : public std::exception {
+public:
+  /**
+    @brief Returns the reason of the exception
+
+    @return C String
+  */
+  inline const char* what() const throw() {
+    return "Found safe chain";
+  }
+};
+
+/**
+  @brief Reduce exception
+
+  Thrown when \c reduce can't reduce the graph anymore
+*/
+class NoReduction : public std::exception {
+public:
+  /**
+    @brief Returns the reason of the exception
+
+    @return C String
+  */
+  inline const char* what() const throw() {
+    return "Could not reduce graph";
+  }
+};
+
+/**
   @brief DFS Visitor used in depth_first_search
 */
 class safe_chain_dfs_visitor : public boost::default_dfs_visitor {

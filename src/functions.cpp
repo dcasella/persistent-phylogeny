@@ -1,5 +1,4 @@
 #include "functions.hpp"
-#include "safe_chain_exception.hpp"
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
 
@@ -567,9 +566,9 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
   if (num_edges(p) == 0)
     // no edges means there are no chains in the Hasse diagram
-    throw std::runtime_error("Could not reduce graph");
+    throw NoReduction();
 
-  // TODO: understand safesource/safechain correlation
+  // TODO: fix
   // sc = safe chain for g (Grb)
   std::list<SignedCharacter> sc;
   bool s_safe;
@@ -577,7 +576,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
   if (!s_safe)
     // p has no safe [source|chain]
-    throw std::runtime_error("Could not reduce graph");
+    throw NoReduction();
 
   // realize the characters of the safe chain
   std::list<SignedCharacter> lsc;

@@ -35,8 +35,8 @@ int main(int argc, const char* argv[]) {
 
       std::cout << std::endl;
     }
-    catch (const std::runtime_error& e) {
-      std::cerr << "No (" << argv[i] << ")" << std::endl;
+    catch (const NoReduction& e) {
+      std::cout << "No (" << argv[i] << ") " << e.what() << std::endl;
     }
   }
 
