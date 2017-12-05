@@ -135,7 +135,9 @@ typedef std::list<SignedCharacter>::const_iterator SignedCharacterIter;
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const State s) {
-  return os << (s == State::lose ? "-" : "+");
+  bool sign = (s == State::lose);
+
+  return os << (sign ? "-" : "+");
 }
 
 /**
