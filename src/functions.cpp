@@ -566,20 +566,21 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     std::cout << "G no universal characters" << std::endl;
   }
 
+  RBGraphVector components = connected_components(g);
 
-  RBGraphVector components;
-  size_t num_comps = connected_components(components, g);
-  if (num_comps > 1) {
+  if (components.size() > 1) {
     // if graph is not connected
     // build subgraphs (connected components) g1, g2, etc.
     // return < reduce(g1), reduce(g2), ... >
-    for (size_t i = 0; i < num_comps; ++i) {
+    for (size_t i = 0; i < components.size(); ++i) {
       output.splice(output.end(), reduce(*components[i].get()));
     }
 
     // return < reduce(g1), reduce(g2), ... >
     return output;
   }
+
+  components.clear();
 
   // gm = Grb|Cm, maximal reducible graph of g (Grb)
   RBGraph gm = maximal_reducible_graph(g);

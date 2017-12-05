@@ -343,8 +343,8 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   return true;
 }
 
-size_t connected_components(RBGraphVector& components, const RBGraph& g) {
-  size_t num_comps;
+RBGraphVector connected_components(const RBGraph& g) {
+  RBGraphVector components;
   RBVertexIMap map_index, map_comp;
   RBVertexIAssocMap i_map(map_index), c_map(map_comp);
 
@@ -356,84 +356,87 @@ size_t connected_components(RBGraphVector& components, const RBGraph& g) {
   }
 
   // get number of components and the components map
-  num_comps = boost::connected_components(
+  size_t comp_count = boost::connected_components(
     g, c_map, boost::vertex_index_map(i_map)
   );
 
   // how map_comp is structured (after running boost::connected_components):
   // map_comp[i] => < vertex_in_g, component_index >
 
+  // graph is disconnected
+  RBVertexMap vertices;
+
+  // how vertices is going to be structured:
+  // vertices[vertex_in_g] => vertex_in_component
+
+  // TODO: find a way to not break everything BUT still not copy anything when
+  // comp_count > 1
+
+  // resize subgraph components
   components.clear();
+  components.resize(comp_count);
 
-  if (num_comps > 1) {
-    // graph is disconnected
-    std::map<RBVertex, RBVertex> vertices;
+  // initialize subgraph components
+  for (size_t i = 0; i < comp_count; ++i) {
+    components[i] = std::make_unique<RBGraph>();
+  }
 
-    // how vertices is going to be structured:
-    // vertices[vertex_in_g] => vertex_in_component
+  if (comp_count == 1)
+    return components;
 
-    // resize subgraph components
-    components.resize(num_comps);
+  // add vertices to their respective subgraph
+  RBVertexIMap::const_iterator i = map_comp.begin();
+  for (; i != map_comp.end(); ++i) {
+    // for each vertex
+    RBVertex v = i->first;
+    RBVertexSize comp = i->second;
+    RBGraph* component = components[comp].get();
 
-    // initialize subgraph components
-    for (size_t i = 0; i < num_comps; ++i) {
-      components[i] = std::make_unique<RBGraph>();
+    // add the vertex to *component and copy its descriptor in vertices[v]
+    vertices[v] = add_vertex(g[v].name, g[v].type, *component);
+  }
+
+  // add edges to their respective vertices and subgraph
+  i = map_comp.begin();
+  for (; i != map_comp.end(); ++i) {
+    // for each vertex
+    RBVertex v = i->first;
+
+    // prevent duplicate edges
+    if (!is_species(v, g))
+      continue;
+
+    RBVertex new_v = vertices[v];
+    RBVertexSize comp = i->second;
+    RBGraph* component = components[comp].get();
+
+    RBOutEdgeIter e, e_end;
+    std::tie(e, e_end) = out_edges(v, g);
+    for (; e != e_end; ++e) {
+      // for each out edge
+      RBVertex new_vt = vertices[target(*e, g)];
+
+      RBEdge edge;
+      std::tie(edge, std::ignore) = add_edge(
+        new_v, new_vt, g[*e].color, *component
+      );
     }
+  }
 
-    // add vertices to their respective subgraph
-    RBVertexIMap::iterator i = map_comp.begin();
-    for (; i != map_comp.end(); ++i) {
-      // for each vertex
-      RBVertex v = i->first;
-      RBVertexSize comp = i->second;
-      RBGraph* component = components[comp].get();
-
-      // add the vertex to *component and copy its descriptor in vertices[v]
-      vertices[v] = add_vertex(g[v].name, g[v].type, *component);
+  if (logging::enabled) {
+    if (comp_count == 1) {
+      std::cout << "G connected" << std::endl;
     }
+    else {
+      std::cout << "Connected components: " << comp_count << std::endl;
 
-    // add edges to their respective vertices and subgraph
-    i = map_comp.begin();
-    for (; i != map_comp.end(); ++i) {
-      // for each vertex
-      RBVertex v = i->first;
-
-      // prevent duplicate edges
-      if (!is_species(v, g))
-        continue;
-
-      RBVertex new_v = vertices[v];
-      RBVertexSize comp = i->second;
-      RBGraph* component = components[comp].get();
-
-      RBOutEdgeIter e, e_end;
-      std::tie(e, e_end) = out_edges(v, g);
-      for (; e != e_end; ++e) {
-        // for each out edge
-        RBVertex new_vt = vertices[target(*e, g)];
-
-        RBEdge edge;
-        std::tie(edge, std::ignore) = add_edge(
-          new_v, new_vt, g[*e].color, *component
-        );
+      for (size_t i = 0; i < comp_count; ++i) {
+        std::cout << *components[i].get() << std::endl << std::endl;
       }
     }
-
-    #ifdef DEBUG
-    std::cout << "Connected components:" << std::endl;
-
-    for (size_t i = 0; i < num_comps; ++i) {
-      std::cout << *components[i].get() << std::endl << std::endl;
-    }
-    #endif
   }
-  #ifdef DEBUG
-  else {
-    std::cout << "G connected" << std::endl;
-  }
-  #endif
 
-  return num_comps;
+  return components;
 }
 
 std::list<RBVertex> maximal_characters(const RBGraph& g) {

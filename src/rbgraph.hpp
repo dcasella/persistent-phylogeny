@@ -1,6 +1,7 @@
 #ifndef RBGRAPH_HPP
 #define RBGRAPH_HPP
 
+#include "globals.hpp"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/random.hpp>
 #include <boost/bimap.hpp>
@@ -588,12 +589,15 @@ bool is_universal(const RBVertex v, const RBGraph& g);
   @brief Build the red-black subgraphs of \e g.
          Each subgraph is a copy of the respective connected component
 
-  @param[out] components Vector of unique pointers to each subgraph
+  If the graph \c g is connected, RBGraphVector will be of size 1, but the
+  unique_ptr will be empty. This is because the purpose of the functions is to
+  build the subgraphs, not copy the whole graph when it isn't needed.
+
   @param[in]  g          Red-black graph
 
-  @return Number of connected components
+  @return components Vector of unique pointers to each subgraph
 */
-size_t connected_components(RBGraphVector& components, const RBGraph& g);
+RBGraphVector connected_components(const RBGraph& g);
 
 /**
   @brief Build the list of maximal characters of \e g
