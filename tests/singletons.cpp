@@ -19,10 +19,6 @@ int main(int argc, const char* argv[]) {
 
   assert(num_vertices(g) == 4);
 
-  #ifdef DEBUG
-  std::cout << g << std::endl;
-  #endif
-
   std::cout << "singletons: tests passed" << std::endl;
 
   return 0;

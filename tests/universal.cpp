@@ -36,10 +36,6 @@ int main(int argc, const char* argv[]) {
   assert(is_universal(c4, g) == false);
   assert(is_universal(c2, g) == true);
 
-  #ifdef DEBUG
-  std::cout << g << std::endl;
-  #endif
-
   std::cout << "universal: tests passed" << std::endl;
 
   return 0;

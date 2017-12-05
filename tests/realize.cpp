@@ -56,10 +56,6 @@ int main(int argc, const char* argv[]) {
   assert(num_characters(g) == num_characters(g1));
   assert(num_edges(g) == num_edges(g1));
 
-  #ifdef DEBUG
-  std::cout << g << std::endl;
-  #endif
-
   std::cout << "realize: tests passed" << std::endl;
 
   return 0;
