@@ -44,7 +44,7 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
   for (; v != v_end; ++v) {
     os << "[ ";
 
-    std::list<std::string>::const_iterator i = hasse[*v].species.begin();
+    StringIter i = hasse[*v].species.begin();
     for (; i != hasse[*v].species.end(); ++i) {
       os << *i << " ";
     }
@@ -103,9 +103,9 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
 
 bool
 is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
-  std::list<std::string>::const_iterator i = a.begin();
+  StringIter i = a.begin();
   for (; i != a.end(); ++i) {
-    std::list<std::string>::const_iterator in;
+    StringIter in;
     in = std::find(b.begin(), b.end(), *i);
 
     if (in == b.end())
@@ -139,9 +139,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       continue;
     // for each species vertex
 
-    #ifdef DEBUG
-    std::cout << "C(" << gm[*v].name << ") = { ";
-    #endif
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "C(" << gm[*v].name << ") = { ";
+    }
 
     // sets[index]'s first element is the species vertex
     sets[index].push_back(*v);
@@ -153,9 +154,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // vt = one of the characters adjacent to *v
       RBVertex vt = target(*e, gm);
 
-      #ifdef DEBUG
-      std::cout << gm[vt].name << " ";
-      #endif
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << gm[vt].name << " ";
+      }
 
       // sets[index]'s other elements are the characters adjacent to S
       sets[index].push_back(vt);
@@ -163,16 +165,18 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       v_map[*v].push_back(vt);
     }
 
-    #ifdef DEBUG
-    std::cout << "}" << std::endl;
-    #endif
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "}" << std::endl;
+    }
 
     index++;
   }
 
-  #ifdef DEBUG
-  std::cout << std::endl;
-  #endif
+  if (logging::enabled) {
+    // verbosity enabled
+    std::cout << std::endl;
+  }
 
   // sort sets by size in ascending order
   std::sort(sets.begin(), sets.end(), ascending_size);
@@ -193,25 +197,27 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // first iteration of the loop:
       // add v to the Hasse diagram, and being the first vertex of the graph
       // there's no need to do any work.
-      #ifdef DEBUG
-      std::cout << "Hasse.addV " << gm[v].name << std::endl << std::endl;
-      #endif
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "Hasse.addV " << gm[v].name << std::endl << std::endl;
+      }
 
       add_vertex(gm[v].name, lcv, hasse);
 
       continue;
     }
 
-    #ifdef DEBUG
-    std::cout << "C(" << gm[v].name << ") = { ";
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "C(" << gm[v].name << ") = { ";
 
-    std::list<std::string>::const_iterator kk = lcv.begin();
-    for (; kk != lcv.end(); ++kk) {
-      std::cout << *kk << " ";
+      StringIter kk = lcv.begin();
+      for (; kk != lcv.end(); ++kk) {
+        std::cout << *kk << " ";
+      }
+
+      std::cout << "}:" << std::endl;
     }
-
-    std::cout << "}:" << std::endl;
-    #endif
 
     // new_edges will contain the list of edges that may be added to the Hasse
     // diagram: HDVertex is the source, std::string is the edge label
@@ -223,29 +229,31 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     std::tie(hdv, hdv_end) = vertices(hasse);
     for (; hdv != hdv_end; ++hdv) {
       // for each vertex in hasse
-      #ifdef DEBUG
-      std::cout << "hdv: ";
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "hdv: ";
 
-      kk = hasse[*hdv].species.begin();
-      for (; kk != hasse[*hdv].species.end(); ++kk) {
-        std::cout << *kk << " ";
+        StringIter kk = hasse[*hdv].species.begin();
+        for (; kk != hasse[*hdv].species.end(); ++kk) {
+          std::cout << *kk << " ";
+        }
+
+        std::cout << "= { ";
+
+        kk = hasse[*hdv].characters.begin();
+        for (; kk != hasse[*hdv].characters.end(); ++kk) {
+          std::cout << *kk << " ";
+        }
+
+        std::cout << "} -> ";
       }
-
-      std::cout << "= { ";
-
-      kk = hasse[*hdv].characters.begin();
-      for (; kk != hasse[*hdv].characters.end(); ++kk) {
-        std::cout << *kk << " ";
-      }
-
-      std::cout << "} -> ";
-      #endif
 
       if (lcv == hasse[*hdv].characters) {
         // v and hdv have the same characters
-        #ifdef DEBUG
-        std::cout << "mod" << std::endl;
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << "mod" << std::endl;
+        }
 
         // add v to the list of species in hdv
         hasse[*hdv].species.push_back(gm[v].name);
@@ -262,10 +270,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // *hdv -*ci-> v
       if (is_included(lhdv, lcv)) {
         // hdv is included in v
-        std::list<std::string>::const_iterator ci = lcv.begin();
+        StringIter ci = lcv.begin();
         for (; ci != lcv.end(); ++ci) {
           // for each character in hdv
-          std::list<std::string>::const_iterator in;
+          StringIter in;
           in = std::find(lhdv.begin(), lhdv.end(), *ci);
 
           if (in == lhdv.end()) {
@@ -279,9 +287,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // pairs in new_edges, add vertex and edges to the Hasse diagram
       if (std::next(hdv) == hdv_end) {
         // last iteration on the characters in the list has been performed
-        #ifdef DEBUG
-        std::cout << "add" << std::endl;
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << "add" << std::endl;
+        }
 
         // build a vertex for v and add it to the Hasse diagram
         HDVertex u = add_vertex(gm[v].name, lcv, hasse);
@@ -295,49 +304,53 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
           std::tie(edge, std::ignore) = add_edge(ei->first, u, hasse);
           hasse[edge].signedcharacters.push_back({ ei->second, State::gain });
 
-          #ifdef DEBUG
-          std::cout << "Hasse.addE ";
+          if (logging::enabled) {
+            // verbosity enabled
+            std::cout << "Hasse.addE ";
 
-          kk = hasse[ei->first].species.begin();
-          for (; kk != hasse[ei->first].species.end(); ++kk) {
-            std::cout << *kk << " ";
+            StringIter kk = hasse[ei->first].species.begin();
+            for (; kk != hasse[ei->first].species.end(); ++kk) {
+              std::cout << *kk << " ";
+            }
+
+            std::cout << "-";
+
+            SignedCharacterIter jj = hasse[edge].signedcharacters.begin();
+            for (; jj != hasse[edge].signedcharacters.end(); ++jj) {
+              std::cout << *jj;
+
+              if (std::next(jj) != hasse[edge].signedcharacters.end())
+                std::cout << ",";
+            }
+
+            std::cout << "-> ";
+
+            kk = hasse[u].species.begin();
+            for (; kk != hasse[u].species.end(); ++kk) {
+              std::cout << *kk << " ";
+            }
+
+            std::cout << std::endl;
           }
-
-          std::cout << "-";
-
-          SignedCharacterIter jj = hasse[edge].signedcharacters.begin();
-          for (; jj != hasse[edge].signedcharacters.end(); ++jj) {
-            std::cout << *jj;
-
-            if (std::next(jj) != hasse[edge].signedcharacters.end())
-              std::cout << ",";
-          }
-
-          std::cout << "-> ";
-
-          kk = hasse[u].species.begin();
-          for (; kk != hasse[u].species.end(); ++kk) {
-            std::cout << *kk << " ";
-          }
-
-          std::cout << std::endl;
-          #endif
         }
 
         break;
       }
-      #ifdef DEBUG
-      else {
+      else if (logging::enabled) {
+        // verbosity enabled
         std::cout << "ignore";
       }
 
-      std::cout << std::endl;
-      #endif
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << std::endl;
+      }
     }
 
-    #ifdef DEBUG
-    std::cout << std::endl;
-    #endif
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << std::endl;
+    }
   }
 
   // Store the graph pointer into the Hasse diagram's graph properties
@@ -347,10 +360,13 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // properties
   hasse[boost::graph_bundle].gm = &gm;
 
-  #ifdef DEBUG
-  std::cout << "Before transitive reduction:" << std::endl
-            << hasse << std::endl << std::endl;
-  #endif
+  if (logging::enabled) {
+    // verbosity enabled
+    std::cout << "Before transitive reduction:" << std::endl
+              << hasse << std::endl << std::endl;
+  }
+
+  // TODO: is this transitive reduction too simple?
 
   // transitive reduction of the Hasse diagram
   HDVertexIter u, u_end;

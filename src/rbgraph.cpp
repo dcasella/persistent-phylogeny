@@ -1,8 +1,8 @@
 #include "rbgraph.hpp"
-#include <fstream>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/copy.hpp>
+#include <fstream>
 
 
 //=============================================================================
@@ -471,9 +471,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       continue;
     }
 
-    #ifdef DEBUG
-    std::cout << g[*v].name << std::endl;
-    #endif
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << g[*v].name << std::endl;
+    }
 
     // sets[*v] now contains the list of species adjacent to v
 
@@ -486,16 +487,17 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       if (skip_cycle)
         break;
 
-      #ifdef DEBUG
-      std::cout << "curr Cm: " << g[*cmv].name << " = { ";
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "curr Cm: " << g[*cmv].name << " = { ";
 
-      RBVertexIter kk = sets[*cmv].begin();
-      for (; kk != sets[*cmv].end(); ++kk) {
-        std::cout << g[*kk].name << " ";
+        RBVertexIter kk = sets[*cmv].begin();
+        for (; kk != sets[*cmv].end(); ++kk) {
+          std::cout << g[*kk].name << " ";
+        }
+
+        std::cout << "}:" << std::endl;
       }
-
-      std::cout << "}:" << std::endl;
-      #endif
 
       count_incl = 0; count_excl = 0;
       keep_char = false;
@@ -503,9 +505,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       RBVertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
       for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
-        #ifdef DEBUG
-        std::cout << "S(" << g[*v].name << "): " << g[*sv].name << " -> ";
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << "S(" << g[*v].name << "): " << g[*sv].name << " -> ";
+        }
 
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(), *sv);
@@ -517,9 +520,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         else
           count_excl++;
 
-        #ifdef DEBUG
-        std::cout << count_incl << " " << count_excl;
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << count_incl << " " << count_excl;
+        }
 
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
@@ -527,9 +531,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // the list of adjacent species to v is a superset of the list of
             // adjacent species to cmv, which means cmv can be replaced
             // by v in the list of maximal characters Cm
-            #ifdef DEBUG
-            std::cout << " subst" << std::endl;
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " subst" << std::endl;
+            }
 
             cm.push_front(*v);
             cm.remove(*(cmv++));
@@ -540,9 +545,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
-            #ifdef DEBUG
-            std::cout << " add, not subset";
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " add, not subset";
+            }
 
             keep_char = true;
           }
@@ -550,9 +556,10 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // the list of adjacent species to v is the same as the list of
             // adjacent species to cmv, so v can be ignored in the next
             // iterations on the characters in Cm
-            #ifdef DEBUG
-            std::cout << " ignore, same set" << std::endl;
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " ignore, same set" << std::endl;
+            }
 
             skip_cycle = true;
             break;
@@ -561,24 +568,20 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // the list of adjacent species to v is a subset of the list of
             // adjacent species to cmv, meaning v can be ignored in the
             // next iterations on the characters in Cm
-            #ifdef DEBUG
-            std::cout << " ignore, subset" << std::endl;
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " ignore, subset" << std::endl;
+            }
 
             skip_cycle = true;
             break;
           }
-          else {
+          else if (logging::enabled) {
+            // verbosity enabled
             // how we ended up here nobody knows
-            #ifdef DEBUG
             std::cout << " idk";
-            #endif
           }
         }
-
-        #ifdef DEBUG
-        std::cout << std::endl;
-        #endif
       }
 
       if (std::next(cmv) == cmv_end) {
@@ -588,17 +591,19 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
           // species to v is neither a superset nor a subset of the lists of
           // adjacent species to the characters in Cm, so v is a maximal
           // characters and can be added to the list of maximal characters Cm
-          #ifdef DEBUG
-          std::cout << "\tadd" << std::endl;
-          #endif
+          if (logging::enabled) {
+            // verbosity enabled
+            std::cout << "\tadd" << std::endl;
+          }
 
           cm.push_front(*v);
         }
       }
 
-      #ifdef DEBUG
-      std::cout << std::endl;
-      #endif
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << std::endl;
+      }
     }
   }
 
@@ -664,9 +669,10 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       continue;
     }
 
-    #ifdef DEBUG
-    std::cout << g[v].name << std::endl;
-    #endif
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << g[v].name << std::endl;
+    }
 
     skip_cycle = false;
 
@@ -677,16 +683,17 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       if (skip_cycle)
         break;
 
-      #ifdef DEBUG
-      std::cout << "curr Cm: " << g[*cmv].name << " = { ";
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "curr Cm: " << g[*cmv].name << " = { ";
 
-      RBVertexIter kk = v_map[*cmv].begin();
-      for (; kk != v_map[*cmv].end(); ++kk) {
-        std::cout << g[*kk].name << " ";
+        RBVertexIter kk = v_map[*cmv].begin();
+        for (; kk != v_map[*cmv].end(); ++kk) {
+          std::cout << g[*kk].name << " ";
+        }
+
+        std::cout << "}:" << std::endl;
       }
-
-      std::cout << "}:" << std::endl;
-      #endif
 
       count_incl = 0; count_excl = 0;
       keep_char = false;
@@ -694,9 +701,10 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       RBVertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
       for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
-        #ifdef DEBUG
-        std::cout << "S(" << g[v].name << "): " << g[*sv].name << " -> ";
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << "S(" << g[v].name << "): " << g[*sv].name << " -> ";
+        }
 
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(
@@ -710,9 +718,10 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         else
           count_excl++;
 
-        #ifdef DEBUG
-        std::cout << count_incl << " " << count_excl;
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << count_incl << " " << count_excl;
+        }
 
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
@@ -720,9 +729,10 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
-            #ifdef DEBUG
-            std::cout << " add, not subset";
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " add, not subset";
+            }
 
             keep_char = true;
           }
@@ -730,9 +740,10 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             // the list of adjacent species to v is the same as the list of
             // adjacent species to cmv, so v can be ignored in the next
             // iterations on the characters in Cm
-            #ifdef DEBUG
-            std::cout << " ignore, same set" << std::endl;
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " ignore, same set" << std::endl;
+            }
 
             skip_cycle = true;
             break;
@@ -741,24 +752,25 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             // the list of adjacent species to v is a subset of the list of
             // adjacent species to cmv, meaning v can be ignored in the
             // next iterations on the characters in Cm
-            #ifdef DEBUG
-            std::cout << " ignore, subset" << std::endl;
-            #endif
+            if (logging::enabled) {
+              // verbosity enabled
+              std::cout << " ignore, subset" << std::endl;
+            }
 
             skip_cycle = true;
             break;
           }
-          else {
+          else if (logging::enabled) {
+            // verbosity enabled
             // how we ended up here nobody knows
-            #ifdef DEBUG
             std::cout << " idk";
-            #endif
           }
         }
 
-        #ifdef DEBUG
-        std::cout << std::endl;
-        #endif
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << std::endl;
+        }
       }
 
       if (std::next(cmv) == cmv_end) {
@@ -768,17 +780,19 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
           // species to v is neither a superset nor a subset of the lists of
           // adjacent species to the characters in Cm, so v is a maximal
           // characters and can be added to the list of maximal characters Cm
-          #ifdef DEBUG
-          std::cout << "\tadd" << std::endl;
-          #endif
+          if (logging::enabled) {
+            // verbosity enabled
+            std::cout << "\tadd" << std::endl;
+          }
 
           cm.push_front(v);
         }
       }
 
-      #ifdef DEBUG
-      std::cout << std::endl;
-      #endif
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << std::endl;
+      }
     }
   }
 
@@ -795,12 +809,17 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
   // compute the maximal characters of gm
   cm = maximal_characters2(gm);
 
-  #ifdef DEBUG
-  std::cout << "Cm = { ";
-  std::list<RBVertex>::iterator i = cm.begin();
-  for (; i != cm.end(); ++i) std::cout << gm[*i].name << " ";
-  std::cout << "}" << std::endl;
-  #endif
+  if (logging::enabled) {
+    // verbosity enabled
+    std::cout << "Cm = { ";
+
+    std::list<RBVertex>::const_iterator kk = cm.begin();
+    for (; kk != cm.end(); ++kk) {
+      std::cout << gm[*kk].name << " ";
+    }
+
+    std::cout << "}" << std::endl;
+  }
 
   // remove non-maximal characters of gm
   RBVertexIter v, v_end, next;

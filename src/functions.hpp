@@ -1,6 +1,7 @@
 #ifndef FUNCTIONS_HPP
 #define FUNCTIONS_HPP
 
+#include "globals.hpp"
 #include "rbgraph.hpp"
 #include "hdgraph.hpp"
 

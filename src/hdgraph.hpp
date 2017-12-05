@@ -1,6 +1,7 @@
 #ifndef HDGRAPH_HPP
 #define HDGRAPH_HPP
 
+#include "globals.hpp"
 #include "rbgraph.hpp"
 #include <boost/graph/graph_utility.hpp>
 
@@ -65,8 +66,8 @@ struct HDVertexProperties {
   @brief Struct used to represent the properties of a Hasse diagram
 */
 struct HDGraphProperties {
-  const RBGraph* g = nullptr;           ///< Original red-black graph
-  const RBGraph* gm = nullptr;          ///< Original maximal reducible graph
+  const RBGraph* g = nullptr;  ///< Original red-black graph
+  const RBGraph* gm = nullptr; ///< Original maximal reducible graph
 };
 
 
@@ -120,11 +121,6 @@ typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
   Iterator (const) of a list of signed characters
 */
 typedef std::list<SignedCharacter>::const_iterator SignedCharacterIter;
-
-/**
-  Iterator (const) of a list of strings
-*/
-typedef std::list<std::string>::const_iterator StringIter;
 
 
 //=============================================================================
