@@ -14,9 +14,9 @@ int main(int argc, const char* argv[]) {
   add_edge(v1, v2, g);
   add_edge(v3, v4, g);
 
-  RBGraphVector components;
+  RBGraphVector components = connected_components(g);
 
-  assert(connected_components(components, g) == 3);
+  assert(components.size() == 3);
   assert(num_vertices(*components[0].get()) == 1);
   assert(num_edges(*components[0].get()) == 0);
   assert(num_vertices(*components[1].get()) == 2);
