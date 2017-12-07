@@ -29,14 +29,6 @@ typedef boost::bimap<
   boost::bimaps::unordered_set_of<RBTraits::vertex_descriptor>
 > RBVertexBimap;
 
-/**
-  Associative property bidirectional map of strings and vertices (red-black
-  graph)
-*/
-// typedef boost::associative_property_map<
-//   RBVertexBimap::right_map
-// > RBVertexAssocBimap;
-
 
 //=============================================================================
 // Data structures

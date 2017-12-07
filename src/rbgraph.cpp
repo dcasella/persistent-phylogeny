@@ -363,7 +363,6 @@ RBGraphVector connected_components(const RBGraph& g) {
   // how map_comp is structured (after running boost::connected_components):
   // map_comp[i] => < vertex_in_g, component_index >
 
-  // graph is disconnected
   RBVertexMap vertices;
 
   // how vertices is going to be structured:
@@ -382,7 +381,10 @@ RBGraphVector connected_components(const RBGraph& g) {
   }
 
   if (comp_count == 1)
+    // graph is connected
     return components;
+
+  // graph is disconnected
 
   // add vertices to their respective subgraph
   RBVertexIMap::const_iterator i = map_comp.begin();

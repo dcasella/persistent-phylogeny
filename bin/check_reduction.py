@@ -4,6 +4,8 @@ import numpy as np
 
 
 def check_reduction(filename, reduction):
+    # apply reduction to the matrix in filename
+
     # open filename in read mode
     with open(filename, 'r') as file:
         # store lines in a list
@@ -62,27 +64,43 @@ def check_reduction(filename, reduction):
 
 
 def connected_species(m, char):
+    # perform transitive closure for char in m
+
     def spec_adj(x):
+        # return the species adjacent to x
         return set(np.where(m[:, x] > 0)[0])
 
     def char_adj(x):
+        # return the characters adjacent to x
         return set(np.where(m[x, :] > 0)[1])
 
-    conn_spec = spec_adj([char])
-    conn_char = set()
+    # find the species adjacent to char
+    con_spec = spec_adj([char])
 
+    # initialize the set of characters connected to char
+    con_char = set()
+
+    # create cyclic iterators for functions, connected vertices and adjacent
+    # vertices
     funcs = cycle([char_adj, spec_adj])
-    conns = cycle([conn_spec, conn_char])
-    adjs = cycle([conn_char, conn_spec])
+    conns = cycle([con_spec, con_char])
+    adjs = cycle([con_char, con_spec])
 
+    # iterate through the aggregation of previously created iterators
     for fun, conn, adj in izip(funcs, conns, adjs):
-        i = len(adj)
+        # store the size of the vertices adjacent to char
+        adj_size = len(adj)
 
+        # iterate through the vertices connected to char
         for vertex in conn:
+            # find the vertices adjacent to vertex
             adj_set = fun(vertex)
+            # perform union between adj and adj_set
             adj |= adj_set
 
-        if len(adj) == i:
+        # stop iterating if adj didn't grow in size
+        if len(adj) == adj_size:
             break
 
-    return np.fromiter((i for i in conn_spec), dtype=np.uint32)
+    # create and return a one-dimensional array of con_spec
+    return np.fromiter((i for i in con_spec), dtype=np.uint32)
