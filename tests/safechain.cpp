@@ -12,7 +12,7 @@ int main(int argc, const char* argv[]) {
   assert(lsc.empty());
 
   RBGraph g, gm;
-  read_graph("tests/no_5x2.txt", g);
+  read_graph("tests/test_5x2.txt", g);
   gm = maximal_reducible_graph(g);
   hasse_diagram(hasse, g, gm);
 
