@@ -4,7 +4,7 @@ An implementation for the persistent phylogeny polynomial-time algorithm describ
 
 ## Prerequisites
 
-- gcc 6.1 and above (or 5.0 and above, specifying -std=c++14)
+- gcc 5.0 and above
 - [Boost libraries](http://www.boost.org/more/getting_started/index.html)
 
 ## Compiling
