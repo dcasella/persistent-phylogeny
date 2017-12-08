@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+
 from itertools import cycle, izip
 
 import numpy as np
+import argparse
 
 
 def check_reduction(filename, reduction):
@@ -104,3 +107,46 @@ def connected_species(m, char):
 
     # create and return a one-dimensional array of con_spec
     return np.fromiter((i for i in con_spec), dtype=np.uint32)
+
+
+def main():
+    # parse command line arguments and call check_reduction
+
+    # initialize parser
+    parser = argparse.ArgumentParser(
+        add_help=False,
+        description='Apply REDUCTION to the matrix in FILE')
+
+    # change optional arguments title
+    parser._optionals.title = 'Options'
+    # pop optional arguments group
+    parser_optional = parser._action_groups.pop()
+    # add required arguments group
+    parser_required = parser.add_argument_group('Required')
+
+    # add required arguments
+    # input file
+    parser_required.add_argument('file', type=str, metavar='FILE',
+                                 help='Input matrix file.')
+    # reduction for file matrix
+    parser_required.add_argument('reduction', type=str, metavar='REDUCTION',
+                                 help='C-Reduction to apply.')
+
+    # add optional arguments
+    # (change) help message
+    parser_optional.add_argument('-h', '--help', action='help',
+                                 default=argparse.SUPPRESS,
+                                 help='Display this message.')
+
+    # append the previously popped optional arguments group
+    parser._action_groups.append(parser_optional)
+
+    # parse command line arguments
+    args = parser.parse_args()
+
+    # run the program
+    return check_reduction(args.file, args.reduction)
+
+
+if __name__ == '__main__':
+    main()
