@@ -93,6 +93,9 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
+  // only enable full search when logging is enabled
+  runtime::full &= logging::enabled;
+
   std::vector<std::string>::const_iterator file = files.begin();
   for (; file < files.end(); ++file) {
     // for each filename in files

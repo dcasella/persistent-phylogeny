@@ -9,7 +9,7 @@
 // Logging modifiers
 
 namespace logging {
-  extern bool enabled;
+  extern bool enabled; ///< Logging toggle global variable
 };
 
 
@@ -17,7 +17,7 @@ namespace logging {
 // Runtime modifiers
 
 namespace runtime {
-  extern bool full;
+  extern bool full; ///< Safe source toggle global variable
 };
 
 
