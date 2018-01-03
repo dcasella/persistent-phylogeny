@@ -291,19 +291,4 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b);
 */
 void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm);
 
-/**
-  @brief Returns the vertex iterator of \e hasse if it's a source.
-         Returns the end of the iterator if a source could not be found
-
-  A source is a node of indegree 0.
-
-  @param[in] v     Vertex iterator
-  @param[in] v_end Vertex end iterator
-  @param[in] hasse Hasse diagram graph
-
-  @return Vertex iterator of \e hasse if it's a source, or \e v_end
-*/
-HDVertexIter
-find_source(HDVertexIter v, HDVertexIter v_end, const HDGraph& hasse);
-
 #endif // HDGRAPH_HPP
