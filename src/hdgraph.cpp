@@ -146,6 +146,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, gm);
     for (; e != e_end; ++e) {
+      // ignore active characters
+      if (is_red(*e, gm))
+        continue;
+
       // vt = one of the characters adjacent to *v
       RBVertex vt = target(*e, gm);
 
@@ -162,7 +166,23 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
 
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << "}" << std::endl;
+      std::cout << "}";
+    }
+
+    // if the species *v would have 0 characters, ignore it
+    if (sets[index].size() == 1) {
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << " ignore" << std::endl;
+      }
+
+      sets[index].clear();
+      continue;
+    }
+
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << std::endl;
     }
 
     index++;
