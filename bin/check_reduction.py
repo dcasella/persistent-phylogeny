@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 from itertools import cycle, izip
 
@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 
 
-def check_reduction(filename, reduction):
+def check_reduction(filename, reduction, verbose=False):
     # apply reduction to the matrix in filename
 
     # open filename in read mode
@@ -20,6 +20,7 @@ def check_reduction(filename, reduction):
 
         # store number of species and characters from line 0
         shape = tuple(map(int, lines[0].split()))
+
         # stop execution if shape is empty
         if not shape:
             return False
@@ -37,33 +38,48 @@ def check_reduction(filename, reduction):
     # build the list of signed character pairs from reduction
     pairs = ((int(sc[1:-1]) - 1, sc[-1]) for sc in reduction.split())
 
-    # print("Matrix:\n{}\n".format(m))
+    if verbose:
+        print("Matrix:\n{}\n".format(m))
 
+    realize(m, pairs, verbose)
+
+    return not m.any()
+
+
+def realize(m, pairs, verbose=False):
     # realize each signed character in m
     for (char, state) in pairs:
+        if verbose:
+            print("Reduction: c{}{}".format(char + 1, state))
+
         # find the species adjacent to char
         adj_spec, _ = np.where(m[:, char] > 0)
+        # find the species connected to char
+        con_spec = connected_species(m, char)
+        # find the species connected but not adjacent to char
+        dif_spec = np.setdiff1d(con_spec, adj_spec, assume_unique=True)
 
         # if state is +, add red edges
         if state == '+':
-            # find the species connected to char
-            con_spec = connected_species(m, char)
+            # if the reduction is not feasible
+            if active(m, char):
+                return False
 
             # remove edges incident on char
             m[adj_spec, char] = 0
-
-            # add red edges between char and the species connected but not
-            # adjacent to char
-            indexes = np.setdiff1d(con_spec, adj_spec, assume_unique=True)
-            m[indexes, char] = 2
+            # add red edges between char and the species in dif_spec
+            m[dif_spec, char] = 2
 
         elif state == '-':
+            # if the reduction is not feasible
+            if not active(m, char) or dif_spec.size:
+                return False
+
             # remove edges incident on char
             m[adj_spec, char] = 0
 
-        # print("Reduction: c{}{}\nMatrix:\n{}\n".format(char + 1, state, m))
-
-    return not m.any()
+        if verbose:
+            print("Matrix:\n{}\n".format(m))
 
 
 def connected_species(m, char):
@@ -109,6 +125,16 @@ def connected_species(m, char):
     return np.fromiter((i for i in con_spec), dtype=np.uint32)
 
 
+def active(m, char):
+    # check if char is active in m
+
+    # if char has red edges
+    if 2 in m[:, char]:
+        return True
+
+    return False
+
+
 def main():
     # parse command line arguments and call check_reduction
 
@@ -137,6 +163,10 @@ def main():
     parser_optional.add_argument('-h', '--help', action='help',
                                  default=argparse.SUPPRESS,
                                  help='Display this message.')
+    # verbosity
+    parser_optional.add_argument('-v', '--verbose', action='store_true',
+                                 help='Display the matrix as the reduction is '
+                                      'applied.')
 
     # append the previously popped optional arguments group
     parser._action_groups.append(parser_optional)
@@ -145,7 +175,10 @@ def main():
     args = parser.parse_args()
 
     # run the program
-    return check_reduction(args.file, args.reduction)
+    output = check_reduction(args.file, args.reduction, args.verbose)
+
+    if args.verbose:
+        print("Successful: {}".format(output))
 
 
 if __name__ == '__main__':
