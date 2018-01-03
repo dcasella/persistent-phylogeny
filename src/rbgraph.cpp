@@ -264,6 +264,21 @@ void read_graph(const std::string& filename, RBGraph& g) {
 //=============================================================================
 // Algorithm functions
 
+std::list<RBVertex> active_characters(const RBGraph& g) {
+  std::list<RBVertex> output;
+
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    if (!is_active(*v, g))
+      continue;
+
+    output.push_back(*v);
+  }
+
+  return output;
+}
+
 bool is_active(const RBVertex v, const RBGraph& g) {
   if (!is_character(v, g))
     return false;
@@ -368,9 +383,6 @@ RBGraphVector connected_components(const RBGraph& g) {
   // how vertices is going to be structured:
   // vertices[vertex_in_g] => vertex_in_component
 
-  // TODO: find a way to not break everything BUT still not copy anything when
-  // comp_count > 1
-
   // resize subgraph components
   components.clear();
   components.resize(comp_count);
@@ -387,11 +399,10 @@ RBGraphVector connected_components(const RBGraph& g) {
   // graph is disconnected
 
   // add vertices to their respective subgraph
-  RBVertexIMap::const_iterator i = map_comp.begin();
-  for (; i != map_comp.end(); ++i) {
+  for (const std::pair<RBVertex, RBVertexSize>& vcomp : map_comp) {
     // for each vertex
-    RBVertex v = i->first;
-    RBVertexSize comp = i->second;
+    RBVertex v = vcomp.first;
+    RBVertexSize comp = vcomp.second;
     RBGraph* component = components[comp].get();
 
     // add the vertex to *component and copy its descriptor in vertices[v]
@@ -399,17 +410,16 @@ RBGraphVector connected_components(const RBGraph& g) {
   }
 
   // add edges to their respective vertices and subgraph
-  i = map_comp.begin();
-  for (; i != map_comp.end(); ++i) {
+  for (const std::pair<RBVertex, RBVertexSize>& vcomp : map_comp) {
     // for each vertex
-    RBVertex v = i->first;
+    RBVertex v = vcomp.first;
 
     // prevent duplicate edges
     if (!is_species(v, g))
       continue;
 
     RBVertex new_v = vertices[v];
-    RBVertexSize comp = i->second;
+    RBVertexSize comp = vcomp.second;
     RBGraph* component = components[comp].get();
 
     RBOutEdgeIter e, e_end;
@@ -496,9 +506,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         // verbosity enabled
         std::cout << "curr Cm: " << g[*cmv].name << " = { ";
 
-        RBVertexIter kk = sets[*cmv].begin();
-        for (; kk != sets[*cmv].end(); ++kk) {
-          std::cout << g[*kk].name << " ";
+        for (const RBVertex& kk : sets[*cmv]) {
+          std::cout << g[kk].name << " ";
         }
 
         std::cout << "}:" << std::endl;
@@ -692,9 +701,8 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         // verbosity enabled
         std::cout << "curr Cm: " << g[*cmv].name << " = { ";
 
-        RBVertexIter kk = v_map[*cmv].begin();
-        for (; kk != v_map[*cmv].end(); ++kk) {
-          std::cout << g[*kk].name << " ";
+        for (const RBVertex& kk : v_map[*cmv]) {
+          std::cout << g[kk].name << " ";
         }
 
         std::cout << "}:" << std::endl;
@@ -818,9 +826,8 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
     // verbosity enabled
     std::cout << "Cm = { ";
 
-    std::list<RBVertex>::const_iterator kk = cm.begin();
-    for (; kk != cm.end(); ++kk) {
-      std::cout << gm[*kk].name << " ";
+    for (const RBVertex& kk : cm) {
+      std::cout << gm[kk].name << " ";
     }
 
     std::cout << "}" << std::endl;

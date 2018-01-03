@@ -380,54 +380,6 @@ inline const RBVertexBimap bimap(const RBGraph& g) {
 }
 
 /**
-  @brief Check if \e v is a species in \e g
-
-  @param[in] v Vertex
-  @param[in] g Red-black graph
-
-  @return True if \e v is a species in \e g
-*/
-inline bool is_species(const RBVertex v, const RBGraph& g) {
-  return (g[v].type == Type::species);
-}
-
-/**
-  @brief Check if \e v is a character in \e g
-
-  @param[in] v Vertex
-  @param[in] g Red-black graph
-
-  @return True if \e v is a character in \e g
-*/
-inline bool is_character(const RBVertex v, const RBGraph& g) {
-  return (g[v].type == Type::character);
-}
-
-/**
-  @brief Check if \e e is a black edge in \e g
-
-  @param[in] e Edge
-  @param[in] g Red-black graph
-
-  @return True if \e e is a black edge in \e g
-*/
-inline bool is_black(const RBEdge e, const RBGraph& g) {
-  return (g[e].color == Color::black);
-}
-
-/**
-  @brief Check if \e e is a red edge in \e g
-
-  @param[in] e Edge
-  @param[in] g Red-black graph
-
-  @return True if \e e is a red edge in \e g
-*/
-inline bool is_red(const RBEdge e, const RBGraph& g) {
-  return (g[e].color == Color::red);
-}
-
-/**
   @brief Remove \e v from \e g if it satisfies \c predicate
 
   @param[in]     v         Vertex
@@ -502,6 +454,63 @@ void read_graph(const std::string& filename, RBGraph& g);
 
 //=============================================================================
 // Algorithm functions
+
+/**
+  @brief Check if \e v is a species in \e g
+
+  @param[in] v Vertex
+  @param[in] g Red-black graph
+
+  @return True if \e v is a species in \e g
+*/
+inline bool is_species(const RBVertex v, const RBGraph& g) {
+  return (g[v].type == Type::species);
+}
+
+/**
+  @brief Check if \e v is a character in \e g
+
+  @param[in] v Vertex
+  @param[in] g Red-black graph
+
+  @return True if \e v is a character in \e g
+*/
+inline bool is_character(const RBVertex v, const RBGraph& g) {
+  return (g[v].type == Type::character);
+}
+
+/**
+  @brief Check if \e e is a black edge in \e g
+
+  @param[in] e Edge
+  @param[in] g Red-black graph
+
+  @return True if \e e is a black edge in \e g
+*/
+inline bool is_black(const RBEdge e, const RBGraph& g) {
+  return (g[e].color == Color::black);
+}
+
+/**
+  @brief Check if \e e is a red edge in \e g
+
+  @param[in] e Edge
+  @param[in] g Red-black graph
+
+  @return True if \e e is a red edge in \e g
+*/
+inline bool is_red(const RBEdge e, const RBGraph& g) {
+  return (g[e].color == Color::red);
+}
+
+/**
+  @brief Return the list of active characters in \e g
+
+  @param[in] g Red-black graph
+
+  @return List of active vertices in \e g
+*/
+std::list<RBVertex> active_characters(const RBGraph& g);
 
 /**
   @brief Check if \e v is active in \e g
