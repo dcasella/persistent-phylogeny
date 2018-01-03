@@ -8,6 +8,9 @@
 //=============================================================================
 // Logging modifiers
 
+/**
+  @brief Global logging namespace
+*/
 namespace logging {
   extern bool enabled; ///< Logging toggle global variable
 };
@@ -16,6 +19,9 @@ namespace logging {
 //=============================================================================
 // Runtime modifiers
 
+/**
+  @brief Global runtime namespace
+*/
 namespace runtime {
   extern bool full; ///< Safe source toggle global variable
 };
