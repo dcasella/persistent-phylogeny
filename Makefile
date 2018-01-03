@@ -40,7 +40,11 @@ TEST_OBJECTS = $(TEST_SOURCES:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TEST_TARGETS = $(TEST_SOURCES:.cpp=)
 
 
-# Main
+# Targets
+
+all: $(TARGET) python
+
+# C++ Main
 
 $(TARGET): $(OBJECTS) $(OBJ_DIR)/main.o
 	$(CC) -o $@ $^ $(BOOST_LIBS) $(PYTHON_LIBS)
@@ -50,9 +54,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CC_FULL) -c -o $@ $<
 
 clean:
-	rm -rf $(OBJ_DIR) $(TARGET)
+	rm -rf $(OBJ_DIR) $(TARGET) $(BIN_DIR)/*.pyc
 
-# Tests
+# C++ Tests
 
 $(TEST_DIR): $(TEST_TARGETS)
 
@@ -63,5 +67,10 @@ $(TEST_OBJECTS): $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp $(HEADERS)
 	mkdir -p $(OBJ_DIR)
 	$(CC_FULL) -c -o $@ $<
 
-tests/clean:
-	rm -rf $(OBJ_DIR)/$(TEST_OBJECTS) $(TEST_TARGETS)
+$(TEST_DIR)/clean:
+	rm -f $(TEST_OBJECTS) $(TEST_TARGETS)
+
+# Python
+
+python:
+	python -m compileall $(BIN_DIR)
