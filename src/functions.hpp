@@ -12,9 +12,9 @@
 /**
   @brief Safe chain DFS Visitor exception
 
-  Thrown when \c safe_chain_dfs_visitor finds a safe chain with a safe source
+  Thrown when \c initial_state_visitor finds a safe chain with a safe source
 */
-class SafeChain : public std::exception {
+class InitialState : public std::exception {
 public:
   /**
     @brief Returns the reason of the exception
@@ -22,7 +22,7 @@ public:
     @return C String
   */
   inline const char* what() const throw() {
-    return "Found safe chain";
+    return "Found initial state";
   }
 };
 
@@ -46,19 +46,19 @@ public:
 /**
   @brief DFS Visitor used in depth_first_search
 */
-class safe_chain_dfs_visitor : public boost::default_dfs_visitor {
+class initial_state_visitor : public boost::default_dfs_visitor {
 public:
   /**
     @brief DFS Visitor default constructor
   */
-  safe_chain_dfs_visitor();
+  initial_state_visitor();
 
   /**
     @brief DFS Visitor constructor
 
-    @param[out] lsc List of signed characters (which gets modified during the DFS)
+    @param[out] sources Vertices representing the safe sources of the diagram
   */
-  safe_chain_dfs_visitor(std::list<SignedCharacter>& lsc);
+  initial_state_visitor(std::list<HDVertex>& sources);
 
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -116,7 +116,7 @@ public:
     @param[in] e     Edge
     @param[in] hasse Hasse diagram graph
   */
-  void forward_or_cross_edge(const HDEdge e, const HDGraph& hasse) const;
+  void forward_or_cross_edge(const HDEdge e, const HDGraph& hasse);
 
   /**
     @brief Invoked on vertex \e v after finish_vertex has been called for all
@@ -130,10 +130,72 @@ public:
   */
   void finish_vertex(const HDVertex v, const HDGraph& hasse);
 
+  /**
+    @brief Test if \e lsc is a safe chain with \e source_v as active safe
+           source in \e hasse
+
+    Call \e safe_chain to check if \e lsc is a safe chain. If it is, call \e
+    safe_source to check if \e source_v (the source of the chain \e lsc) is a
+    safe source. If it is, add it to the list of safe sources.
+    This function throws a \e InitialState exception if \e runtime::full is
+    disabled and \e source_v is a safe source.
+
+    @param[in] hasse Hasse diagram graph
+  */
+  void perform_test(const HDGraph& hasse);
+
+  /**
+    @brief Test if \e source_v is a safe source in the degenerate diagram \e
+           hasse
+
+    Let GRB be a reducible graph such that GM has a degenerate diagram P.
+    Then a safe source s of P is good for GRB if
+    (1) there exists a species s0 of P whose inactive characters are those of
+        a species s of GRB and s does not a character d that is in conflict
+        with a minimal a such that a∪{si} for any other source of P is
+        included in a species of GRB
+    (2) or none of the sources of P induces a species of GRB.
+
+    @param[in] hasse Hasse diagram graph
+  */
+  void perform_test_degenerate(const HDGraph& hasse);
+
+  /**
+    @brief Check if \e lsc is a safe chain in \e hasse
+
+    Let GRB be a red-black graph, let P be the Hasse diagram for GRB|CM and let
+    C be a chain of P.
+    Then C is safe if the c-reduction S(C) of C is feasible for the graph and
+    applying S(C) to GRB results in a graph that has no red Σ-graphs.
+
+    @param[in] hasse Hasse diagram graph
+
+    @return True if \e lsc is a safe chain in \e hasse
+  */
+  bool safe_chain(const HDGraph& hasse);
+
+  /**
+    @brief Check if \e v is a safe source in \e hasse
+
+    Let GRB be a red-black graph and let P be the Hasse diagram for GRB|CM.
+    A source s of a safe chain C of P is safe for GRB if there exists a species
+    s' in GRB|CM∪A that consists of C(s) and all active characters in GRB and
+    the realization of C(s') in GRB does not induce red Σ-graphs in GRB.
+    Then s' is called the active safe source for GRB.
+
+    @param[in] v     Vertex
+    @param[in] hasse Hasse diagram graph
+
+    @return True if \e v is a safe source in \e hasse
+  */
+  bool safe_source(const RBVertex v, const HDGraph& hasse);
+
 private:
-  std::list<SignedCharacter>* m_lsc;
+  std::list<HDVertex>* m_sources;
+  std::list<SignedCharacter> lsc;
   HDVertex source_v;
   HDVertex last_v;
+  HDVertex last_safesource;
 };
 
 
@@ -141,29 +203,19 @@ private:
 // Algorithm functions
 
 /**
-  @brief Check if \e v is a safe source in \e hasse
+  @brief Returns a list of safe sources if \e hasse has at least one
 
-  Let GRB be a red-black graph, let P be the Hasse diagram for GRB|CM.
-  A source s of a chain of P is safe for GRB if the realization of s in GRB
-  does not induce red Σ-graphs in GRB.
-
-  @param[in] v     Vertex
-  @param[in] hasse Hasse diagram graph
-
-  @return True if \e v is a safe source in \e hasse
-*/
-bool safe_source(const HDVertex v, const HDGraph& hasse);
-
-/**
-  @brief Returns a safe chain if \e hasse has a one
-
-  Returns a safe chain and bool = True if \e hasse has a safe chain.
-  Returns an empty chain and bool = False otherwise.
+  Returns a list of safe sources and bool = True if \e hasse has at least one
+  safe source.
+  Returns an empty list and bool = False otherwise.
 
   Let GM be a maximal reducible red-black graph, let P be the Hasse diagram for
   GM, and let C be a chain of P.
   Then C is safe if the c-reduction S(C) of C is feasible for the graph GM and
   applying S(C) to GM results in a graph that has no red Σ-graph.
+
+  The source s of a safe chain C is the initial state of a tree T solving GRB
+  if s is safe.
 
   @param[in] hasse Hasse diagram graph
 
@@ -171,7 +223,7 @@ bool safe_source(const HDVertex v, const HDGraph& hasse);
           If \e hasse has a safe chain then the bool flag will be true.
           When the flag is false, the returned chain is empty
 */
-std::pair<std::list<SignedCharacter>, bool> safe_chain(const HDGraph& hasse);
+std::pair<std::list<HDVertex>, bool> initial_state(const HDGraph& hasse);
 
 
 //=============================================================================
