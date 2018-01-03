@@ -812,7 +812,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   return cm;
 }
 
-RBGraph maximal_reducible_graph(const RBGraph& g) {
+RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
   std::list<RBVertex> cm;
 
   // copy g to gm
@@ -840,13 +840,17 @@ RBGraph maximal_reducible_graph(const RBGraph& g) {
     next++;
 
     if (!is_character(*v, gm))
-      // skip non-character vertices
+      // don't remove non-character vertices
+      continue;
+
+    if (active && is_active(*v, gm))
+      // don't remove active or non-character vertices
       continue;
 
     remove_vertex_if(*v, if_not_maximal(cm), gm);
   }
 
-  // TODO: add removesingletons(gm);?
+  remove_singletons(gm);
 
   return gm;
 }

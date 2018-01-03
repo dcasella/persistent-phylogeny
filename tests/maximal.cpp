@@ -41,11 +41,14 @@ int main(int argc, const char* argv[]) {
   std::list<RBVertex> cm_check({c2, c3});
   std::list<RBVertex> cm = maximal_characters2(g);
 
-  RBGraph gm = maximal_reducible_graph(g);
+  RBGraph gm1 = maximal_reducible_graph(g, false);
+  RBGraph gm2 = maximal_reducible_graph(g, true);
 
   assert(cm == cm_check);
-  assert(num_species(gm) == 5);
-  assert(num_characters(gm) == 2);
+  assert(num_species(gm1) == 5);
+  assert(num_characters(gm1) == 2);
+  assert(num_species(gm1) == num_species(gm2));
+  assert(num_characters(gm2) == num_characters(gm1) + 1);
 
   std::cout << "maximal: tests passed" << std::endl;
 

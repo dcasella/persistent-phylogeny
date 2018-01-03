@@ -653,15 +653,17 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g);
   @brief Build the maximal reducible red-black graph of \e gm
 
   Let GRB be a red-black graph and CM the set of maximal characters of GRB.
-  A maximal reducible graph consists of a reducible red-black graph whose
-  characters are all maximal and inactive in the graph.
-  Then GRB|CM is the maximal reducible graph induced by CM in graph GRB.
+  A maximal reducible graph consists of a reducible red-black graph such that
+  it consists only of maximal characters and has no active characters.
+  The induced graph GRB|CM is a maximal reducible graph.
 
-  @param[in] gm Red-black graph
+  @param[in] g      Red-black graph
+  @param[in] active True: keep all active characters from \c g (GRB|CM);
+                    False: ignore all active characters from \c g (GRB|CM∪A).
 
   @return Maximal reducible graph
 */
-RBGraph maximal_reducible_graph(const RBGraph& gm);
+RBGraph maximal_reducible_graph(const RBGraph& g, const bool active);
 
 /**
   @brief Predicate used to sort a vector of lists of vertices
