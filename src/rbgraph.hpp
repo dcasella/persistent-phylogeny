@@ -663,7 +663,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g);
 
   @return Maximal reducible graph
 */
-RBGraph maximal_reducible_graph(const RBGraph& g, const bool active);
+RBGraph maximal_reducible_graph(const RBGraph& g, const bool active = false);
 
 /**
   @brief Predicate used to sort a vector of lists of vertices
