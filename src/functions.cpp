@@ -33,6 +33,10 @@ void initial_state_visitor::start_vertex(const HDVertex v,
 
   source_v = v;
 
+  for (const std::string& i : hasse[v].characters) {
+    lsc.push_back({ i, State::gain });
+  }
+
   if (num_edges(hasse) != 0)
     // the Hasse diagram is non-degenerate
     return;
