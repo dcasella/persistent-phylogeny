@@ -658,8 +658,8 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g);
   The induced graph GRB|CM is a maximal reducible graph.
 
   @param[in] g      Red-black graph
-  @param[in] active True: keep all active characters from \c g (GRB|CM);
-                    False: ignore all active characters from \c g (GRB|CM∪A).
+  @param[in] active True: keep all active characters from \c g (GRB|CM∪A);
+                    False: ignore all active characters from \c g (GRB|CM).
 
   @return Maximal reducible graph
 */
