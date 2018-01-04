@@ -15,10 +15,10 @@ initial_state_visitor::initial_state_visitor(std::list<HDVertex>& sources)
 }
 
 void initial_state_visitor::initialize_vertex(const HDVertex v,
-                                               const HDGraph& hasse) const {}
+                                              const HDGraph& hasse) const {}
 
 void initial_state_visitor::start_vertex(const HDVertex v,
-                                          const HDGraph& hasse) {
+                                         const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "start_vertex: [ ";
@@ -44,7 +44,7 @@ void initial_state_visitor::start_vertex(const HDVertex v,
 }
 
 void initial_state_visitor::discover_vertex(const HDVertex v,
-                                             const HDGraph& hasse) {
+                                            const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "discover_vertex: [ ";
@@ -61,7 +61,7 @@ void initial_state_visitor::discover_vertex(const HDVertex v,
 }
 
 void initial_state_visitor::examine_edge(const HDEdge e,
-                                          const HDGraph& hasse) {
+                                         const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     HDVertex vs, vt;
@@ -102,7 +102,7 @@ void initial_state_visitor::examine_edge(const HDEdge e,
 }
 
 void initial_state_visitor::tree_edge(const HDEdge e,
-                                       const HDGraph& hasse) const {
+                                      const HDGraph& hasse) const {
   if (logging::enabled) {
     // verbosity enabled
     HDVertex vs, vt;
@@ -139,7 +139,7 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 }
 
 void initial_state_visitor::back_edge(const HDEdge e,
-                                       const HDGraph& hasse) const {
+                                      const HDGraph& hasse) const {
   if (logging::enabled) {
     // verbosity enabled
     HDVertex vs, vt;
@@ -176,7 +176,7 @@ void initial_state_visitor::back_edge(const HDEdge e,
 }
 
 void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
-                                                   const HDGraph& hasse) {
+                                                  const HDGraph& hasse) {
   HDVertex vs, vt;
   std::tie(vs, vt) = incident(e, hasse);
 
@@ -218,7 +218,7 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
 }
 
 void initial_state_visitor::finish_vertex(const HDVertex v,
-                                           const HDGraph& hasse) {
+                                          const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "finish_vertex: [ ";
@@ -554,7 +554,7 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
 }
 
 bool initial_state_visitor::safe_source(const RBVertex v,
-                                         const HDGraph& hasse) {
+                                        const HDGraph& hasse) {
   RBGraph g = *orig_g(hasse);
   RBGraph gm = *orig_gm(hasse);
 
