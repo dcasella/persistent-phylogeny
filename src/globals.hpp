@@ -23,7 +23,8 @@ namespace logging {
   @brief Global runtime namespace
 */
 namespace runtime {
-  extern bool full; ///< Safe source toggle global variable
+  extern bool full; ///< Safe source selection toggle global variable
+  extern bool interactive; ///< User interaction toggle global variable
 };
 
 

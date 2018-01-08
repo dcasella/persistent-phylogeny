@@ -24,14 +24,21 @@ int main(int argc, const char* argv[]) {
   (
     "verbose,v",
     boost::program_options::bool_switch(&logging::enabled),
-    "Display the operations performed by the algorithm as the program is "
-    "running."
+    "Display the operations performed by the program."
   )
   // option: full search, find every possible safe source during execution
   (
     "full",
     boost::program_options::bool_switch(&runtime::full),
-    "Don't stop the iteration when a safe source is found."
+    "Find all safe sources each iteration.\n"
+    "(Enables --verbose)"
+  )
+  // option: interactive, let the user select which path to take
+  (
+    "interactive,i",
+    boost::program_options::bool_switch(&runtime::interactive),
+    "User input driven execution.\n"
+    "(Enables --full and --verbose)"
   );
 
   // initialize hidden options (not shown in --help)
@@ -93,8 +100,11 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
-  // only enable full search when logging is enabled
-  runtime::full &= logging::enabled;
+  // enable full search when interactive is enabled
+  runtime::full |= runtime::interactive;
+
+  // enable logging when full search is enabled
+  logging::enabled |= runtime::full;
 
   std::vector<std::string>::const_iterator file = files.begin();
   for (; file < files.end(); ++file) {
@@ -111,6 +121,8 @@ int main(int argc, const char* argv[]) {
     }
 
     try {
+      // std::cout << "   (" << *file << ")" << std::endl;
+
       std::list<SignedCharacter> output = reduce(g);
 
       std::stringstream reduction;

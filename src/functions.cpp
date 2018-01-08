@@ -820,10 +820,10 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   RBVertex source;
 
   // user-input-driven safe source selection
-  if (runtime::full && s.size() > 1) {
+  if (runtime::interactive && s.size() > 1) {
     // full search enabled
     std::vector<RBVertex> sources(s.size());
-    size_t choice;
+    size_t choice = 0;
     std::string list_sources;
 
     // fill sources vector and list_sources stream
@@ -873,7 +873,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       std::stringstream istream(input);
       if (istream >> choice) {
         // choice is a valid number
-        if (choice <= sources.size()) {
+        if (choice < sources.size()) {
           // choice is a valid safe source index
           std::cout << "Source #" << choice << " chosen"
                     << std::endl << std::endl;
