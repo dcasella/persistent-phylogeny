@@ -858,12 +858,11 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
               << std::endl
               << list_sources << std::endl;
 
-    while (true) {
-      std::cout << "Choose a source: ";
+    // get input
+    std::string input;
+    std::cout << "Choose a source: ";
 
-      // get input
-      std::string input;
-      std::getline(std::cin, input);
+    while (std::getline(std::cin, input)) {
 
       // if (input == "help" || input == "h") {
       //   // print help message
@@ -885,7 +884,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       std::cout << "Error: invalid input."
                 // << std::endl
                 // << "Try 'help' or 'h' for more information."
-                << std::endl << std::endl;
+                << std::endl << std::endl
+                << "Choose a source: ";
     }
 
     std::cout << "========================================"
