@@ -111,17 +111,22 @@ int main(int argc, const char* argv[]) {
     // for each filename in files
     RBGraph g;
 
+    std::cout << "File (" << *file << ")" << std::flush;
+
     try {
       read_graph(*file, g);
     }
     catch (const std::exception& e) {
-      std::cerr << "No (" << *file << ") " << e.what() << std::endl;
+      std::cerr << '\r' << "No (" << *file << ") " << e.what() << std::endl;
 
       continue;
     }
 
     try {
-      // std::cout << "   (" << *file << ")" << std::endl;
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << std::endl;
+      }
 
       std::list<SignedCharacter> output = reduce(g);
 
@@ -147,11 +152,11 @@ int main(int argc, const char* argv[]) {
         // check_reduction(filename, reduction) returned False
         throw NoReduction();
 
-      std::cout << "Ok (" << *file << ") < "
+      std::cout << '\r' << "Ok (" << *file << ") < "
                 << reduction.str() << ">" << std::endl;
     }
     catch (const NoReduction& e) {
-      std::cout << "No (" << *file << ") " << e.what() << std::endl;
+      std::cout << '\r' << "No (" << *file << ") " << e.what() << std::endl;
     }
   }
 
