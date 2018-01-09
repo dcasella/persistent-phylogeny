@@ -36,7 +36,7 @@ def check_reduction(filename, reduction, verbose=False):
         assert m.shape == shape
 
     # build the list of signed character pairs from reduction
-    pairs = ((int(sc[1:-1]) - 1, sc[-1]) for sc in reduction.split())
+    pairs = ((int(sc[1:-1]), sc[-1]) for sc in reduction.split())
 
     if verbose:
         print("Matrix:\n{}\n".format(m))
@@ -50,7 +50,7 @@ def realize(m, pairs, verbose=False):
     # realize each signed character in m
     for (char, state) in pairs:
         if verbose:
-            print("Reduction: c{}{}".format(char + 1, state))
+            print("Reduction: c{}{}".format(char, state))
 
         # find the species adjacent to char
         adj_spec, _ = np.where(m[:, char] > 0)

@@ -185,14 +185,14 @@ void read_graph(const std::string& filename, RBGraph& g) {
 
       // insert species in the graph
       for (size_t j = 0; j < species.size(); ++j) {
-        std::string v_name = "s" + std::to_string(j + 1);
+        std::string v_name = "s" + std::to_string(j);
 
         species[j] = add_vertex(v_name, Type::species, g);
       }
 
       // insert characters in the graph
       for (size_t j = 0; j < characters.size(); ++j) {
-        std::string v_name = "c" + std::to_string(j + 1);
+        std::string v_name = "c" + std::to_string(j);
 
         characters[j] = add_vertex(v_name, Type::character, g);
       }
