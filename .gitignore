@@ -1,11 +1,10 @@
-# Objects and binaries folders
-bin/
-obj/
-
-# Binaries
+# Binaries (files without extension)
 *
 !/**/
 !*.*
+
+# Object files
+*.o
 
 # Doxygen
 Doxyfile
