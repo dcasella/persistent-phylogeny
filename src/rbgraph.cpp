@@ -392,7 +392,7 @@ RBGraphVector connected_components(const RBGraph& g) {
     components[i] = std::make_unique<RBGraph>();
   }
 
-  if (comp_count == 1)
+  if (comp_count <= 1)
     // graph is connected
     return components;
 
@@ -856,16 +856,30 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
 }
 
 bool is_redsigma(const RBGraph& g) {
-  RBVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v) {
-    if (!is_character(*v, g))
-      continue;
+  bool output = false;
+  RBGraphVector components = connected_components(g);
 
-    if (is_inactive(*v, g) || is_free(*v, g))
-      return false;
+  // if g is connected or empty
+  if (components.size() <= 1) {
+    RBVertexIter v, v_end;
+    std::tie(v, v_end) = vertices(g);
+    for (; v != v_end; ++v) {
+      if (!is_character(*v, g))
+        continue;
+
+      if (is_inactive(*v, g) || is_free(*v, g))
+        return output;
+    }
+
+    // Return True if g isn't empty (Empty graph isn't red sigma)
+    return !is_empty(g);
   }
 
-  // Return True if g isn't empty (Empty graph isn't red sigma)
-  return !is_empty(g);
+  // if g is disconnected
+  for (size_t i = 0; i < components.size(); ++i) {
+    // recursively check if any subgraph is red sigma
+    output |= is_redsigma(*components[i].get());
+  }
+
+  return output;
 }
