@@ -33,6 +33,8 @@ void initial_state_visitor::start_vertex(const HDVertex v,
 
   source_v = v;
 
+  lsc.clear();
+
   for (const std::string& i : hasse[v].characters) {
     lsc.push_back({ i, State::gain });
   }
@@ -238,7 +240,7 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
   if (last_v != v || v == source_v)
     // v is not the last vertex in the chain, which means the visit is
     // backtracking, so ignore it and keep going; or v is the source of the
-    // chain, which means the chain is empty (or already tested)
+    // chain, which means it was already tested
     return;
 
   perform_test(hasse);
@@ -508,24 +510,17 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
     return false;
   }
 
-  // // copy gm to gm_test
-  // RBGraph gm_test;
-  // copy_graph(gm, gm_test);
   // copy g to g_test
   RBGraph g_test;
   copy_graph(g, g_test);
 
   // test if lsc is a safe chain
   bool feasible;
-  // std::tie(std::ignore, feasible) = realize(lsc, gm_test);
   std::tie(std::ignore, feasible) = realize(lsc, g_test);
-  lsc.clear();
 
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
-              // << "Gm test:" << std::endl
-              // << gm_test << std::endl << std::endl;
               << "G test:" << std::endl
               << g_test << std::endl << std::endl;
   }
@@ -533,7 +528,6 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   if (!feasible) {
     if (logging::enabled) {
       // verbosity enabled
-      // std::cout << "Realization not feasible for Gm" << std::endl << std::endl;
       std::cout << "Realization not feasible for G" << std::endl << std::endl;
     }
 
@@ -541,16 +535,13 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, lsc is a safe chain
-  // bool output = !is_redsigma(gm_test);
   bool output = !is_redsigma(g_test);
 
   if (logging::enabled) {
     // verbosity enabled
     if (output)
-      // std::cout << "No red Σ-graph in Gm" << std::endl << std::endl;
       std::cout << "No red Σ-graph in G" << std::endl << std::endl;
     else
-      // std::cout << "Found red Σ-graph in Gm" << std::endl << std::endl;
       std::cout << "Found red Σ-graph in G" << std::endl << std::endl;
   }
 
@@ -721,8 +712,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // return < v-, reduce(g) >
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "G free character " << g[*v].name
-                  << std::endl << std::endl;
+        std::cout << "G free character " << g[*v].name << std::endl;
       }
 
       std::list<SignedCharacter> lsc;
@@ -752,8 +742,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // return < v+, reduce(g) >
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "G universal character " << g[*v].name
-                  << std::endl << std::endl;
+        std::cout << "G universal character " << g[*v].name << std::endl;
       }
 
       std::list<SignedCharacter> lsc;
@@ -863,7 +852,6 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     std::cout << "Choose a source: ";
 
     while (std::getline(std::cin, input)) {
-
       // if (input == "help" || input == "h") {
       //   // print help message
       // }
@@ -1091,6 +1079,10 @@ realize(const std::list<SignedCharacter>& lsc, RBGraph& g) {
   // non-feasible realization is encountered, setting the boolean flag to false
   // TODO: maybe change this behaviour
   for (const SignedCharacter& i : lsc) {
+    if (std::find(output.cbegin(), output.cend(), i) != output.cend())
+      // the signed character i has already been realized in a previous sc
+      continue;
+
     std::list<SignedCharacter> sc;
     bool feasible;
     std::tie(sc, feasible) = realize(i, g);
