@@ -10,5 +10,5 @@ bool logging::enabled = false;
 //=============================================================================
 // Runtime modifiers
 
-bool runtime::full = false;
+bool runtime::exponential = false;
 bool runtime::interactive = false;

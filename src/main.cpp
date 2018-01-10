@@ -3,6 +3,17 @@
 #include <boost/python.hpp>
 
 
+void conflicting_options(const boost::program_options::variables_map& vm,
+                         const std::string& opt1, const std::string& opt2) {
+  if (vm.count(opt1) && !vm[opt1].defaulted() &&
+      vm.count(opt2) && !vm[opt2].defaulted()) {
+    throw std::logic_error(
+      std::string("conflicting options --") + opt1 + " and --" + opt2
+    );
+  }
+}
+
+
 int main(int argc, const char* argv[]) {
   // declare the vector of input files
   std::vector<std::string> files;
@@ -11,7 +22,8 @@ int main(int argc, const char* argv[]) {
   boost::program_options::options_description general_options(
     "Usage: ppp [OPTION...] FILE..."
     "\n"
-    "Calculate a successful c-reduction for the matrix(ces) in FILE(s), if it exists."
+    "Calculate a successful c-reduction for the matrix(ces) in FILE(s), if it "
+    "exists."
     "\n\n"
     "Options"
   );
@@ -26,19 +38,19 @@ int main(int argc, const char* argv[]) {
     boost::program_options::bool_switch(&logging::enabled),
     "Display the operations performed by the program."
   )
-  // option: full search, find every possible safe source during execution
+  // option: exponential, test every possible combination of safe sources
   (
-    "full",
-    boost::program_options::bool_switch(&runtime::full),
-    "Find all safe sources each iteration.\n"
-    "(Enables --verbose)"
+    "exponential,x",
+    boost::program_options::bool_switch(&runtime::exponential),
+    "Exponential version of the algorithm.\n"
+    "(Mutually exclusive with --interactive)"
   )
   // option: interactive, let the user select which path to take
   (
     "interactive,i",
     boost::program_options::bool_switch(&runtime::interactive),
     "User input driven execution.\n"
-    "(Enables --full and --verbose)"
+    "(Mutually exclusive with --exponential)"
   );
 
   // initialize hidden options (not shown in --help)
@@ -73,6 +85,9 @@ int main(int argc, const char* argv[]) {
         .run(),
       vm
     );
+
+    conflicting_options(vm, "exponential", "interactive");
+
     boost::program_options::notify(vm);
   }
   catch (const std::exception& e) {
@@ -100,12 +115,6 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
-  // enable full search when interactive is enabled
-  runtime::full |= runtime::interactive;
-
-  // enable logging when full search is enabled
-  logging::enabled |= runtime::full;
-
   std::vector<std::string>::const_iterator file = files.begin();
   for (; file < files.end(); ++file) {
     // for each filename in files
@@ -122,19 +131,18 @@ int main(int argc, const char* argv[]) {
       continue;
     }
 
-    try {
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << std::endl;
-      }
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << std::endl;
+    }
 
+    try {
       std::list<SignedCharacter> output = reduce(g);
 
       std::stringstream reduction;
 
-      SignedCharacterIter sci = output.begin();
-      for (; sci != output.end(); ++sci) {
-        reduction << *sci << " ";
+      for (const SignedCharacter& sc : output) {
+        reduction << sc << " ";
       }
 
       // initialize the python interpreter

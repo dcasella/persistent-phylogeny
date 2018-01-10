@@ -273,16 +273,14 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
       // verbosity enabled
       std::cout << "Source: [ ";
 
-      StringIter kk = hasse[source_v].species.begin();
-      for (; kk != hasse[source_v].species.end(); ++kk) {
-        std::cout << *kk << " ";
+      for (const std::string& kk : hasse[source_v].species) {
+        std::cout << kk << " ";
       }
 
       std::cout << "( ";
 
-      kk = hasse[source_v].characters.begin();
-      for (; kk != hasse[source_v].characters.end(); ++kk) {
-        std::cout << *kk << " ";
+      for (const std::string& kk : hasse[source_v].characters) {
+        std::cout << kk << " ";
       }
 
       std::cout << ") ] is safe" << std::endl << std::endl;
@@ -297,7 +295,6 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
   size_t total_actives = active_characters(gm).size();
 
   std::list<std::string> source_c = hasse[source_v].characters;
-  size_t source_inactives = source_c.size();
 
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
@@ -306,7 +303,6 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
       continue;
 
     std::list<std::string> v_c;
-    size_t v_inactives = 0;
     size_t v_actives = 0;
 
     RBOutEdgeIter e, e_end;
@@ -324,26 +320,22 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
         if (search == source_c.cend())
           v_c.push_back(gm[vt].name);
-
-        v_inactives++;
       }
     }
 
     // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
     // active characters in GRB
-    if (v_actives == total_actives && v_inactives == source_inactives) {
+    if (v_actives == total_actives && v_c.size() == 0) {
       source = get_vertex(gm[*v].name, g);
       break;
     }
+    /*
     // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
     // active characters in GRB and a set v_c of characters
-    else if (v_actives == total_actives && v_inactives > source_inactives) {
+    else if (v_actives == total_actives && v_c.size() > 0) {
       // assume that for every a in I, a is not in a forbidden triple;
       // assume that given b in conflict with a (b, a ∈ v_c) then b is not in
       // conflict with any maximal character in s+
-
-      // TODO: "assume: suppose to be the case, without proof"
-      //       is there nothing to do?
 
       // there exist species s∗ of GRB that consists of all maximal character
       // of s and all active characters and a set v_c of non maximal elements.
@@ -354,48 +346,47 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "The following source might not be actually safe:"
+        std::cout << "The following source might be safe: " << gm[*v].name
                   << std::endl;
       }
 
       source = get_vertex(gm[*v].name, g);
-      break;
     }
+    */
   }
 
-  /*
-  for (const std::string& s : hasse[source_v].species) {
-    source_s.push_back(get_vertex(s, gm));
-  }
+  // if there does not exist a species s+ in GRB|CM∪A that consists of C(s) and
+  // all active characters in GRB
+  if (source == 0) {
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "Source: [ ";
 
-  for (const RBVertex& v : source_s) {
-    size_t v_actives = 0;
+      for (const std::string& kk : hasse[source_v].species) {
+        std::cout << kk << " ";
+      }
 
-    RBOutEdgeIter e, e_end;
-    std::tie(e, e_end) = out_edges(v, gm);
-    for (; e != e_end; ++e) {
-      if (!is_red(*e, gm))
-        continue;
+      std::cout << "( ";
 
-      v_actives++;
+      for (const std::string& kk : hasse[source_v].characters) {
+        std::cout << kk << " ";
+      }
+
+      std::cout << ") ] is not active safe" << std::endl << std::endl;
     }
 
-    if (v_actives == total_actives) {
-      source = get_vertex(gm[v].name, g);
-      break;
-    }
+    return;
   }
-  */
 
   // if the realization of s+ is feasible in GRB
-  if (source == 0 || !safe_source(source, hasse))
+  if (!safe_source(source, hasse))
     // source_v is not a safe source
     return;
 
   m_sources->push_back(source_v);
 
-  if (runtime::full) {
-    // full search enabled
+  if (runtime::exponential || runtime::interactive) {
+    // exponential algorithm or user interaction enabled
     return;
   }
 
@@ -472,8 +463,8 @@ void initial_state_visitor::perform_test_degenerate(const HDGraph& hasse) {
 
   m_sources->push_back(source_v);
 
-  if (runtime::full) {
-    // full search enabled
+  if (runtime::exponential || runtime::interactive) {
+    // exponential algorithm or user interaction enabled
     return;
   }
 
@@ -556,17 +547,32 @@ bool initial_state_visitor::safe_source(const RBVertex v,
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "Source: " << g[v].name << std::endl;
+    // std::cout << "Source: " << hasse[source_v].species.front() << std::endl;
   }
 
   // copy g to g_test
   RBGraph g_test;
   copy_graph(g, g_test);
 
+  // realize the vertex v in g (g_test) whose inactive characters are the same
+  // as source_v
   RBVertex v_test = get_vertex(g[v].name, g_test);
 
   // test if source_v is a safe source
   bool feasible;
   std::tie(std::ignore, feasible) = realize(v_test, g_test);
+
+  /*
+  // realize the list of inactive characters of source_v in g (g_test)
+  std::list<SignedCharacter> lsc;
+  for (const std::string& source_c : hasse[source_v].characters) {
+    lsc.push_back({ source_c, State::gain });
+  }
+
+  // test if source_v is a safe source
+  bool feasible;
+  std::tie(std::ignore, feasible) = realize(lsc, g_test);
+  */
 
   if (logging::enabled) {
     // verbosity enabled
@@ -658,8 +664,9 @@ std::pair<std::list<HDVertex>, bool> initial_state(const HDGraph& hasse) {
     std::cout << ">" << std::endl << std::endl;
   }
 
-  // if runtime::full, no exception is thrown, but output won't be empty if
-  // there is at least one safe source in the Hasse diagram
+  // if runtime::exponential or runtime::interactive, no exception is thrown,
+  // but output won't be empty if there is at least one safe source in the
+  // Hasse diagram
 
   return std::make_pair(output, !output.empty());
 }
@@ -806,12 +813,76 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     throw NoReduction();
 
   std::list<SignedCharacter> sc;
-  RBVertex source;
+  RBVertex source = 0;
+  // HDVertex source = 0;
 
+  // exponential safe source selection
+  if (s.size() > 1 && runtime::exponential) {
+    // exponential algorithm enabled
+    std::list<std::list<SignedCharacter>> sources_output;
+
+    for (const HDVertex& hsource : s) {
+      // for each safe source in s
+      RBGraph g_test;
+      copy_graph(g, g_test);
+
+      std::string source_name = p[hsource].species.front();
+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << std::endl
+                  << "Current safe source: " << source_name
+                  << std::endl;
+      }
+
+      // realize the characters of the safe source
+      std::list<SignedCharacter> sc;
+      source = get_vertex(source_name, g_test);
+
+      std::tie(sc, std::ignore) = realize(source, g_test);
+
+      /*
+      // realize the characters of the safe source
+      std::list<SignedCharacter> sc;
+      for (const std::string& source_c : p[hsource].characters) {
+        sc.push_back({ source_c, State::gain });
+      }
+
+      std::tie(sc, std::ignore) = realize(sc, g_test);
+      */
+
+      try {
+        std::list<SignedCharacter> rest = reduce(g_test);
+
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << "Ok for safe source " << source_name << std::endl;
+        }
+
+        // append the recursive call to the current source's output
+        sc.splice(sc.end(), rest);
+        sources_output.push_back(sc);
+      }
+      catch (const NoReduction& e) {
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << "No successful reduction for safe source "
+                    << source_name << std::endl;
+        }
+      }
+    }
+
+    if (sources_output.empty())
+      // no realization induces a successful reduction
+      throw NoReduction();
+
+    return sources_output.front();
+  }
   // user-input-driven safe source selection
-  if (runtime::interactive && s.size() > 1) {
-    // full search enabled
+  else if (s.size() > 1 && runtime::interactive) {
+    // user interaction enabled
     std::vector<RBVertex> sources(s.size());
+    // std::vector<HDVertex> sources(s.size());
     size_t choice = 0;
     std::string list_sources;
 
@@ -820,6 +891,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     for (const HDVertex& hsource : s) {
       // for each safe source in s
       sources[index] = get_vertex(p[hsource].species.front(), g);
+      // sources[index] = hsource;
 
       // fill list_sources
 
@@ -838,6 +910,10 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       list_sources += ") ]\n";
 
       index++;
+    }
+
+    if (!logging::enabled) {
+      std::cout << std::endl << std::endl;
     }
 
     std::cout << "========================================"
@@ -876,21 +952,34 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
                 << "Choose a source: ";
     }
 
-    std::cout << "========================================"
-              << "========================================"
-              << std::endl << std::endl;
-
     // set the source
     source = sources[choice];
+
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "========================================"
+                << "========================================"
+                << std::endl << std::endl;
+    }
   }
   // standard safe source selection (the first one found)
   else {
     // set the source
     source = get_vertex(p[s.front()].species.front(), g);
+    // source = s.front();
   }
 
   // realize the characters of the safe source
   std::tie(sc, std::ignore) = realize(source, g);
+
+  /*
+  for (const std::string& source_c : p[source].characters) {
+    sc.push_back({ source_c, State::gain });
+  }
+
+  // realize the characters of the safe source
+  std::tie(sc, std::ignore) = realize(sc, g);
+  */
 
   // append the list of realized characters and the recursive call to the
   // output in constant time (std::list::splice simply moves pointers around
