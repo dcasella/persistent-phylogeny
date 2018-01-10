@@ -3,6 +3,7 @@
 
 int main(int argc, const char* argv[]) {
   RBGraph g;
+  RBGraph g1;
   RBVertex v1, v2, v3, v4;
 
        add_vertex("v0", g);
@@ -15,6 +16,7 @@ int main(int argc, const char* argv[]) {
   add_edge(v3, v4, g);
 
   RBGraphVector components = connected_components(g);
+  RBGraphVector components1 = connected_components(g1);
 
   assert(components.size() == 3);
   assert(num_vertices(*components[0].get()) == 1);
@@ -23,6 +25,7 @@ int main(int argc, const char* argv[]) {
   assert(num_edges(*components[1].get()) == 1);
   assert(num_vertices(*components[2].get()) == 2);
   assert(num_edges(*components[2].get()) == 1);
+  assert(components1.size() == 0);
 
   std::cout << "connected: tests passed" << std::endl;
 
