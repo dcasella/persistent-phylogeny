@@ -81,6 +81,17 @@ def realize(m, pairs, verbose=False):
         if verbose:
             print("Matrix:\n{}\n".format(m))
 
+            for char in range(m.shape[1]):
+                adj_spec, _ = np.where(m[:, char] > 0)
+                con_spec = connected_species(m, char)
+                dif_spec = np.setdiff1d(con_spec, adj_spec, assume_unique=True)
+
+                if not (adj_spec.size or con_spec.size or dif_spec.size):
+                    continue
+
+                print("Char {}:\nAdj: {}\nCon: {}\nDif: {}\n".format(
+                    char, adj_spec, con_spec, dif_spec))
+
 
 def connected_species(m, char):
     # perform transitive closure for char in m
