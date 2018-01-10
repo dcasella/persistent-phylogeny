@@ -23,9 +23,8 @@ void initial_state_visitor::start_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "start_vertex: [ ";
 
-    StringIter kk = hasse[v].species.begin();
-    for (; kk != hasse[v].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[v].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -55,9 +54,8 @@ void initial_state_visitor::discover_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "discover_vertex: [ ";
 
-    StringIter kk = hasse[v].species.begin();
-    for (; kk != hasse[v].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[v].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -75,9 +73,8 @@ void initial_state_visitor::examine_edge(const HDEdge e,
 
     std::cout << "examine_edge: [ ";
 
-    StringIter kk = hasse[vs].species.begin();
-    for (; kk != hasse[vs].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vs].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "] -";
@@ -92,9 +89,8 @@ void initial_state_visitor::examine_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    kk = hasse[vt].species.begin();
-    for (; kk != hasse[vt].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vt].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -116,9 +112,8 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "tree_edge: [ ";
 
-    StringIter kk = hasse[vs].species.begin();
-    for (; kk != hasse[vs].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vs].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "] -";
@@ -133,9 +128,8 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    kk = hasse[vt].species.begin();
-    for (; kk != hasse[vt].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vt].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -153,9 +147,8 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "back_edge: [ ";
 
-    StringIter kk = hasse[vs].species.begin();
-    for (; kk != hasse[vs].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vs].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "] -";
@@ -170,9 +163,8 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    kk = hasse[vt].species.begin();
-    for (; kk != hasse[vt].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vt].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -190,9 +182,8 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     // verbosity enabled
     std::cout << "forward_or_cross_edge: [ ";
 
-    StringIter kk = hasse[vs].species.begin();
-    for (; kk != hasse[vs].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vs].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "] -";
@@ -207,9 +198,8 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    kk = hasse[vt].species.begin();
-    for (; kk != hasse[vt].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[vt].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -229,9 +219,8 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "finish_vertex: [ ";
 
-    StringIter kk = hasse[v].species.begin();
-    for (; kk != hasse[v].species.end(); ++kk) {
-      std::cout << *kk << " ";
+    for (const std::string& kk : hasse[v].species) {
+      std::cout << kk << " ";
     }
 
     std::cout << "]" << std::endl;

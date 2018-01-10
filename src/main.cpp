@@ -115,18 +115,17 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
-  std::vector<std::string>::const_iterator file = files.begin();
-  for (; file < files.end(); ++file) {
+  for (const std::string& file : files) {
     // for each filename in files
     RBGraph g;
 
-    std::cout << "File (" << *file << ")" << std::flush;
+    std::cout << "File (" << file << ")" << std::flush;
 
     try {
-      read_graph(*file, g);
+      read_graph(file, g);
     }
     catch (const std::exception& e) {
-      std::cerr << '\r' << "No (" << *file << ") " << e.what() << std::endl;
+      std::cerr << '\r' << "No (" << file << ") " << e.what() << std::endl;
 
       continue;
     }
@@ -154,17 +153,17 @@ int main(int argc, const char* argv[]) {
       // run the function check_reduction(filename, reduction), store its
       // output in pycheck
       boost::python::object pycheck = pymod.attr("check_reduction")
-                                                (*file, reduction.str());
+                                                (file, reduction.str());
 
       if (!boost::python::extract<bool>(pycheck)())
         // check_reduction(filename, reduction) returned False
         throw NoReduction();
 
-      std::cout << '\r' << "Ok (" << *file << ") < "
+      std::cout << '\r' << "Ok (" << file << ") < "
                 << reduction.str() << ">" << std::endl;
     }
     catch (const NoReduction& e) {
-      std::cout << '\r' << "No (" << *file << ") " << e.what() << std::endl;
+      std::cout << '\r' << "No (" << file << ") " << e.what() << std::endl;
     }
   }
 
