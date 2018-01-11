@@ -53,7 +53,7 @@ $(TARGET): $(OBJECTS) $(OBJ_DIR)/main.o
 	$(CC) -o $@ $^ $(BOOST_LIBS) $(PYTHON_LIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
-	mkdir -p $(OBJ_DIR)
+	@mkdir -p $(OBJ_DIR)
 	$(CC_FULL) -c -o $@ $<
 
 clean:
@@ -67,7 +67,7 @@ $(TEST_TARGETS): $(TEST_DIR)/%: $(OBJ_DIR)/%.o $(OBJECTS)
 	$(CC) -o $@ $^
 
 $(TEST_OBJECTS): $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp $(HEADERS)
-	mkdir -p $(OBJ_DIR)
+	@mkdir -p $(OBJ_DIR)
 	$(CC_FULL) -c -o $@ $<
 
 $(TEST_DIR)/clean:
