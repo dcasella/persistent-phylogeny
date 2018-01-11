@@ -6,25 +6,31 @@
 
 
 //=============================================================================
-// Logging modifiers
+// Output modifiers
 
 /**
   @brief Global logging namespace
 */
 namespace logging {
-  extern bool enabled; ///< Logging toggle global variable
+  extern bool enabled; ///< Logging toggle
 };
 
 
 //=============================================================================
-// Runtime modifiers
+// Algorithm modifiers
 
 /**
-  @brief Global runtime namespace
+  @brief Global exponential algorithm namespace
 */
-namespace runtime {
-  extern bool exponential; ///< Exponential algorithm toggle global variable
-  extern bool interactive; ///< User interaction toggle global variable
+namespace exponential {
+  extern bool enabled; ///< Exponential algorithm toggle
+};
+
+/**
+  @brief Global user interaction namespace
+*/
+namespace interactive {
+  extern bool enabled; ///< User interaction toggle
 };
 
 

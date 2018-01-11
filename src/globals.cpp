@@ -2,13 +2,14 @@
 
 
 //=============================================================================
-// Logging modifiers
+// Output modifiers
 
 bool logging::enabled = false;
 
 
 //=============================================================================
-// Runtime modifiers
+// Algorithm modifiers
 
-bool runtime::exponential = false;
-bool runtime::interactive = false;
+bool exponential::enabled = false;
+
+bool interactive::enabled = false;

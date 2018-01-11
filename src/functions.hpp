@@ -137,7 +137,7 @@ public:
     Call \e safe_chain to check if \e lsc is a safe chain. If it is, call \e
     safe_source to check if \e source_v (the source of the chain \e lsc) is a
     safe source. If it is, add it to the list of safe sources.
-    This function throws a \e InitialState exception if \e runtime::interactive
+    This function throws a \e InitialState exception if \e interactive::enabled
     is disabled and \e source_v is a safe source.
 
     @param[in] hasse Hasse diagram graph

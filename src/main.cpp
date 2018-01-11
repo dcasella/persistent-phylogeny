@@ -41,14 +41,14 @@ int main(int argc, const char* argv[]) {
   // option: exponential, test every possible combination of safe sources
   (
     "exponential,x",
-    boost::program_options::bool_switch(&runtime::exponential),
+    boost::program_options::bool_switch(&exponential::enabled),
     "Exponential version of the algorithm.\n"
     "(Mutually exclusive with --interactive)"
   )
   // option: interactive, let the user select which path to take
   (
     "interactive,i",
-    boost::program_options::bool_switch(&runtime::interactive),
+    boost::program_options::bool_switch(&interactive::enabled),
     "User input driven execution.\n"
     "(Mutually exclusive with --exponential)"
   );

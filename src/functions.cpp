@@ -374,7 +374,7 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
   m_sources->push_back(source_v);
 
-  if (runtime::exponential || runtime::interactive) {
+  if (exponential::enabled || interactive::enabled) {
     // exponential algorithm or user interaction enabled
     return;
   }
@@ -452,7 +452,7 @@ void initial_state_visitor::perform_test_degenerate(const HDGraph& hasse) {
 
   m_sources->push_back(source_v);
 
-  if (runtime::exponential || runtime::interactive) {
+  if (exponential::enabled || interactive::enabled) {
     // exponential algorithm or user interaction enabled
     return;
   }
@@ -653,7 +653,7 @@ std::pair<std::list<HDVertex>, bool> initial_state(const HDGraph& hasse) {
     std::cout << ">" << std::endl << std::endl;
   }
 
-  // if runtime::exponential or runtime::interactive, no exception is thrown,
+  // if exponential::enabled or interactive::enabled, no exception is thrown,
   // but output won't be empty if there is at least one safe source in the
   // Hasse diagram
 
@@ -806,7 +806,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   // HDVertex source = 0;
 
   // exponential safe source selection
-  if (s.size() > 1 && runtime::exponential) {
+  if (s.size() > 1 && exponential::enabled) {
     // exponential algorithm enabled
     std::list<std::list<SignedCharacter>> sources_output;
 
@@ -868,7 +868,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     return sources_output.front();
   }
   // user-input-driven safe source selection
-  else if (s.size() > 1 && runtime::interactive) {
+  else if (s.size() > 1 && interactive::enabled) {
     // user interaction enabled
     std::vector<RBVertex> sources(s.size());
     // std::vector<HDVertex> sources(s.size());
