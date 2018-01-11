@@ -73,4 +73,10 @@ $(TEST_DIR)/clean:
 # Python
 
 python:
-	python -m compileall $(BIN_DIR)
+	python -m compileall -q $(BIN_DIR)
+
+# Settings
+
+.PHONY: clean $(TEST_DIR)/clean
+
+.SILENT: python
