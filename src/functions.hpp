@@ -203,11 +203,7 @@ private:
 // Algorithm functions
 
 /**
-  @brief Returns a list of safe sources if \e hasse has at least one
-
-  Returns a list of safe sources and bool = True if \e hasse has at least one
-  safe source.
-  Returns an empty list and bool = False otherwise.
+  @brief Returns a list of safe sources
 
   Let GM be a maximal reducible red-black graph, let P be the Hasse diagram for
   GM, and let C be a chain of P.
@@ -219,11 +215,9 @@ private:
 
   @param[in] hasse Hasse diagram graph
 
-  @return Safe chain (list of signed characters).
-          If \e hasse has a safe chain then the bool flag will be true.
-          When the flag is false, the returned chain is empty
+  @return List of safe sources
 */
-std::pair<std::list<HDVertex>, bool> initial_state(const HDGraph& hasse);
+std::list<HDVertex> initial_states(const HDGraph& hasse);
 
 
 //=============================================================================

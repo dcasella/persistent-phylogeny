@@ -582,12 +582,12 @@ bool initial_state_visitor::safe_source(const RBVertex v,
 //=============================================================================
 // Algorithm functions
 
-std::pair<std::list<HDVertex>, bool> initial_state(const HDGraph& hasse) {
+std::list<HDVertex> initial_states(const HDGraph& hasse) {
   std::list<HDVertex> output;
 
   if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
     // uninitialized graph properties
-    return std::make_pair(output, false);
+    return output;
 
   // try block:
   // the only way to stop depth_first_search from iterating on the Hasse
@@ -642,7 +642,7 @@ std::pair<std::list<HDVertex>, bool> initial_state(const HDGraph& hasse) {
   // but output won't be empty if there is at least one safe source in the
   // Hasse diagram
 
-  return std::make_pair(output, !output.empty());
+  return output;
 }
 
 
@@ -778,11 +778,9 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   }
 
   // s = initial states
-  std::list<HDVertex> s;
-  bool s_safe;
-  std::tie(s, s_safe) = initial_state(p);
+  std::list<HDVertex> s = initial_states(p);
 
-  if (!s_safe)
+  if (s.empty())
     // p has no safe source
     throw NoReduction();
 
