@@ -292,13 +292,14 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
       continue;
 
     std::list<std::string> vchars;
-    size_t vactives = 0;
+    size_t count_actives = 0;
+    size_t count_inactives = 0;
 
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, gm);
     for (; e != e_end; ++e) {
       if (is_red(*e, gm)) {
-        vactives++;
+        count_actives++;
       }
       else {
         RBVertex vt = target(*e, gm);
@@ -309,18 +310,25 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
         if (search == source_c.cend())
           vchars.push_back(gm[vt].name);
+
+        count_inactives++;
       }
     }
 
     // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
     // active characters in GRB
-    if (vactives == total_actives && vchars.size() == 0) {
-      source = get_vertex(gm[*v].name, g);
-      break;
-    }
+
+    // s+ doesn't consist of C(s)
+    if (count_inactives < source_c.size())
+      continue;
+
+    // s+ doesn't consist of all active characters in GRB
+    if (count_actives != total_actives)
+      continue;
+
     // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
-    // active characters in GRB and a set vchars of characters
-    else if (vactives == total_actives && vchars.size() > 0) {
+    // active characters in GRB and a set I of characters
+    if (vchars.size() > 0) {
       // assume that for every a in I, a is not in a forbidden triple;
       // assume that given b in conflict with a (b, a ∈ vchars) then b is not in
       // conflict with any maximal character in s+
@@ -339,7 +347,12 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
       }
 
       source = get_vertex(gm[*v].name, g);
+
+      continue;
     }
+
+    source = get_vertex(gm[*v].name, g);
+    break;
   }
 
   // if there does not exist a species s+ in GRB|CM∪A that consists of C(s) and
