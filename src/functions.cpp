@@ -395,12 +395,11 @@ void initial_state_visitor::perform_test_degenerate(const HDGraph& hasse) {
   RBGraph g = *orig_g(hasse);
   RBGraph gm = *orig_gm(hasse);
 
-  // source_v holds the source vertex of the chain
+  // source_v holds the source vertex
 
   // assume source is safe
   RBVertex source = get_vertex(hasse[source_v].species.front(), g);
   // TODO: delete this ^ and implement the algorithm below
-
   // Let GRB be a reducible graph such that GM has a degenerate diagram P.
   // Then a safe source s of P is good for GRB if
   // (1) there exists a species s0 of P whose inactive characters are those of
@@ -408,19 +407,6 @@ void initial_state_visitor::perform_test_degenerate(const HDGraph& hasse) {
   //     with a minimal a such that a∪{si} for any other source of P is
   //     included in a species of GRB
   // (2) or none of the sources of P induces a species of GRB.
-  /*
-  RBVertex source = 0;
-
-  std::list<RBVertex> source_s;
-
-  for (const std::string& s : hasse[source_v].species) {
-    source_s.push_back(get_vertex(s, gm));
-  }
-
-  for (const RBVertex& v : source_s) {
-    // ...
-  }
-  */
 
   // check if source is already a safe source
   if (m_sources->size() > 0 && source == m_sources->back()) {
@@ -435,7 +421,7 @@ void initial_state_visitor::perform_test_degenerate(const HDGraph& hasse) {
   }
 
   // if the realization of s+ is not feasible in GRB
-  if (source == 0 || !safe_source(source, hasse))
+  if (!safe_source(source, hasse))
     // source is not a safe source
     return;
 
