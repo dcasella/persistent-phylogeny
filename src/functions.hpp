@@ -58,7 +58,7 @@ public:
 
     @param[out] sources Vertices representing the safe sources of the diagram
   */
-  initial_state_visitor(std::list<HDVertex>& sources);
+  initial_state_visitor(std::list<RBVertex>& sources);
 
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -191,7 +191,7 @@ public:
   bool safe_source(const RBVertex v, const HDGraph& hasse);
 
 private:
-  std::list<HDVertex>* m_sources;
+  std::list<RBVertex>* m_sources;
   std::list<SignedCharacter> lsc;
   HDVertex source_v;
   HDVertex last_v;
@@ -217,7 +217,7 @@ private:
 
   @return List of safe sources
 */
-std::list<HDVertex> initial_states(const HDGraph& hasse);
+std::list<RBVertex> initial_states(const HDGraph& hasse);
 
 
 //=============================================================================
