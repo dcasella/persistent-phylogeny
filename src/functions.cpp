@@ -305,7 +305,7 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
     // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
     // active characters in GRB and a set I of characters
-    if (count_inactives > source_c.size() && vchars.size() > 0) {
+    if (count_inactives > source_c.size() || vchars.size() > 0) {
       // assume that for every a in I, a is not in a forbidden triple;
       // assume that given b in conflict with a (b, a ∈ vchars) then b is not in
       // conflict with any maximal character in s+
