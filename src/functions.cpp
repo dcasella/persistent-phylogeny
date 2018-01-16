@@ -324,7 +324,6 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
       }
 
       source = get_vertex(gm[*v].name, g);
-
       continue;
     }
 
@@ -983,27 +982,6 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   // delete all isolated vertices
   remove_singletons(g);
 
-  // realize all universal characters that came up after realizing sc
-  std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v) {
-    // for each vertex
-    if (is_universal(*v, g)) {
-      // if v is universal
-      // realize v+
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "G universal character " << g[*v].name << std::endl;
-      }
-
-      std::list<SignedCharacter> lsc;
-      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
-
-      output.splice(output.end(), lsc);
-
-      return std::make_pair(output, true);
-    }
-  }
-
   // realize all free characters that came up after realizing sc
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
@@ -1018,6 +996,27 @@ realize(const SignedCharacter& sc, RBGraph& g) {
 
       std::list<SignedCharacter> lsc;
       std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
+
+      output.splice(output.end(), lsc);
+
+      return std::make_pair(output, true);
+    }
+  }
+
+  // realize all universal characters that came up after realizing sc
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    // for each vertex
+    if (is_universal(*v, g)) {
+      // if v is universal
+      // realize v+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "G universal character " << g[*v].name << std::endl;
+      }
+
+      std::list<SignedCharacter> lsc;
+      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
 
       output.splice(output.end(), lsc);
 
