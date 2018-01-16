@@ -255,7 +255,8 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
     // lsc is not a safe chain
     return;
 
-  RBVertex source = 0;
+  std::list<RBVertex> maybe_sources;
+  std::list<RBVertex> sources;
 
   std::list<RBVertex> source_s;
   size_t total_actives = active_characters(gm).size();
@@ -323,17 +324,17 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
                   << std::endl;
       }
 
-      source = get_vertex(gm[*v].name, g);
+      maybe_sources.push_back(get_vertex(gm[*v].name, g));
       continue;
     }
 
-    source = get_vertex(gm[*v].name, g);
-    break;
+    sources.push_back(get_vertex(gm[*v].name, g));
+    // break;
   }
 
   // if there does not exist a species s+ in GRB|CM∪A that consists of C(s) and
   // all active characters in GRB
-  if (source == 0) {
+  if (sources.size() == 0 && maybe_sources.size() == 0) {
     if (logging::enabled) {
       // verbosity enabled
       std::cout << "Source: [ ";
@@ -354,32 +355,38 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
     return;
   }
 
-  // check if source is already a safe source
-  if (m_sources->size() > 0 && source == m_sources->back()) {
-    // source already is a safe source
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << "Source: " << g[source].name << " is safe"
-                << std::endl << std::endl;
+  for (const RBVertex source : sources) {
+    // check if source is already a safe source
+    auto search = std::find(
+      m_sources->cbegin(), m_sources->cend(), source
+    );
+
+    if (search != m_sources->cend()) {
+      // source already is a safe source
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "Source: " << g[source].name << " is safe"
+                  << std::endl << std::endl;
+      }
+
+      return;
     }
 
-    return;
+    // if the realization of s+ is not feasible in GRB
+    if (!safe_source(source, hasse))
+      // source is not a safe source
+      continue;
+
+    m_sources->push_back(source);
+
+    if (exponential::enabled || interactive::enabled) {
+      // exponential algorithm or user interaction enabled
+      continue;
+    }
+
+    // stop at the first safe source
+    throw InitialState();
   }
-
-  // if the realization of s+ is not feasible in GRB
-  if (!safe_source(source, hasse))
-    // source is not a safe source
-    return;
-
-  m_sources->push_back(source);
-
-  if (exponential::enabled || interactive::enabled) {
-    // exponential algorithm or user interaction enabled
-    return;
-  }
-
-  // stop at the first safe source
-  throw InitialState();
 }
 
 void initial_state_visitor::perform_test_degenerate(const HDGraph& hasse) {
