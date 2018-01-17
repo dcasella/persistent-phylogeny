@@ -117,7 +117,7 @@ int main(int argc, const char* argv[]) {
 
   for (const std::string& file : files) {
     // for each filename in files
-    std::cout << "File (" << file << ")" << std::flush;
+    std::cout << "F  (" << file << ")" << std::flush;
 
     RBGraph g;
 
@@ -152,11 +152,24 @@ int main(int argc, const char* argv[]) {
         // check_reduction(filename, reduction) returned False
         throw NoReduction();
 
-      std::cout << '\r' << "Ok (" << file << "): < "
-                << reduction.str() << ">" << std::endl;
+      std::cout << '\r' << "Ok (" << file << ")";
+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << ": < " << reduction.str() << ">";
+      }
+
+      std::cout << std::endl;
     }
     catch (const NoReduction& e) {
-      std::cout << '\r' << "No (" << file << "): " << e.what() << std::endl;
+      std::cout << '\r' << "No (" << file << ")";
+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << ": " << e.what();
+      }
+
+      std::cout << std::endl;
     }
   }
 

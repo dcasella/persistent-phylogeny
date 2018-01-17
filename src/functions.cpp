@@ -926,7 +926,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     // - delete all black edges incident on c
     std::tie(v, v_end) = vertices(g);
     for (; v != v_end; ++v) {
-      if (is_character(*v, g) || map_comp[*v] != map_comp[cv])
+      if (!is_species(*v, g) || map_comp[*v] != map_comp[cv])
         continue;
       // for each species in the same connected component of cv
 
