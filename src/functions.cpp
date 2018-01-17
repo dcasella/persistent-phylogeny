@@ -889,7 +889,9 @@ std::pair<std::list<SignedCharacter>, bool>
 realize(const SignedCharacter& sc, RBGraph& g) {
   std::list<SignedCharacter> output;
 
-  RBVertex cv = 0; // cv = current character vertex
+  // current character vertex
+  RBVertex cv = 0;
+
   // get the vertex in g whose name is sc.character
   try {
     cv = get_vertex(sc.character, g);
