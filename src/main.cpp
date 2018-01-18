@@ -115,9 +115,28 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
+  if (files.size() > 1)
+    std::cout << "Running PPP on " << files.size() << " files."
+              << std::endl << std::endl;
+
+  size_t count_file = 0;
   for (const std::string& file : files) {
     // for each filename in files
-    std::cout << "F  (" << file << ")" << std::flush;
+    if (files.size() > 1) {
+      double d_perc = std::floor(100.0 * count_file / files.size());
+      size_t perc = static_cast<size_t>(d_perc);
+
+      if (perc < 10)
+        std::cout << " ";
+
+      std::cout << "\033[32m" << perc
+                << "\033[39m ("<< file << ")" << std::flush;
+    }
+    else {
+      std::cout << "F  (" << file << ")" << std::flush;
+    }
+
+    count_file++;
 
     RBGraph g;
 
@@ -167,6 +186,16 @@ int main(int argc, const char* argv[]) {
       if (logging::enabled) {
         // verbosity enabled
         std::cout << ": " << e.what();
+      }
+
+      std::cout << std::endl;
+    }
+    catch (const boost::python::error_already_set& e) {
+      std::cout << '\r' << "No (" << file << ")";
+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << ": Python machine broke";
       }
 
       std::cout << std::endl;
