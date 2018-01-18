@@ -58,7 +58,7 @@ public:
 
     @param[out] sources Vertices representing the safe sources of the diagram
   */
-  initial_state_visitor(std::list<RBVertex>& sources);
+  initial_state_visitor(std::list<HDVertex>& sources);
 
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -161,7 +161,7 @@ public:
   void perform_test_degenerate(const HDGraph& hasse);
 
   /**
-    @brief Check if \e lsc is a safe chain in \e hasse
+    @brief Check if \e chain is a safe chain in \e hasse
 
     Let GRB be a red-black graph, let P be the Hasse diagram for GRB|CM and let
     C be a chain of P.
@@ -170,12 +170,12 @@ public:
 
     @param[in] hasse Hasse diagram graph
 
-    @return True if \e lsc is a safe chain in \e hasse
+    @return True if \e chain is a safe chain in \e hasse
   */
   bool safe_chain(const HDGraph& hasse);
 
   /**
-    @brief Check if \e v is a safe source in \e hasse
+    @brief Check if \e source_v is a safe source in \e hasse
 
     Let GRB be a red-black graph and let P be the Hasse diagram for GRB|CM.
     A source s of a safe chain C of P is safe for GRB if there exists a species
@@ -183,19 +183,17 @@ public:
     the realization of C(s') in GRB does not induce red Σ-graphs in GRB.
     Then s' is called the active safe source for GRB.
 
-    @param[in] v     Vertex
     @param[in] hasse Hasse diagram graph
 
-    @return True if \e v is a safe source in \e hasse
+    @return True if \e source_v is a safe source in \e hasse
   */
-  bool safe_source(const RBVertex v, const HDGraph& hasse);
+  bool safe_source(const HDGraph& hasse);
 
 private:
-  std::list<RBVertex>* m_sources;
-  std::list<SignedCharacter> lsc;
+  std::list<HDVertex>* m_sources;
+  std::list<HDEdge> chain;
   HDVertex source_v;
   HDVertex last_v;
-  HDVertex last_safesource;
 };
 
 
@@ -217,7 +215,7 @@ private:
 
   @return List of safe sources
 */
-std::list<RBVertex> initial_states(const HDGraph& hasse);
+std::list<HDVertex> initial_states(const HDGraph& hasse);
 
 
 //=============================================================================
