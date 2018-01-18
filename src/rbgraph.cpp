@@ -264,21 +264,6 @@ void read_graph(const std::string& filename, RBGraph& g) {
 //=============================================================================
 // Algorithm functions
 
-std::list<RBVertex> active_characters(const RBGraph& g) {
-  std::list<RBVertex> output;
-
-  RBVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v) {
-    if (!is_active(*v, g))
-      continue;
-
-    output.push_back(*v);
-  }
-
-  return output;
-}
-
 bool is_active(const RBVertex v, const RBGraph& g) {
   if (!is_character(v, g))
     return false;
@@ -322,6 +307,36 @@ bool is_free(const RBVertex v, const RBGraph& g) {
 
   size_t count_species = 0;
 
+  RBVertexIMap map_index, map_comp;
+  RBVertexIAssocMap i_map(map_index), c_map(map_comp);
+
+  // fill vertex index map
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_map, *u, index);
+  }
+
+  // build the components map
+  size_t num_comps = boost::connected_components(
+    g, c_map, boost::vertex_index_map(i_map)
+  );
+
+  size_t tot_species = 0;
+
+  if (num_comps == 1) {
+    tot_species = num_species(g);
+  }
+  else {
+    std::tie(u, u_end) = vertices(g);
+    for (; u != u_end; ++u) {
+      if (!is_species(*u, g) || map_comp[v] != map_comp[*u])
+        continue;
+
+      tot_species++;
+    }
+  }
+
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
@@ -331,7 +346,7 @@ bool is_free(const RBVertex v, const RBGraph& g) {
     count_species++;
   }
 
-  if (count_species != num_species(g))
+  if (count_species != tot_species)
     return false;
 
   return true;
@@ -343,6 +358,36 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
 
   size_t count_species = 0;
 
+  RBVertexIMap map_index, map_comp;
+  RBVertexIAssocMap i_map(map_index), c_map(map_comp);
+
+  // fill vertex index map
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (size_t index = 0; u != u_end; ++u, ++index) {
+    boost::put(i_map, *u, index);
+  }
+
+  // build the components map
+  size_t num_comps = boost::connected_components(
+    g, c_map, boost::vertex_index_map(i_map)
+  );
+
+  size_t tot_species = 0;
+
+  if (num_comps == 1) {
+    tot_species = num_species(g);
+  }
+  else {
+    std::tie(u, u_end) = vertices(g);
+    for (; u != u_end; ++u) {
+      if (!is_species(*u, g) || map_comp[v] != map_comp[*u])
+        continue;
+
+      tot_species++;
+    }
+  }
+
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
@@ -352,7 +397,7 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
     count_species++;
   }
 
-  if (count_species != num_species(g))
+  if (count_species != tot_species)
     return false;
 
   return true;

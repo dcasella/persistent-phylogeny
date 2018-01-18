@@ -504,15 +504,6 @@ inline bool is_red(const RBEdge e, const RBGraph& g) {
 }
 
 /**
-  @brief Return the list of active characters in \e g
-
-  @param[in] g Red-black graph
-
-  @return List of active vertices in \e g
-*/
-std::list<RBVertex> active_characters(const RBGraph& g);
-
-/**
   @brief Check if \e v is active in \e g
 
   A vertex is active in a red-black graph if it's a character that is incident

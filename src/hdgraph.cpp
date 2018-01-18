@@ -414,4 +414,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       }
     }
   }
+
+  if (logging::enabled) {
+    // verbosity enabled
+
+    // TODO: count connected components, and count their sources
+  }
 }
