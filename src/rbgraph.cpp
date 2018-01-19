@@ -863,7 +863,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
   copy_graph(g, gm);
 
   // compute the maximal characters of gm
-  std::list<RBVertex> cm = maximal_characters2(gm);
+  std::list<RBVertex> cm = maximal_characters(gm);
 
   if (logging::enabled) {
     // verbosity enabled

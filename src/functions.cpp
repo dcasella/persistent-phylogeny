@@ -218,10 +218,19 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
     std::cout << "]" << std::endl;
   }
 
-  if (last_v != v || v == source_v) {
-    // v is not the last vertex in the chain (which means the visit is
-    // backtracking) or v is the source of the chain, which means it has
-    // already been tested
+  // build list of vertices in chain
+  std::list<HDVertex> chain_v;
+  for (const HDEdge& e : chain) {
+    chain_v.push_back(source(e, hasse));
+  }
+
+  bool v_in_chain = (
+    std::find(chain_v.cbegin(), chain_v.cend(), v) != chain_v.cend()
+  );
+
+  if (v_in_chain || last_v != v) {
+    // v is not the last vertex in the chain
+    // (which means the visit is backtracking)
 
     // remove the last added edge from the chain if the chain is not empty
     if (!chain.empty())
@@ -233,7 +242,8 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
   perform_test(hasse);
 
   // remove the last added edge from the chain
-  chain.pop_back();
+  if (!chain.empty())
+    chain.pop_back();
 }
 
 void initial_state_visitor::perform_test(const HDGraph& hasse) {
@@ -422,7 +432,7 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
       std::cout << "Empty chain" << std::endl << std::endl;
     }
 
-    return false;
+    return true;
   }
 
   std::list<SignedCharacter> lsc;
