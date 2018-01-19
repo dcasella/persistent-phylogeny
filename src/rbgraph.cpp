@@ -499,8 +499,6 @@ RBGraphVector connected_components(const RBGraph& g) {
 std::list<RBVertex> maximal_characters(const RBGraph& g) {
   std::list<RBVertex> cm;
   std::map<RBVertex, std::list<RBVertex>> sets;
-  size_t count_incl, count_excl;
-  bool keep_char, skip_cycle;
 
   // how sets is going to be structured:
   // sets[C] => < List of adjacent species to C >
@@ -538,7 +536,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
 
     // sets[*v] now contains the list of species adjacent to v
 
-    skip_cycle = false;
+    bool skip_cycle = false;
+    bool subst = false;
 
     // check if sets[*v] is subset of the species adjacent to cmv
     RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
@@ -558,8 +557,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         std::cout << "}:" << std::endl;
       }
 
-      count_incl = 0; count_excl = 0;
-      keep_char = false;
+      size_t count_incl = 0;
+      size_t count_excl = 0;
+      bool keep_char = false;
 
       RBVertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
       for (; sv != sv_end; ++sv) {
@@ -590,26 +590,46 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // the list of adjacent species to v is a superset of the list of
             // adjacent species to cmv, which means cmv can be replaced
             // by v in the list of maximal characters Cm
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " subst" << std::endl;
+            if (subst) {
+              if (logging::enabled) {
+                // verbosity enabled
+                std::cout << " rm" << std::endl;
+              }
+
+              cm.remove(*(cmv++));
+            }
+            else {
+              if (logging::enabled) {
+                // verbosity enabled
+                std::cout << " subst" << std::endl;
+              }
+
+              cm.push_front(*v);
+              cm.remove(*(cmv++));
+
+              subst = true;
             }
 
-            cm.push_front(*v);
-            cm.remove(*(cmv++));
-
-            skip_cycle = true;
+            cmv--;
           }
           else if (count_incl < sets[*cmv].size() && count_excl > 0) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " add, not subset" << std::endl;
+            if (subst) {
+              if (logging::enabled) {
+                // verbosity enabled
+                std::cout << " ignore, no rm" << std::endl;
+              }
             }
+            else {
+              if (logging::enabled) {
+                // verbosity enabled
+                std::cout << " add, not subset" << std::endl;
+              }
 
-            keep_char = true;
+              keep_char = true;
+            }
           }
           else if (count_incl == sets[*cmv].size()) {
             // the list of adjacent species to v is the same as the list of
@@ -668,8 +688,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
   std::list<RBVertex> cm;
   std::vector<std::list<RBVertex>> sets(num_characters(g));
   std::map<RBVertex, std::list<RBVertex>> v_map;
-  size_t count_incl, count_excl;
-  bool keep_char, skip_cycle;
 
   // how sets is going to be structured:
   // sets[index] => < C, List of adjacent species to C >
@@ -726,7 +744,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       std::cout << g[v].name << std::endl;
     }
 
-    skip_cycle = false;
+    bool skip_cycle = false;
 
     // check if sc is subset of the species adjacent to cmv
     RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
@@ -746,8 +764,9 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         std::cout << "}:" << std::endl;
       }
 
-      count_incl = 0; count_excl = 0;
-      keep_char = false;
+      size_t count_incl = 0;
+      size_t count_excl = 0;
+      bool keep_char = false;
 
       RBVertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
       for (; sv != sv_end; ++sv) {
