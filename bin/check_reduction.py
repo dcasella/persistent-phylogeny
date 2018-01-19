@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 
 
-def check_reduction(filename, reduction, verbose=False):
+def check_reduction(filename, reduction, keep_c=None, verbose=False):
     # apply reduction to the matrix in filename
 
     # open filename in read mode
@@ -34,6 +34,13 @@ def check_reduction(filename, reduction, verbose=False):
 
         # assert the matrix is correctly sized
         assert m.shape == shape
+
+        if keep_c:
+            keep_c = list(int(char) for char in keep_c.split())
+
+            for char in range(m.shape[1]):
+                if char not in keep_c:
+                    m[:, char] = 0
 
     # build the list of signed character pairs from reduction
     pairs = ((int(sc[1:-1]), sc[-1]) for sc in reduction.split())
@@ -178,6 +185,10 @@ def main():
     parser_optional.add_argument('-v', '--verbose', action='store_true',
                                  help='Display the matrix as the reduction is '
                                       'applied.')
+    # maximal characters
+    parser_optional.add_argument('-c', '--chars', dest='ch',
+                                 help='Only keep the following characters in '
+                                      'the matrix.')
 
     # append the previously popped optional arguments group
     parser._action_groups.append(parser_optional)
@@ -186,7 +197,7 @@ def main():
     args = parser.parse_args()
 
     # run the program
-    output = check_reduction(args.file, args.reduction, args.verbose)
+    output = check_reduction(args.file, args.reduction, args.ch, args.verbose)
 
     if args.verbose:
         print("Successful: {}".format(output))

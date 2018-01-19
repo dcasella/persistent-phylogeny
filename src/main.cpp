@@ -51,6 +51,12 @@ int main(int argc, const char* argv[]) {
     boost::program_options::bool_switch(&interactive::enabled),
     "User input driven execution.\n"
     "(Mutually exclusive with --exponential)"
+  )
+  // option: maximal, read graph and reduce it to maximal
+  (
+    "maximal,m",
+    boost::program_options::bool_switch()->default_value(false),
+    "Run the algorithm on the maximal subgraph"
   );
 
   // initialize hidden options (not shown in --help)
@@ -148,10 +154,27 @@ int main(int argc, const char* argv[]) {
         std::cout << std::endl;
       }
 
+      std::stringstream keep_c;
+
+      if (vm["maximal"].as<bool>()) {
+        RBGraph gm = maximal_reducible_graph(g);
+
+        RBVertexIter v, v_end;
+        std::tie(v, v_end) = vertices(gm);
+        for (; v != v_end; ++v) {
+          if (!is_character(*v, gm))
+            continue;
+
+          keep_c << g[*v].name.substr(1) << " ";
+        }
+
+        g.clear();
+        copy_graph(gm, g);
+      }
+
       std::list<SignedCharacter> output = reduce(g);
 
       std::stringstream reduction;
-
       for (const SignedCharacter& sc : output) {
         reduction << sc << " ";
       }
@@ -162,14 +185,28 @@ int main(int argc, const char* argv[]) {
 
       // import check_reduction.py
       boost::python::object pymod = boost::python::import("check_reduction");
-      // run the function check_reduction(filename, reduction), store its
-      // output in pycheck
-      boost::python::object pycheck = pymod.attr("check_reduction")
-                                                (file, reduction.str());
 
-      if (!boost::python::extract<bool>(pycheck)())
-        // check_reduction(filename, reduction) returned False
-        throw NoReduction();
+      if (vm["maximal"].as<bool>()) {
+        // run the function check_reduction(filename, reduction), store its
+        // output in pycheck
+        boost::python::object pycheck = pymod.attr("check_reduction")
+                                                  (file, reduction.str(),
+                                                   keep_c.str());
+
+        if (!boost::python::extract<bool>(pycheck)())
+          // check_reduction(filename, reduction) returned False
+          throw NoReduction();
+      }
+      else {
+        // run the function check_reduction(filename, reduction), store its
+        // output in pycheck
+        boost::python::object pycheck = pymod.attr("check_reduction")
+                                                  (file, reduction.str());
+
+        if (!boost::python::extract<bool>(pycheck)())
+          // check_reduction(filename, reduction) returned False
+          throw NoReduction();
+      }
 
       std::cout << '\r' << "Ok (" << file << ")";
 
