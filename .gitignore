@@ -12,3 +12,7 @@ docs/
 
 # Python byte code
 *.pyc
+
+# Text files
+*.txt
+*.log
