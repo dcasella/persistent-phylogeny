@@ -597,8 +597,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
 
             cm.push_front(*v);
             cm.remove(*(cmv++));
+
             skip_cycle = true;
-            break;
           }
           else if (count_incl < sets[*cmv].size() && count_excl > 0) {
             // the list of adjacent species to v is neither a superset nor a
@@ -606,7 +606,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // v may be a new maximal character
             if (logging::enabled) {
               // verbosity enabled
-              std::cout << " add, not subset";
+              std::cout << " add, not subset" << std::endl;
             }
 
             keep_char = true;
@@ -621,7 +621,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             }
 
             skip_cycle = true;
-            break;
           }
           else if (count_excl == 0) {
             // the list of adjacent species to v is a subset of the list of
@@ -633,13 +632,17 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             }
 
             skip_cycle = true;
-            break;
           }
           else if (logging::enabled) {
             // verbosity enabled
             // how we ended up here nobody knows
-            std::cout << " idk";
+            std::cout << " idk" << std::endl;
           }
+        }
+
+        if (logging::enabled) {
+          // verbosity enabled
+          std::cout << std::endl;
         }
       }
 
@@ -650,18 +653,8 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
           // species to v is neither a superset nor a subset of the lists of
           // adjacent species to the characters in Cm, so v is a maximal
           // characters and can be added to the list of maximal characters Cm
-          if (logging::enabled) {
-            // verbosity enabled
-            std::cout << "\tadd" << std::endl;
-          }
-
           cm.push_front(*v);
         }
-      }
-
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << std::endl;
       }
     }
   }
@@ -789,7 +782,7 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             // v may be a new maximal character
             if (logging::enabled) {
               // verbosity enabled
-              std::cout << " add, not subset";
+              std::cout << " add, not subset" << std::endl;
             }
 
             keep_char = true;
@@ -804,7 +797,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             }
 
             skip_cycle = true;
-            break;
           }
           else if (count_excl == 0) {
             // the list of adjacent species to v is a subset of the list of
@@ -816,12 +808,11 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
             }
 
             skip_cycle = true;
-            break;
           }
           else if (logging::enabled) {
             // verbosity enabled
             // how we ended up here nobody knows
-            std::cout << " idk";
+            std::cout << " idk" << std::endl;
           }
         }
 
@@ -838,18 +829,8 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
           // species to v is neither a superset nor a subset of the lists of
           // adjacent species to the characters in Cm, so v is a maximal
           // characters and can be added to the list of maximal characters Cm
-          if (logging::enabled) {
-            // verbosity enabled
-            std::cout << "\tadd" << std::endl;
-          }
-
           cm.push_front(v);
         }
-      }
-
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << std::endl;
       }
     }
   }
@@ -858,14 +839,12 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
 }
 
 RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
-  std::list<RBVertex> cm;
-
   // copy g to gm
   RBGraph gm;
   copy_graph(g, gm);
 
   // compute the maximal characters of gm
-  cm = maximal_characters2(gm);
+  std::list<RBVertex> cm = maximal_characters2(gm);
 
   if (logging::enabled) {
     // verbosity enabled
