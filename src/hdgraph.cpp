@@ -134,11 +134,6 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       continue;
     // for each species vertex
 
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << "C(" << gm[*v].name << ") = { ";
-    }
-
     // sets[index]'s first element is the species vertex
     sets[index].push_back(*v);
 
@@ -153,44 +148,19 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // vt = one of the characters adjacent to *v
       RBVertex vt = target(*e, gm);
 
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << gm[vt].name << " ";
-      }
-
       // sets[index]'s other elements are the characters adjacent to S
       sets[index].push_back(vt);
       // v_map[S]'s elements are the characters adjacent to S
       v_map[*v].push_back(vt);
     }
 
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << "}";
-    }
-
     // if the species *v would have 0 characters, ignore it
     if (sets[index].size() == 1) {
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << " ignore" << std::endl;
-      }
-
       sets[index].clear();
       continue;
     }
 
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << std::endl;
-    }
-
     index++;
-  }
-
-  if (logging::enabled) {
-    // verbosity enabled
-    std::cout << std::endl;
   }
 
   // sort sets by size in ascending order
@@ -215,27 +185,11 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // first iteration of the loop:
       // add v to the Hasse diagram, and being the first vertex of the graph
       // there's no need to do any work.
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "Hasse.addV " << gm[v].name << std::endl << std::endl;
-      }
-
       add_vertex(gm[v].name, lcv, hasse);
 
       first_iteration = false;
 
       continue;
-    }
-
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << "C(" << gm[v].name << ") = { ";
-
-      for (const std::string& kk : lcv) {
-        std::cout << kk << " ";
-      }
-
-      std::cout << "}:" << std::endl;
     }
 
     // new_edges will contain the list of edges that may be added to the Hasse
@@ -248,29 +202,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     std::tie(hdv, hdv_end) = vertices(hasse);
     for (; hdv != hdv_end; ++hdv) {
       // for each vertex in hasse
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "hdv: ";
-
-        for (const std::string& kk : hasse[*hdv].species) {
-          std::cout << kk << " ";
-        }
-
-        std::cout << "= { ";
-
-        for (const std::string& kk : hasse[*hdv].characters) {
-          std::cout << kk << " ";
-        }
-
-        std::cout << "} -> ";
-      }
 
       if (lcv == hasse[*hdv].characters) {
         // v and hdv have the same characters
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << "mod" << std::endl;
-        }
 
         // add v to the list of species in hdv
         hasse[*hdv].species.push_back(gm[v].name);
@@ -303,10 +237,6 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // pairs in new_edges, add vertex and edges to the Hasse diagram
       if (std::next(hdv) == hdv_end) {
         // last iteration on the characters in the list has been performed
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << "add" << std::endl;
-        }
 
         // build a vertex for v and add it to the Hasse diagram
         HDVertex u = add_vertex(gm[v].name, lcv, hasse);
@@ -317,51 +247,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
           HDEdge edge;
           std::tie(edge, std::ignore) = add_edge(ei.first, u, hasse);
           hasse[edge].signedcharacters.push_back({ ei.second, State::gain });
-
-          if (logging::enabled) {
-            // verbosity enabled
-            std::cout << "Hasse.addE ";
-
-            for (const std::string& kk : hasse[ei.first].species) {
-              std::cout << kk << " ";
-            }
-
-            std::cout << "-";
-
-            SignedCharacterIter jj = hasse[edge].signedcharacters.begin();
-            for (; jj != hasse[edge].signedcharacters.end(); ++jj) {
-              std::cout << *jj;
-
-              if (std::next(jj) != hasse[edge].signedcharacters.end())
-                std::cout << ",";
-            }
-
-            std::cout << "-> ";
-
-            for (const std::string& kk : hasse[u].species) {
-              std::cout << kk << " ";
-            }
-
-            std::cout << std::endl;
-          }
         }
 
         break;
       }
-      else if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "ignore";
-      }
-
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << std::endl;
-      }
-    }
-
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << std::endl;
     }
   }
 
@@ -371,12 +260,6 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // Store the maximal reducible graph pointer into the Hasse diagram's graph
   // properties
   hasse[boost::graph_bundle].gm = &gm;
-
-  if (logging::enabled) {
-    // verbosity enabled
-    std::cout << "Before transitive reduction:" << std::endl
-              << hasse << std::endl << std::endl;
-  }
 
   // TODO: is this transitive reduction too simple?
 

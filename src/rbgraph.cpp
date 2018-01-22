@@ -529,11 +529,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       continue;
     }
 
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << g[*v].name << std::endl;
-    }
-
     // sets[*v] now contains the list of species adjacent to v
 
     bool skip_cycle = false;
@@ -546,17 +541,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       if (skip_cycle)
         break;
 
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "curr Cm: " << g[*cmv].name << " = { ";
-
-        for (const RBVertex& kk : sets[*cmv]) {
-          std::cout << g[kk].name << " ";
-        }
-
-        std::cout << "}:" << std::endl;
-      }
-
       size_t count_incl = 0;
       size_t count_excl = 0;
       bool keep_char = false;
@@ -564,10 +548,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
       RBVertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
       for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << "S(" << g[*v].name << "): " << g[*sv].name << " -> ";
-        }
 
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(), *sv);
@@ -579,11 +559,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         else
           count_excl++;
 
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << count_incl << " " << count_excl;
-        }
-
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
           if (count_incl == sets[*cmv].size() && count_excl > 0) {
@@ -591,19 +566,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // adjacent species to cmv, which means cmv can be replaced
             // by v in the list of maximal characters Cm
             if (subst) {
-              if (logging::enabled) {
-                // verbosity enabled
-                std::cout << " rm" << std::endl;
-              }
-
               cm.remove(*(cmv++));
             }
             else {
-              if (logging::enabled) {
-                // verbosity enabled
-                std::cout << " subst" << std::endl;
-              }
-
               cm.push_front(*v);
               cm.remove(*(cmv++));
 
@@ -616,53 +581,21 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
-            if (subst) {
-              if (logging::enabled) {
-                // verbosity enabled
-                std::cout << " ignore, no rm" << std::endl;
-              }
-            }
-            else {
-              if (logging::enabled) {
-                // verbosity enabled
-                std::cout << " add, not subset" << std::endl;
-              }
-
+            if (!subst)
               keep_char = true;
-            }
           }
           else if (count_incl == sets[*cmv].size()) {
             // the list of adjacent species to v is the same as the list of
             // adjacent species to cmv, so v can be ignored in the next
             // iterations on the characters in Cm
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " ignore, same set" << std::endl;
-            }
-
             skip_cycle = true;
           }
           else if (count_excl == 0) {
             // the list of adjacent species to v is a subset of the list of
             // adjacent species to cmv, meaning v can be ignored in the
             // next iterations on the characters in Cm
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " ignore, subset" << std::endl;
-            }
-
             skip_cycle = true;
           }
-          else if (logging::enabled) {
-            // verbosity enabled
-            // how we ended up here nobody knows
-            std::cout << " idk" << std::endl;
-          }
-        }
-
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << std::endl;
         }
       }
 
@@ -739,11 +672,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       continue;
     }
 
-    if (logging::enabled) {
-      // verbosity enabled
-      std::cout << g[v].name << std::endl;
-    }
-
     bool skip_cycle = false;
 
     // check if sc is subset of the species adjacent to cmv
@@ -753,17 +681,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       if (skip_cycle)
         break;
 
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "curr Cm: " << g[*cmv].name << " = { ";
-
-        for (const RBVertex& kk : v_map[*cmv]) {
-          std::cout << g[kk].name << " ";
-        }
-
-        std::cout << "}:" << std::endl;
-      }
-
       size_t count_incl = 0;
       size_t count_excl = 0;
       bool keep_char = false;
@@ -771,10 +688,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
       RBVertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
       for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << "S(" << g[v].name << "): " << g[*sv].name << " -> ";
-        }
 
         // find sv in the list of cmv's adjacent species
         RBVertexIter in = std::find(
@@ -788,56 +701,26 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g) {
         else
           count_excl++;
 
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << count_incl << " " << count_excl;
-        }
-
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
           if (count_incl < v_map[*cmv].size() && count_excl > 0) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " add, not subset" << std::endl;
-            }
-
             keep_char = true;
           }
           else if (count_incl == v_map[*cmv].size()) {
             // the list of adjacent species to v is the same as the list of
             // adjacent species to cmv, so v can be ignored in the next
             // iterations on the characters in Cm
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " ignore, same set" << std::endl;
-            }
-
             skip_cycle = true;
           }
           else if (count_excl == 0) {
             // the list of adjacent species to v is a subset of the list of
             // adjacent species to cmv, meaning v can be ignored in the
             // next iterations on the characters in Cm
-            if (logging::enabled) {
-              // verbosity enabled
-              std::cout << " ignore, subset" << std::endl;
-            }
-
             skip_cycle = true;
           }
-          else if (logging::enabled) {
-            // verbosity enabled
-            // how we ended up here nobody knows
-            std::cout << " idk" << std::endl;
-          }
-        }
-
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << std::endl;
         }
       }
 
