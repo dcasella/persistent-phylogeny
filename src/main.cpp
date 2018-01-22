@@ -237,6 +237,16 @@ int main(int argc, const char* argv[]) {
 
       std::cout << std::endl;
     }
+    catch (const std::runtime_error& e) {
+      std::cout << '\r' << "No (" << file << ")";
+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << ": " << e.what();
+      }
+
+      std::cout << std::endl;
+    }
   }
 
   return 0;
