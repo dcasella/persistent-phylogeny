@@ -62,11 +62,11 @@ void initial_state_visitor::discover_vertex(const HDVertex v,
 
 void initial_state_visitor::examine_edge(const HDEdge e,
                                          const HDGraph& hasse) {
+  HDVertex vs, vt;
+  std::tie(vs, vt) = incident(e, hasse);
+
   if (logging::enabled) {
     // verbosity enabled
-    HDVertex vs, vt;
-    std::tie(vs, vt) = incident(e, hasse);
-
     std::cout << "examine_edge: [ ";
 
     for (const std::string& kk : hasse[vs].species) {
@@ -92,6 +92,11 @@ void initial_state_visitor::examine_edge(const HDEdge e,
     std::cout << "]" << std::endl;
   }
 
+  if (in_degree(vs, hasse) == 0)
+    // the source vertex of the edge is a source (indegree 0)
+    chain.clear();
+
+  // add edge to the chain
   chain.push_back(e);
 }
 
@@ -197,12 +202,30 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     std::cout << "]" << std::endl;
   }
 
-  if (out_degree(vt, hasse) > 0)
-    // e is not the last edge in the chain (vt is not a sink in hasse), so
+  if (out_degree(vt, hasse) == 1) {
+    // e is not the last edge in the chain (vt is not a sink in hasse),
+    // but it may be needed for the chain to complete
+    HDOutEdgeIter oe;
+    std::tie(oe, std::ignore) = out_edges(vt, hasse);
+
+    // add outedge to the chain
+    chain.push_back(*oe);
+  }
+  else if (out_degree(vt, hasse) > 1) {
+    // e is not the last edge in the chain (vt is not a sink in hasse),
     // ignore it and keep going
     return;
+  }
 
   perform_test(hasse);
+
+  // remove the last added edge from the chain
+  chain.pop_back();
+
+  if (out_degree(vt, hasse) == 1)
+    // remove the second last added egde from the chain,
+    // since two edges were added in this function
+    chain.pop_back();
 }
 
 void initial_state_visitor::finish_vertex(const HDVertex v,
@@ -228,11 +251,12 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
     std::find(chain_v.cbegin(), chain_v.cend(), v) != chain_v.cend()
   );
 
-  if (v_in_chain || last_v != v) {
+  if (out_degree(v, hasse) > 0 || v_in_chain || last_v != v) {
     // v is not the last vertex in the chain
     // (which means the visit is backtracking)
 
-    // remove the last added edge from the chain if the chain is not empty
+    // remove the last added edge from the chain if the chain is not empty,
+    // since this chain has already been tested
     if (!chain.empty())
       chain.pop_back();
 
@@ -241,7 +265,8 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
 
   perform_test(hasse);
 
-  // remove the last added edge from the chain
+  // remove the last added edge from the chain if the chain is not empty,
+  // which is sure to be a tree edge
   if (!chain.empty())
     chain.pop_back();
 }
