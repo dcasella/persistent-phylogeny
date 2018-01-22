@@ -125,6 +125,13 @@ int main(int argc, const char* argv[]) {
     std::cout << "Running PPP on " << files.size() << " files."
               << std::endl << std::endl;
 
+  // initialize the python interpreter
+  setenv("PYTHONPATH", "bin", 1);
+  Py_Initialize();
+
+  // import check_reduction.py
+  boost::python::object pymod = boost::python::import("check_reduction");
+
   size_t count_file = 0;
   for (const std::string& file : files) {
     // for each filename in files
@@ -178,13 +185,6 @@ int main(int argc, const char* argv[]) {
       for (const SignedCharacter& sc : output) {
         reduction << sc << " ";
       }
-
-      // initialize the python interpreter
-      setenv("PYTHONPATH", "bin", 1);
-      Py_Initialize();
-
-      // import check_reduction.py
-      boost::python::object pymod = boost::python::import("check_reduction");
 
       if (vm["maximal"].as<bool>()) {
         // run the function check_reduction(filename, reduction), store its
