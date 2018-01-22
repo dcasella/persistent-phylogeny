@@ -232,7 +232,7 @@ int main(int argc, const char* argv[]) {
 
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << ": Python machine broke";
+        std::cout << ": Python error";
       }
 
       std::cout << std::endl;

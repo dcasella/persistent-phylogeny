@@ -252,6 +252,13 @@ void read_graph(const std::string& filename, RBGraph& g) {
     }
   }
 
+  if (index != species.size() * characters.size()) {
+    // input file parsing error
+    throw std::runtime_error(
+      "Failed to read graph from file: undersized matrix"
+    );
+  }
+
   if (species.size() == 0 || characters.size() == 0) {
     // input file parsing error
     throw std::runtime_error(
