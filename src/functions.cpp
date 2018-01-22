@@ -316,46 +316,131 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
   std::list<std::string> source_c = hasse[source_v].characters;
 
+  // search for a species s+ in GRB|CM∪A that consists of C(s) and is
+  // connected to only inactive characters
   for (const std::string& species_name : hasse[source_v].species) {
     RBVertex source_s = get_vertex(species_name, gm);
+    // for each source species (s+) in source_v
 
-    std::list<std::string> minimal_c;
-    size_t count_inactives = 0;
     bool active = false;
 
+    // check if s+ is connected to active characters
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(source_s, gm);
     for (; e != e_end; ++e) {
+      // for each out egde from s+
       if (is_red(*e, gm)) {
+        // s+ is active; search for another species
         active = true;
+
+        break;
+      }
+    }
+
+    if (active)
+      // s+ is connected to active characters
+      continue;
+
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "Source species: " << species_name
+                << std::endl;
+    }
+
+    if (!safe_source(hasse))
+      // source_v is not a safe source
+      continue;
+
+    m_sources->push_back(source_v);
+
+    if (exponential::enabled || interactive::enabled) {
+      // exponential algorithm or user interaction enabled
+      return;
+    }
+
+    // stop at the first safe source
+    throw InitialState();
+  }
+
+  // list of characters of GRB|CM∪A
+  std::list<std::string> gm_c;
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(gm);
+  for (; v != v_end; ++v) {
+    if (!is_character(*v, g))
+      continue;
+
+    gm_c.push_back(gm[*v].name);
+  }
+
+  // search for a species s+ in GRB|CM∪A that consists of C(s) and a set of
+  // maximal characters, and is connected to only inactive characters
+  std::tie(v, v_end) = vertices(gm);
+  for (; v != v_end; ++v) {
+    if (!is_species(*v, g))
+      continue;
+
+    // if s+ is in source_v it means that it was already tested previously
+    StringIter search = std::find(
+      hasse[source_v].species.cbegin(),
+      hasse[source_v].species.cend(),
+      gm[*v].name
+    );
+
+    if (search != hasse[source_v].species.cend())
+      // s+ is in source_v, search for another species
+      continue;
+
+    std::list<std::string> maximal_c;
+    size_t count_maximal = 0;
+    bool active = false;
+
+    RBOutEdgeIter e, e_end;
+    std::tie(e, e_end) = out_edges(*v, gm);
+    for (; e != e_end; ++e) {
+      // for each out egde from s+
+      if (is_red(*e, gm)) {
+        // s+ is active; search for another species
+        active = true;
+
         break;
       }
       else {
         RBVertex vt = target(*e, gm);
 
+        // search if vt is a maximal character in source_c
         StringIter search = std::find(
-          source_c.cbegin(), source_c.cend(), g[vt].name
+          source_c.cbegin(), source_c.cend(), gm[vt].name
         );
 
-        if (search == source_c.cend())
-          minimal_c.push_back(gm[vt].name);
+        if (search == source_c.cend()) {
+          // vt is not a maximal character in source_c
 
-        count_inactives++;
+          // search if vt is a maximal character in GRB|CM∪A
+          search = std::find(gm_c.cbegin(), gm_c.cend(), gm[vt].name);
+
+          if (search != gm_c.cend())
+            // add vt to the set of maximal characters
+            maximal_c.push_back(gm[vt].name);
+        }
+        else {
+          count_maximal++;
+        }
       }
     }
 
-    // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
-    // active characters in GRB
-
-    // s+ doesn't consist of C(s) or it's active
-    if (count_inactives < source_c.size() || active)
+    if (count_maximal < source_c.size() || active)
+      // s+ doesn't consist of C(s) or it's connected to active characters
       continue;
 
-    // if there exists a species s+ in GRB|CM∪A that consists of C(s) and all
-    // active characters in GRB and a set I of characters
-    if (count_inactives > source_c.size() || minimal_c.size() > 0) {
-      // TODO (do nothing for now)
+    if (maximal_c.size() == 0)
+      // s+ doesn't have a set of other maximal characters
       continue;
+
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "Source species (+ other maximal characters): " << gm[*v].name
+                << std::endl;
     }
 
     if (!safe_source(hasse))
