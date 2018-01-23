@@ -10,23 +10,6 @@
 // Auxiliary structs and classes
 
 /**
-  @brief Safe chain DFS Visitor exception
-
-  Thrown when \c initial_state_visitor finds a safe chain with a safe source
-*/
-class InitialState : public std::exception {
-public:
-  /**
-    @brief Returns the reason of the exception
-
-    @return C String
-  */
-  inline const char* what() const throw() {
-    return "Found initial state";
-  }
-};
-
-/**
   @brief Reduce exception
 
   Thrown when \c reduce can't reduce the graph anymore
@@ -131,34 +114,14 @@ public:
   void finish_vertex(const HDVertex v, const HDGraph& hasse);
 
   /**
-    @brief Test if \e lsc is a safe chain with \e source_v as active safe
-           source in \e hasse
+    @brief Test if \e chain is a safe chain with \e source_v as source
 
-    Call \e safe_chain to check if \e lsc is a safe chain. If it is, call \e
-    safe_source to check if \e source_v (the source of the chain \e lsc) is a
-    safe source. If it is, add it to the list of safe sources.
-    This function throws a \e InitialState exception if \e interactive::enabled
-    is disabled and \e source_v is a safe source.
+    Call \e safe_chain to check if \e chain is a safe chain. If it is, add
+    source_v to the list of sources.
 
     @param[in] hasse Hasse diagram graph
   */
   void perform_test(const HDGraph& hasse);
-
-  /**
-    @brief Test if \e source_v is a safe source in the degenerate diagram \e
-           hasse
-
-    Let GRB be a reducible graph such that GM has a degenerate diagram P.
-    Then a safe source s of P is good for GRB if
-    (1) there exists a species s0 of P whose inactive characters are those of
-        a species s of GRB and s does not a character d that is in conflict
-        with a minimal a such that a∪{si} for any other source of P is
-        included in a species of GRB
-    (2) or none of the sources of P induces a species of GRB.
-
-    @param[in] hasse Hasse diagram graph
-  */
-  void perform_test_degenerate(const HDGraph& hasse);
 
   /**
     @brief Check if \e chain is a safe chain in \e hasse
@@ -173,21 +136,6 @@ public:
     @return True if \e chain is a safe chain in \e hasse
   */
   bool safe_chain(const HDGraph& hasse);
-
-  /**
-    @brief Check if \e source_v is a safe source in \e hasse
-
-    Let GRB be a red-black graph and let P be the Hasse diagram for GRB|CM.
-    A source s of a safe chain C of P is safe for GRB if there exists a species
-    s' in GRB|CM∪A that consists of C(s) and all active characters in GRB and
-    the realization of C(s') in GRB does not induce red Σ-graphs in GRB.
-    Then s' is called the active safe source for GRB.
-
-    @param[in] hasse Hasse diagram graph
-
-    @return True if \e source_v is a safe source in \e hasse
-  */
-  bool safe_source(const HDGraph& hasse);
 
 private:
   std::list<HDVertex>* m_sources;
@@ -216,6 +164,100 @@ private:
   @return List of safe sources
 */
 std::list<HDVertex> initial_states(const HDGraph& hasse);
+
+/**
+  @brief Test if \e sources contain a safe source in \e hasse
+
+  Let GRB be a red-black graph and let P be the Hasse diagram for GRB|CM.
+  A source s of a safe chain C of P is safe for GRB if it satisfies one of the
+  following tests.
+
+  Test 1:
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s), is connected to only inactive characters and the
+  realization of C(s') in GRB does not induce red Σ-graphs in GRB.
+
+  If test 1 failed.
+
+  Test 2:
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s) + other maximal characters, is connected to only inactive
+  characters and the realization of C(s') in GRB does not induce red Σ-graphs
+  in GRB.
+
+  If test 1 and 2 failed.
+
+  Test 3:
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s) + other active characters, and the realization of C(s') in
+  GRB does not induce red Σ-graphs in GRB.
+
+  @param[in] sources List of source vertices
+  @param[in] hasse   Hasse diagram graph
+
+  @return List of safe sources
+*/
+std::list<HDVertex>
+safe_sources(const std::list<HDVertex>& sources, const HDGraph& hasse);
+
+/**
+  @brief Test if \e sources contain a source that satisfies the test 1 in
+         \e hasse
+
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s), is connected to only inactive characters and the
+  realization of C(s') in GRB does not induce red Σ-graphs in GRB.
+
+  @param[in] sources List of source vertices
+  @param[in] hasse   Hasse diagram graph
+
+  @return List of sources that satisfy the test 1
+*/
+std::list<HDVertex>
+safe_source_test1(const std::list<HDVertex>& sources, const HDGraph& hasse);
+
+/**
+  @brief Test if \e sources contain a source that satisfies the test 2 in
+         \e hasse
+
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s) + other maximal characters, is connected to only inactive
+  characters and the realization of C(s') in GRB does not induce red Σ-graphs
+  in GRB.
+
+  @param[in] sources List of source vertices
+  @param[in] hasse   Hasse diagram graph
+
+  @return List of sources that satisfy the test 2
+*/
+std::list<HDVertex>
+safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse);
+
+/**
+  @brief Test if \e sources contain a source that satisfies the test 3 in
+         \e hasse
+
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s) + other active characters, and the realization of C(s') in
+  GRB does not induce red Σ-graphs in GRB.
+
+  @param[in] sources List of source vertices
+  @param[in] hasse   Hasse diagram graph
+
+  @return List of sources that satisfy the test 3
+*/
+std::list<HDVertex>
+safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse);
+
+/**
+  @brief Check if the realization of \e source does not induce red Σ-graph.
+
+  @param[in] source Source vertex
+  @param[in] hasse  Hasse diagram graph
+
+  @return True if the realization \e source does not induce red Σ-graph
+*/
+bool realize_source(const HDVertex source, const HDGraph& hasse);
 
 
 //=============================================================================
