@@ -122,6 +122,25 @@ typedef boost::graph_traits<HDGraph>::out_edge_iterator HDOutEdgeIter;
 */
 typedef std::list<SignedCharacter>::const_iterator SignedCharacterIter;
 
+// Size types
+
+/**
+  Size type of vertices (Hasse diagram)
+*/
+typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
+
+// Maps
+
+/**
+  Map of vertex indices (Hasse diagram)
+*/
+typedef std::map<HDVertex, HDVertexSize> HDVertexIMap;
+
+/**
+  Associative property map of vertex indices (Hasse diagram)
+*/
+typedef boost::associative_property_map<HDVertexIMap> HDVertexIAssocMap;
+
 
 //=============================================================================
 // Enum / Struct operator overloads

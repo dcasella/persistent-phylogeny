@@ -10,6 +10,21 @@
 // Auxiliary structs and classes
 
 /**
+  @brief Safe chain DFS Visitor exception
+  Thrown when \c initial_state_visitor finds a safe chain with a safe source
+*/
+class InitialState : public std::exception {
+public:
+  /**
+    @brief Returns the reason of the exception
+    @return C String
+  */
+  inline const char* what() const throw() {
+    return "Found initial state";
+  }
+};
+
+/**
   @brief Reduce exception
 
   Thrown when \c reduce can't reduce the graph anymore
@@ -39,9 +54,13 @@ public:
   /**
     @brief DFS Visitor constructor
 
-    @param[out] sources Vertices representing the safe sources of the diagram
+    @param[out] safe_sources List of vertices representing the safe sources of
+                             the diagram
+    @param[out] sources      List of vertices representing the maybe-safe
+                             sources of the diagram
   */
-  initial_state_visitor(std::list<HDVertex>& sources);
+  initial_state_visitor(std::list<HDVertex>& safe_sources,
+                        std::list<HDVertex>& sources);
 
   /**
     @brief Invoked on every vertex of the graph before the start of the graph
@@ -137,7 +156,37 @@ public:
   */
   bool safe_chain(const HDGraph& hasse);
 
+  /**
+    @brief Test if \e source_v satisfies the test 1 in \e hasse
+
+    Test 1:
+    A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+    consists of C(s), is connected to only inactive characters and the
+    realization of C(s') in GRB does not induce red Σ-graphs in GRB.
+
+    @param[in] hasse   Hasse diagram graph
+
+    @return True if \e source_v satisfies the test 1
+  */
+  bool safe_source_test1(const HDGraph& hasse);
+
+  /**
+    @brief Test if \e source_v satisfies the test 2 in \e hasse
+
+    Test 2:
+    A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+    consists of C(s) + other maximal characters, is connected to only inactive
+    characters and the realization of C(s') in GRB does not induce red Σ-graphs
+    in GRB.
+
+    @param[in] hasse   Hasse diagram graph
+
+    @return True if \e source_v satisfies the test 2
+  */
+  bool safe_source_test2(const HDGraph& hasse);
+
 private:
+  std::list<HDVertex>* m_safe_sources;
   std::list<HDVertex>* m_sources;
   std::list<HDEdge> chain;
   HDVertex source_v;
@@ -164,74 +213,6 @@ private:
   @return List of safe sources
 */
 std::list<HDVertex> initial_states(const HDGraph& hasse);
-
-/**
-  @brief Test if \e sources contain a safe source in \e hasse
-
-  Let GRB be a red-black graph and let P be the Hasse diagram for GRB|CM.
-  A source s of a safe chain C of P is safe for GRB if it satisfies one of the
-  following tests.
-
-  Test 1:
-  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-  consists of C(s), is connected to only inactive characters and the
-  realization of C(s') in GRB does not induce red Σ-graphs in GRB.
-
-  If test 1 failed.
-
-  Test 2:
-  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-  consists of C(s) + other maximal characters, is connected to only inactive
-  characters and the realization of C(s') in GRB does not induce red Σ-graphs
-  in GRB.
-
-  If test 1 and 2 failed.
-
-  Test 3:
-  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-  consists of C(s) + other active characters, and the realization of C(s') in
-  GRB does not induce red Σ-graphs in GRB.
-
-  @param[in] sources List of source vertices
-  @param[in] hasse   Hasse diagram graph
-
-  @return List of safe sources
-*/
-std::list<HDVertex>
-safe_sources(const std::list<HDVertex>& sources, const HDGraph& hasse);
-
-/**
-  @brief Test if \e sources contain a source that satisfies the test 1 in
-         \e hasse
-
-  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-  consists of C(s), is connected to only inactive characters and the
-  realization of C(s') in GRB does not induce red Σ-graphs in GRB.
-
-  @param[in] sources List of source vertices
-  @param[in] hasse   Hasse diagram graph
-
-  @return List of sources that satisfy the test 1
-*/
-std::list<HDVertex>
-safe_source_test1(const std::list<HDVertex>& sources, const HDGraph& hasse);
-
-/**
-  @brief Test if \e sources contain a source that satisfies the test 2 in
-         \e hasse
-
-  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-  consists of C(s) + other maximal characters, is connected to only inactive
-  characters and the realization of C(s') in GRB does not induce red Σ-graphs
-  in GRB.
-
-  @param[in] sources List of source vertices
-  @param[in] hasse   Hasse diagram graph
-
-  @return List of sources that satisfy the test 2
-*/
-std::list<HDVertex>
-safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse);
 
 /**
   @brief Test if \e sources contain a source that satisfies the test 3 in
