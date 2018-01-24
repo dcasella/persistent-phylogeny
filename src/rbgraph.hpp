@@ -610,37 +610,6 @@ RBGraphVector connected_components(const RBGraph& g);
 std::list<RBVertex> maximal_characters(const RBGraph& g);
 
 /**
-  @brief Predicate used to sort a vector of lists
-
-  @param[in] a List of vertices
-  @param[in] b List of vertices
-
-  @return True if \e a has more elements than \e b
-*/
-inline bool
-descending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
-  return a.size() > b.size();
-}
-
-/**
-  @brief Build the list of maximal characters of \e g
-
-  Let c be an unsigned character.
-  Then S(c) is the set of species that have the character c.
-  Given two characters c1 and c2, we will say that c1 includes c2 if
-  S(c1) ⊇ S(c2).
-  Then a character c is maximal in a red-black graph if S(c) ⊄ S(c') for any
-  character c' of the graph.
-  Moreover two characters c, c' overlap if they share a common species
-  but neither is included in the other.
-
-  @param[in] g Red-black graph
-
-  @return Maximal characters (vertices) of \e g
-*/
-std::list<RBVertex> maximal_characters2(const RBGraph& g);
-
-/**
   @brief Build the maximal reducible red-black graph of \e gm
 
   Let GRB be a red-black graph and CM the set of maximal characters of GRB.
@@ -655,19 +624,6 @@ std::list<RBVertex> maximal_characters2(const RBGraph& g);
   @return Maximal reducible graph
 */
 RBGraph maximal_reducible_graph(const RBGraph& g, const bool active = false);
-
-/**
-  @brief Predicate used to sort a vector of lists of vertices
-
-  @param[in] a List of vertices
-  @param[in] b List of vertices
-
-  @return True if \e a has less elements than \e b
-*/
-inline bool
-ascending_size(const std::list<RBVertex>& a, const std::list<RBVertex>& b) {
-  return a.size() < b.size();
-}
 
 /**
   @brief Check if \e g is a red Σ-graph

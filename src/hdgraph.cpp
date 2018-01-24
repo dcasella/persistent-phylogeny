@@ -99,11 +99,8 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
 
 bool
 is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
-  for (const std::string& i : a) {
-    StringIter in;
-    in = std::find(b.begin(), b.end(), i);
-
-    if (in == b.end())
+  for (const std::string& a_str : a) {
+    if (std::find(b.begin(), b.end(), a_str) == b.end())
       // exit the function at the first string of a not present in b
       return false;
   }
@@ -157,23 +154,29 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     // if the species *v would have 0 characters, ignore it
     if (sets[index].size() == 1) {
       sets[index].clear();
+
       continue;
     }
 
     index++;
   }
 
+  auto compare_size = [](const std::list<RBVertex>& a,
+                         const std::list<RBVertex>& b) {
+    return a.size() < b.size();
+  };
+
   // sort sets by size in ascending order
-  std::sort(sets.begin(), sets.end(), ascending_size);
+  std::sort(sets.begin(), sets.end(), compare_size);
 
   bool first_iteration = true;
-  for (size_t i = 0; i < sets.size(); ++i) {
+  for (const std::list<RBVertex>& set : sets) {
     // for each set of characters
-    if (sets[i].empty())
+    if (set.empty())
       continue;
 
     // v = species of gm
-    RBVertex v = sets[i].front();
+    RBVertex v = set.front();
 
     // fill the list of characters names of v
     std::list<std::string> lcv;
@@ -260,8 +263,6 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // Store the maximal reducible graph pointer into the Hasse diagram's graph
   // properties
   hasse[boost::graph_bundle].gm = &gm;
-
-  // TODO: is this transitive reduction too simple?
 
   // transitive reduction of the Hasse diagram
   HDVertexIter u, u_end;

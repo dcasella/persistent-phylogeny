@@ -619,130 +619,6 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
     }
   }
 
-  return cm;
-}
-
-// TODO: test which one is faster
-
-std::list<RBVertex> maximal_characters2(const RBGraph& g) {
-  std::list<RBVertex> cm;
-  std::vector<std::list<RBVertex>> sets(num_characters(g));
-  std::map<RBVertex, std::list<RBVertex>> v_map;
-
-  // how sets is going to be structured:
-  // sets[index] => < C, List of adjacent species to C >
-
-  // sets is used to sort the lists by number of elements, this is why we store
-  // the list of adjacent species to C. While we store C to be able to access
-  // v_map[C] in costant time
-
-  // how v_map is going to be structured:
-  // v_map[C] => < List of adjacent species to C >
-
-  RBVertexIter v, v_end;
-  std::tie(v, v_end) = vertices(g);
-  for (size_t index = 0; v != v_end; ++v) {
-    if (!is_character(*v, g))
-      continue;
-    // for each character vertex
-
-    sets[index].push_back(*v);
-
-    // build v's set of adjacent species
-    RBOutEdgeIter e, e_end;
-    std::tie(e, e_end) = out_edges(*v, g);
-    for (; e != e_end; ++e) {
-      RBVertex vt = target(*e, g);
-
-      // if v is active or connected to random nodes ignore it
-      if (is_red(*e, g) || !is_species(vt, g))
-        break;
-
-      sets[index].push_back(vt);
-      v_map[*v].push_back(vt);
-    }
-
-    index++;
-  }
-
-  // sort sets by size in descending order
-  std::sort(sets.begin(), sets.end(), descending_size);
-
-  for (size_t i = 0; i < sets.size(); ++i) {
-    // for each set of species
-    RBVertex v = sets[i].front();
-
-    if (sets[i].size() == sets[0].size()) {
-      // both sets[i] and sets[0] are maximal
-      // or i = 0, which still means sets[i] and sets[0] maximal
-      cm.push_back(v);
-      continue;
-    }
-
-    bool skip_cycle = false;
-
-    // check if sc is subset of the species adjacent to cmv
-    RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
-    for (; cmv != cmv_end; ++cmv) {
-      // for each species in cm
-      if (skip_cycle)
-        break;
-
-      size_t count_incl = 0;
-      size_t count_excl = 0;
-      bool keep_char = false;
-
-      RBVertexIter sv = v_map[v].begin(), sv_end = v_map[v].end();
-      for (; sv != sv_end; ++sv) {
-        // for each species adjacent to v, S(C#)
-
-        // find sv in the list of cmv's adjacent species
-        RBVertexIter in = std::find(
-          v_map[*cmv].begin(), v_map[*cmv].end(), *sv
-        );
-
-        // keep count of how many species are included (or not found) in
-        // the list of cmv's adjacent species
-        if (in != v_map[*cmv].end())
-          count_incl++;
-        else
-          count_excl++;
-
-        if (std::next(sv) == sv_end) {
-          // last iteration on the species in the list has been performed
-          if (count_incl < v_map[*cmv].size() && count_excl > 0) {
-            // the list of adjacent species to v is neither a superset nor a
-            // subset of the list of adjacent species to cmv, which means
-            // v may be a new maximal character
-            keep_char = true;
-          }
-          else if (count_incl == v_map[*cmv].size()) {
-            // the list of adjacent species to v is the same as the list of
-            // adjacent species to cmv, so v can be ignored in the next
-            // iterations on the characters in Cm
-            skip_cycle = true;
-          }
-          else if (count_excl == 0) {
-            // the list of adjacent species to v is a subset of the list of
-            // adjacent species to cmv, meaning v can be ignored in the
-            // next iterations on the characters in Cm
-            skip_cycle = true;
-          }
-        }
-      }
-
-      if (std::next(cmv) == cmv_end) {
-        // last iteration on the characters in the list has been performed
-        if (keep_char) {
-          // after all the iterations keep_char is true if the list of adjacent
-          // species to v is neither a superset nor a subset of the lists of
-          // adjacent species to the characters in Cm, so v is a maximal
-          // characters and can be added to the list of maximal characters Cm
-          cm.push_front(v);
-        }
-      }
-    }
-  }
 
   return cm;
 }
@@ -809,9 +685,9 @@ bool is_redsigma(const RBGraph& g) {
   }
 
   // if g is disconnected
-  for (size_t i = 0; i < components.size(); ++i) {
+  for (const std::unique_ptr<RBGraph>& component : components) {
     // recursively check if any subgraph is red sigma
-    output |= is_redsigma(*components[i].get());
+    output |= is_redsigma(*component.get());
   }
 
   return output;
