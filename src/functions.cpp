@@ -340,13 +340,13 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
-              << "S(C): < ";
+              << "Test chain: < ";
 
     for (const SignedCharacter& kk : lsc) {
       std::cout << kk << " ";
     }
 
-    std::cout << ">" << std::endl;
+    std::cout << "> on a copy of graph G" << std::endl;
   }
 
   // copy g to g_test
@@ -360,14 +360,15 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
-              << "G test:" << std::endl
+              << "G (copy) after the realization of the chain" << std::endl
+              << "Adjacency lists:" << std::endl
               << g_test << std::endl << std::endl;
   }
 
   if (!feasible) {
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << "Realization not feasible for G" << std::endl << std::endl;
+      std::cout << "Realization not feasible for G (copy)" << std::endl << std::endl;
     }
 
     return false;
@@ -379,9 +380,9 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     if (output)
-      std::cout << "No red Σ-graph in G" << std::endl << std::endl;
+      std::cout << "No red Σ-graph in G (copy)" << std::endl << std::endl;
     else
-      std::cout << "Found red Σ-graph in G" << std::endl << std::endl;
+      std::cout << "Found red Σ-graph in G (copy)" << std::endl << std::endl;
   }
 
   return output;
@@ -394,6 +395,12 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
 std::list<HDVertex> initial_states(const HDGraph& hasse) {
   std::list<HDVertex> output;
 
+  if (logging::enabled) {
+    // verbosity enabled
+    std::cout << "DFS visit on the Hasse diagram:"
+              << std::endl;
+  }
+
   // the visitor continuosly modifies the sources variable (passed as reference)
   // in search of safe chains and sources. At the end of the visit, sources
   // holds the list of sources of the Hasse diagram.
@@ -403,7 +410,8 @@ std::list<HDVertex> initial_states(const HDGraph& hasse) {
 
   if (logging::enabled) {
     // verbosity enabled
-    std::cout << std::endl
+    std::cout << "DFS visit on the Hasse diagram terminated"
+              << std::endl << std::endl
               << "Sources: < ";
 
     for (const HDVertex& i : sources) {
@@ -780,7 +788,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
       std::cout << kk << " ";
     }
 
-    std::cout << ") ]" << std::endl;
+    std::cout << ") ] on a copy of graph G" << std::endl;
   }
 
   // copy g to g_test
@@ -799,14 +807,16 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
-              << "G test:" << std::endl
+              << "G (copy) after the realization of the source" << std::endl
+              << "Adjacency lists:" << std::endl
               << g_test << std::endl << std::endl;
   }
 
   if (!feasible) {
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << "Realization not feasible for G" << std::endl << std::endl;
+      std::cout << "Realization not feasible for G (copy)"
+                << std::endl << std::endl;
     }
 
     return false;
@@ -818,9 +828,9 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
   if (logging::enabled) {
     // verbosity enabled
     if (output)
-      std::cout << "No red Σ-graph in G" << std::endl << std::endl;
+      std::cout << "No red Σ-graph in G (copy)" << std::endl << std::endl;
     else
-      std::cout << "Found red Σ-graph in G" << std::endl << std::endl;
+      std::cout << "Found red Σ-graph in G (copy)" << std::endl << std::endl;
   }
 
   return output;
@@ -836,7 +846,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
-              << "Working on G:" << std::endl
+              << "Working on the red-black graph G" << std::endl
+              << "Adjacency lists:" << std::endl
               << g << std::endl << std::endl;
   }
 
@@ -939,12 +950,20 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
   components.clear();
 
+  if (logging::enabled) {
+    // verbosity enabled
+    std::cout << std::endl;
+  }
+
   // gm = Grb|Cm∪A, maximal reducible graph of g (Grb)
   RBGraph gm = maximal_reducible_graph(g, true);
 
   if (logging::enabled) {
     // verbosity enabled
-    std::cout << "Gm:" << std::endl
+    std::cout << std::endl
+              << "Subgraph Gm of G induced by the maximal characters Cm"
+              << std::endl
+              << "Adjacency lists:" << std::endl
               << gm << std::endl << std::endl;
   }
 
@@ -954,7 +973,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
   if (logging::enabled) {
     // verbosity enabled
-    std::cout << "Hasse:" << std::endl
+    std::cout << "Hasse diagram for the subgraph Gm" << std::endl
+              << "Adjacency lists:" << std::endl
               << p << std::endl << std::endl;
   }
 
@@ -1000,6 +1020,17 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
       for (const std::string& ci : p[source].characters) {
         sc.push_back({ ci, State::gain });
+      }
+
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "Realize the characters < ";
+
+        for (const SignedCharacter& kk : sc) {
+          std::cout << kk << " ";
+        }
+
+        std::cout << "> in G" << std::endl;
       }
 
       std::tie(sc, std::ignore) = realize(sc, g_test);
@@ -1156,6 +1187,17 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     }
   }
 
+  if (logging::enabled) {
+    // verbosity enabled
+    std::cout << "Realize the characters < ";
+
+    for (const SignedCharacter& kk : sc) {
+      std::cout << kk << " ";
+    }
+
+    std::cout << "> in G" << std::endl;
+  }
+
   // realize the characters of the safe source
   std::tie(sc, std::ignore) = realize(sc, g);
 
@@ -1202,7 +1244,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     // c+ and c is inactive
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << sc << " (+ and inactive): ";
+      std::cout << "Realizing " << sc;
     }
 
     // realize the character c+:
@@ -1214,33 +1256,16 @@ realize(const SignedCharacter& sc, RBGraph& g) {
         continue;
       // for each species in the same connected component of cv
 
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << g[*v].name << " -> ";
-      }
-
       RBEdge e;
       bool exists;
       std::tie(e, exists) = edge(*v, cv, g);
 
-      if (exists) {
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << "del; ";
-        }
-
+      if (exists)
         // there is an edge (black) between *v and cv
         remove_edge(e, g);
-      }
-      else {
+      else
         // there isn't an edge between *v and cv
-        if (logging::enabled) {
-          // verbosity enabled
-          std::cout << "red; ";
-        }
-
         add_edge(*v, cv, Color::red, g);
-      }
     }
 
     if (logging::enabled) {
@@ -1252,7 +1277,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     // c- and c is active
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << sc << " (- and active)" << std::endl;
+      std::cout << "Realizing " << sc << std::endl;
     }
 
     // realize the character c-:

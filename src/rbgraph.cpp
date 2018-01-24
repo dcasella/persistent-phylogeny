@@ -757,7 +757,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
 
   if (logging::enabled) {
     // verbosity enabled
-    std::cout << "Cm = { ";
+    std::cout << "Maximal characters Cm = { ";
 
     for (const RBVertex& kk : cm) {
       std::cout << gm[kk].name << " ";
