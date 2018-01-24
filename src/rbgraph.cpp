@@ -134,21 +134,88 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
 }
 
 std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
+  std::list<std::string> lines;
+  std::list<std::string> species;
+  std::list<std::string> characters;
+
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
-  for (; v != v_end; ++v) {
-    os << g[*v].name << ":";
+  for (size_t i = 0; v != v_end; ++v, ++i) {
+    std::list<std::string> edges;
 
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, g);
-    for (; e != e_end; ++e) {
-      os << " -" << (is_red(*e, g) ? "r" : "-") << "- "
-         << g[target(*e, g)].name << ";";
+    for (size_t j = 0; e != e_end; ++e, ++j) {
+      std::string edge;
+      edge += " -";
+      edge += (is_red(*e, g) ? "r" : "-");
+      edge += "- ";
+      edge += g[target(*e, g)].name;
+      edge += ";";
+
+      edges.push_back(edge);
     }
 
+    auto compare_edges = [](const std::string& a, const std::string& b) {
+      size_t a_index, b_index;
+      std::stringstream ss;
+
+      ss.str(a.substr(6, a.size() - 7));
+      ss >> a_index;
+
+      ss.clear();
+
+      ss.str(b.substr(6, b.size() - 7));
+      ss >> b_index;
+
+      return a_index < b_index;
+    };
+
+    edges.sort(compare_edges);
+
+    std::string edges_str;
+    for (const std::string& edge : edges) {
+      edges_str.append(edge);
+    }
+
+    std::string line(g[*v].name + ":" + edges_str);
+
     if (std::next(v) != v_end)
-      os << std::endl;
+      line += "\n";
+
+    if (is_species(*v, g))
+      species.push_back(line);
+    else
+      characters.push_back(line);
   }
+
+  auto compare_lines = [](const std::string& a, const std::string& b) {
+    size_t a_index, b_index;
+    std::stringstream ss;
+
+    ss.str(a.substr(1, a.find(":")));
+    ss >> a_index;
+
+    ss.clear();
+
+    ss.str(b.substr(1, b.find(":")));
+    ss >> b_index;
+
+    return a_index < b_index;
+  };
+
+  species.sort(compare_lines);
+  characters.sort(compare_lines);
+
+  lines.splice(lines.end(), species);
+  lines.splice(lines.end(), characters);
+
+  std::string lines_str;
+  for (const std::string& line : lines) {
+    lines_str += line;
+  }
+
+  os << lines_str;
 
   return os;
 }
@@ -619,6 +686,7 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
     }
   }
 
+  cm.reverse();
 
   return cm;
 }

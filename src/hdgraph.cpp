@@ -184,6 +184,23 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       lcv.push_back(gm[cv].name);
     }
 
+    auto compare_characters = [](const std::string& a, const std::string& b) {
+      size_t a_index, b_index;
+      std::stringstream ss;
+
+      ss.str(a.substr(1));
+      ss >> a_index;
+
+      ss.clear();
+
+      ss.str(b.substr(1));
+      ss >> b_index;
+
+      return a_index < b_index;
+    };
+
+    lcv.sort(compare_characters);
+
     if (first_iteration) {
       // first iteration of the loop:
       // add v to the Hasse diagram, and being the first vertex of the graph
