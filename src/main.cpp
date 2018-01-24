@@ -57,6 +57,15 @@ int main(int argc, const char* argv[]) {
     "maximal,m",
     boost::program_options::bool_switch()->default_value(false),
     "Run the algorithm on the maximal subgraph.\n"
+  )
+  // option: nthsource, pick the nth safe source instead of the first
+  (
+    "nthsource,n",
+    boost::program_options::value<size_t>(&nthsource::index)
+      ->default_value(0),
+    " Select the nth safe source when possible.\n"
+    "(Mutually exclusive with --exponential)\n"
+    "(Mutually exclusive with --interactive)\n"
   );
 
   // initialize hidden options (not shown in --help)
@@ -93,6 +102,9 @@ int main(int argc, const char* argv[]) {
     );
 
     conflicting_options(vm, "exponential", "interactive");
+
+    conflicting_options(vm, "nthsource", "exponential");
+    conflicting_options(vm, "nthsource", "interactive");
 
     boost::program_options::notify(vm);
   }

@@ -450,8 +450,9 @@ bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
 
     output |= true;
 
-    if (exponential::enabled || interactive::enabled) {
+    if (exponential::enabled || interactive::enabled || nthsource::index > 0) {
       // exponential algorithm or user interaction enabled
+      // or safe source selection index is not 0
       if (logging::enabled) {
         // verbosity enabled
         std::cout << std::endl
@@ -575,8 +576,9 @@ bool initial_state_visitor::safe_source_test2(const HDGraph& hasse) {
 
     output |= true;
 
-    if (exponential::enabled || interactive::enabled) {
+    if (exponential::enabled || interactive::enabled || nthsource::index > 0) {
       // exponential algorithm or user interaction enabled
+      // or safe source selection index is not 0
       if (logging::enabled) {
         // verbosity enabled
         std::cout << std::endl
@@ -1213,6 +1215,29 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       std::cout << "========================================"
                 << "========================================"
                 << std::endl << std::endl;
+    }
+  }
+  else if (s.size() > 1 && nthsource::index > 0) {
+    if (nthsource::index < s.size())
+      source = *std::next(s.cbegin(), nthsource::index);
+    else
+      source = s.back();
+
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "Source [ ";
+
+      for (const std::string& kk : p[source].species) {
+        std::cout << kk << " ";
+      }
+
+      std::cout << "( ";
+
+      for (const std::string& kk : p[source].characters) {
+        std::cout << kk << " ";
+      }
+
+      std::cout << ") ] selected " << std::endl << std::endl;
     }
   }
   // standard safe source selection (the first one found)

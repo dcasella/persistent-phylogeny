@@ -13,3 +13,5 @@ bool logging::enabled = false;
 bool exponential::enabled = false;
 
 bool interactive::enabled = false;
+
+size_t nthsource::index = 0;

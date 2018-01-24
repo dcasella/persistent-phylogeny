@@ -33,6 +33,13 @@ namespace interactive {
   extern bool enabled; ///< User interaction toggle
 };
 
+/**
+  @brief Global safe source selection namespace
+*/
+namespace nthsource {
+  extern size_t index; ///< Safe source index selection
+};
+
 
 //=============================================================================
 // Typedefs used for readabily
