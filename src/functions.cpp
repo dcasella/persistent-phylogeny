@@ -277,13 +277,13 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
   // source_v holds the source vertex of the chain
   // chain holds the list of edges representing the chain
 
+  // check if source_v is already in m_sources
+  if (m_sources->size() > 0 && source_v == m_sources->back())
+    return;
+
   // test if chain is a safe chain
   if (!safe_chain(hasse))
     // chain is not a safe chain
-    return;
-
-  // check if source_v is already in m_sources
-  if (m_sources->size() > 0 && source_v == m_sources->back())
     return;
 
   m_sources->push_back(source_v);
@@ -317,7 +317,8 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
     // chain being empty means it's not actually a chain?
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << "Empty chain" << std::endl << std::endl;
+      std::cout << std::endl
+                << "Empty chain" << std::endl << std::endl;
     }
 
     return true;
