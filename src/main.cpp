@@ -30,33 +30,33 @@ int main(int argc, const char* argv[]) {
   // option: help message
   general_options.add_options()(
     "help,h",
-    "Display this message."
+    "Display this message.\n"
   )
   // option: verbose, print information on the ongoing operations
   (
     "verbose,v",
     boost::program_options::bool_switch(&logging::enabled),
-    "Display the operations performed by the program."
+    "Display the operations performed by the program.\n"
   )
   // option: exponential, test every possible combination of safe sources
   (
     "exponential,x",
     boost::program_options::bool_switch(&exponential::enabled),
     "Exponential version of the algorithm.\n"
-    "(Mutually exclusive with --interactive)"
+    "(Mutually exclusive with --interactive)\n"
   )
   // option: interactive, let the user select which path to take
   (
     "interactive,i",
     boost::program_options::bool_switch(&interactive::enabled),
     "User input driven execution.\n"
-    "(Mutually exclusive with --exponential)"
+    "(Mutually exclusive with --exponential)\n"
   )
   // option: maximal, read graph and reduce it to maximal
   (
     "maximal,m",
     boost::program_options::bool_switch()->default_value(false),
-    "Run the algorithm on the maximal subgraph"
+    "Run the algorithm on the maximal subgraph.\n"
   );
 
   // initialize hidden options (not shown in --help)

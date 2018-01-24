@@ -1023,6 +1023,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // p has no safe source
     throw NoReduction();
 
+  HDVertex source = 0;
   std::list<SignedCharacter> sc;
 
   // exponential safe source selection
@@ -1125,7 +1126,6 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   // user-input-driven safe source selection
   else if (s.size() > 1 && interactive::enabled) {
     // user interaction enabled
-    HDVertex source = 0;
     size_t choice = 0;
 
     if (!logging::enabled) {
@@ -1189,7 +1189,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
             std::cout << kk << " ";
           }
 
-          std::cout << ") ] chosen" << std::endl << std::endl;
+          std::cout << ") ] selected" << std::endl << std::endl;
           // exit the loop
           break;
         }
@@ -1217,11 +1217,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   }
   // standard safe source selection (the first one found)
   else {
-    sc.clear();
+    source = s.front();
+  }
 
-    for (const std::string& ci : p[s.front()].characters) {
-      sc.push_back({ ci, State::gain });
-    }
+  sc.clear();
+
+  for (const std::string& ci : p[source].characters) {
+    sc.push_back({ ci, State::gain });
   }
 
   if (logging::enabled) {
