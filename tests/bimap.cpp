@@ -1,4 +1,4 @@
-#include "functions.hpp"
+#include "rbgraph.hpp"
 
 
 int main(int argc, const char* argv[]) {

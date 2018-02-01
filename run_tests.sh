@@ -1,8 +1,13 @@
-echo "Compiling tests...\n"
-make tests
+#!/usr/bin/env bash
 
-echo "\nRun tests:\n"
-run-parts tests/ &&
+printf 'Compiling tests...\n'
 
-echo "\nCleaning tests...\n" &&
+make tests || exit 1
+
+printf '\nRun tests:\n'
+
+run-parts tests/ || exit 1
+
+printf '\nCleaning tests...\n'
+
 make tests/clean

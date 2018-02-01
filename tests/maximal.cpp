@@ -1,4 +1,4 @@
-#include "functions.hpp"
+#include "rbgraph.hpp"
 
 
 int main(int argc, const char* argv[]) {
@@ -39,7 +39,7 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c5, g);
 
   std::list<RBVertex> cm_check({c2, c3});
-  std::list<RBVertex> cm = maximal_characters2(g);
+  std::list<RBVertex> cm = maximal_characters(g);
 
   RBGraph gm1 = maximal_reducible_graph(g, false);
   RBGraph gm2 = maximal_reducible_graph(g, true);

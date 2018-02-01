@@ -1,4 +1,4 @@
-#include "functions.hpp"
+#include "hdgraph.hpp"
 
 
 int main(int argc, const char* argv[]) {
