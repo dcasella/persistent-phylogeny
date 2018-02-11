@@ -493,7 +493,7 @@ bool initial_state_visitor::safe_source_test2(const HDGraph& hasse) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
   for (; v != v_end; ++v) {
-    if (!is_character(*v, g))
+    if (!is_character(*v, gm))
       continue;
 
     gm_c.push_back(gm[*v].name);
@@ -503,7 +503,7 @@ bool initial_state_visitor::safe_source_test2(const HDGraph& hasse) {
   // maximal characters, and is connected to only inactive characters
   std::tie(v, v_end) = vertices(gm);
   for (; v != v_end; ++v) {
-    if (!is_species(*v, g))
+    if (!is_species(*v, gm))
       continue;
 
     // if s+ is in source_v it means that it was already tested previously
