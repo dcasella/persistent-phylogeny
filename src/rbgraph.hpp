@@ -169,22 +169,6 @@ typedef std::vector<std::unique_ptr<RBGraph>> RBGraphVector;
 
 
 //=============================================================================
-// Enum / Struct operator overloads
-
-/**
-  @brief Overloading of operator<< for Type
-
-  @param[in] os Output stream
-  @param[in] t  Type
-
-  @return Updated output stream
-*/
-inline std::ostream& operator<<(std::ostream& os, const Type t) {
-  return os << (t == Type::species ? "Species" : "Character");
-}
-
-
-//=============================================================================
 // Auxiliary structs and classes
 
 /**
