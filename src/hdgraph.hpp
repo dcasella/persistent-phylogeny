@@ -25,8 +25,8 @@ enum class State : bool {
   Each character c+ and c− is called a signed character.
 */
 struct SignedCharacter {
-  std::string character = "c"; ///< Character name
-  State state = State::gain;   ///< Character state
+  std::string character{};   ///< Character name
+  State state = State::gain; ///< Character state
 };
 
 
@@ -45,8 +45,8 @@ struct SignedCharacter {
   For each character c, we allow at most one edge labeled by c−.
 */
 struct HDEdgeProperties {
-  std::list<SignedCharacter> signedcharacters; ///< List of SignedCharacters
-                                               ///< that label the edge
+  std::list<SignedCharacter> signedcharacters{}; ///< List of SignedCharacters
+                                                 ///< that label the edge
 };
 
 /**
@@ -58,16 +58,16 @@ struct HDEdgeProperties {
   species of GM ordered by the relation ≤, where s1 ≤ s2 if C(s1) ⊆ C(s2).
 */
 struct HDVertexProperties {
-  std::list<std::string> species;    ///< List of species that label the vertex
-  std::list<std::string> characters; ///< List of characters of the species
+  std::list<std::string> species{};    ///< List of species that label the vertex
+  std::list<std::string> characters{}; ///< List of characters of the species
 };
 
 /**
   @brief Struct used to represent the properties of a Hasse diagram
 */
 struct HDGraphProperties {
-  const RBGraph* g = nullptr;  ///< Original red-black graph
-  const RBGraph* gm = nullptr; ///< Original maximal reducible graph
+  const RBGraph* g{};  ///< Original red-black graph
+  const RBGraph* gm{}; ///< Original maximal reducible graph
 };
 
 
@@ -154,7 +154,7 @@ typedef boost::associative_property_map<HDVertexIMap> HDVertexIAssocMap;
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const State s) {
-  bool sign = (s == State::lose);
+  const bool sign = (s == State::lose);
 
   return os << (sign ? "-" : "+");
 }
@@ -216,7 +216,7 @@ add_vertex(
     const std::string& species,
     const std::list<std::string>& characters,
     HDGraph& hasse) {
-  return add_vertex(std::list<std::string>({ species }), characters, hasse);
+  return add_vertex(std::list<std::string>{species}, characters, hasse);
 }
 
 /**
@@ -252,7 +252,7 @@ add_edge(
 
   @return Pointer to the the original red-black graph of \e hasse
 */
-inline const RBGraph* orig_g(const HDGraph& hasse) {
+inline const RBGraph* const orig_g(const HDGraph& hasse) {
   return hasse[boost::graph_bundle].g;
 }
 
@@ -263,7 +263,7 @@ inline const RBGraph* orig_g(const HDGraph& hasse) {
 
   @return Pointer to the the original maximal reducible graph of \e hasse
 */
-inline const RBGraph* orig_gm(const HDGraph& hasse) {
+inline const RBGraph* const orig_gm(const HDGraph& hasse) {
   return hasse[boost::graph_bundle].gm;
 }
 

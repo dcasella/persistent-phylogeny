@@ -181,18 +181,18 @@ public:
     characters and the realization of C(s') in GRB does not induce red Σ-graphs
     in GRB.
 
-    @param[in] hasse   Hasse diagram graph
+    @param[in] hasse Hasse diagram graph
 
     @return True if \e source_v satisfies the test 2
   */
   bool safe_source_test2(const HDGraph& hasse);
 
 private:
-  std::list<HDVertex>* m_safe_sources;
-  std::list<HDVertex>* m_sources;
-  std::list<HDEdge> chain;
-  HDVertex source_v;
-  HDVertex last_v;
+  std::list<HDVertex>* const m_safe_sources{};
+  std::list<HDVertex>* const m_sources{};
+  std::list<HDEdge> chain{};
+  HDVertex source_v{};
+  HDVertex last_v{};
 };
 
 

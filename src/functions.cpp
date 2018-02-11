@@ -7,13 +7,12 @@
 // Auxiliary structs and classes
 
 initial_state_visitor::initial_state_visitor()
-    : m_safe_sources(nullptr), m_sources(nullptr), chain(), source_v(0),
-      last_v(0) {}
+    : m_safe_sources{}, m_sources{}, chain{}, source_v{}, last_v{} {}
 
 initial_state_visitor::initial_state_visitor(std::list<HDVertex>& safe_sources,
                                              std::list<HDVertex>& sources)
-    : m_safe_sources(&safe_sources), m_sources(&sources), chain(), source_v(0),
-      last_v(0) {
+    : m_safe_sources{&safe_sources}, m_sources{&sources}, chain{}, source_v{},
+      last_v{} {
   m_safe_sources->clear();
   m_sources->clear();
 }
@@ -70,11 +69,11 @@ void initial_state_visitor::examine_edge(const HDEdge e,
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.begin();
-    for (; jj != hasse[e].signedcharacters.end(); ++jj) {
+    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
-      if (std::next(jj) != hasse[e].signedcharacters.end())
+      if (std::next(jj) != hasse[e].signedcharacters.cend())
         std::cout << ",";
     }
 
@@ -110,11 +109,11 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.begin();
-    for (; jj != hasse[e].signedcharacters.end(); ++jj) {
+    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
-      if (std::next(jj) != hasse[e].signedcharacters.end())
+      if (std::next(jj) != hasse[e].signedcharacters.cend())
         std::cout << ",";
     }
 
@@ -145,11 +144,11 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.begin();
-    for (; jj != hasse[e].signedcharacters.end(); ++jj) {
+    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
-      if (std::next(jj) != hasse[e].signedcharacters.end())
+      if (std::next(jj) != hasse[e].signedcharacters.cend())
         std::cout << ",";
     }
 
@@ -180,11 +179,11 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.begin();
-    for (; jj != hasse[e].signedcharacters.end(); ++jj) {
+    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
-      if (std::next(jj) != hasse[e].signedcharacters.end())
+      if (std::next(jj) != hasse[e].signedcharacters.cend())
         std::cout << ",";
     }
 
@@ -271,13 +270,6 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
     // uninitialized sources lists
     return;
 
-  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
-    // uninitialized graph properties
-    return;
-
-  RBGraph g = *orig_g(hasse);
-  RBGraph gm = *orig_gm(hasse);
-
   // source_v holds the source vertex of the chain
   // chain holds the list of edges representing the chain
 
@@ -320,8 +312,12 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 }
 
 bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
-  RBGraph g = *orig_g(hasse);
-  RBGraph gm = *orig_gm(hasse);
+  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
+    // uninitialized graph properties
+    return false;
+
+  const RBGraph& g = *orig_g(hasse);
+  // const RBGraph& gm = *orig_gm(hasse);
 
   // chain holds the list of edges representing the chain
 
@@ -345,8 +341,8 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   for (const HDEdge& e : chain) {
     lsc.insert(
       lsc.end(),
-      hasse[e].signedcharacters.begin(),
-      hasse[e].signedcharacters.end()
+      hasse[e].signedcharacters.cbegin(),
+      hasse[e].signedcharacters.cend()
     );
   }
 
@@ -389,7 +385,7 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, chain is a safe chain
-  bool output = !is_redsigma(g_test);
+  const bool output = !is_redsigma(g_test);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -405,18 +401,23 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
 bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
   bool output = false;
 
+  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
+    // uninitialized graph properties
+    return output;
+
+  // const RBGraph& g = *orig_g(hasse);
+  const RBGraph& gm = *orig_gm(hasse);
+
+
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "Safe sources - test 1" << std::endl;
   }
 
-  RBGraph g = *orig_g(hasse);
-  RBGraph gm = *orig_gm(hasse);
-
   // search for a species s+ in GRB|CM∪A that consists of C(s) and is connected
   // to only inactive characters
   for (const std::string& species_name : hasse[source_v].species) {
-    RBVertex source_s = get_vertex(species_name, gm);
+    const RBVertex source_s = get_vertex(species_name, gm);
     // for each source species (s+) in source_v
     bool active = false;
 
@@ -477,13 +478,17 @@ bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
 bool initial_state_visitor::safe_source_test2(const HDGraph& hasse) {
   bool output = false;
 
+  if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
+    // uninitialized graph properties
+    return output;
+
+  // const RBGraph& g = *orig_g(hasse);
+  const RBGraph& gm = *orig_gm(hasse);
+
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "Safe sources - test 2" << std::endl;
   }
-
-  RBGraph g = *orig_g(hasse);
-  RBGraph gm = *orig_gm(hasse);
 
   // list of characters of source_v
   std::list<std::string> source_c = hasse[source_v].characters;
@@ -532,7 +537,7 @@ bool initial_state_visitor::safe_source_test2(const HDGraph& hasse) {
         break;
       }
       else {
-        RBVertex vt = target(*e, gm);
+        const RBVertex vt = target(*e, gm);
 
         // search if vt is a maximal character in source_c
         StringIter search = std::find(
@@ -695,8 +700,8 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
     // uninitialized graph properties
     return output;
 
-  RBGraph g = *orig_g(hasse);
-  RBGraph gm = *orig_gm(hasse);
+  // const RBGraph& g = *orig_g(hasse);
+  const RBGraph& gm = *orig_gm(hasse);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -748,7 +753,7 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
   std::list<HDVertex> maybe_output;
 
   for (const std::pair<HDVertex, size_t>& pair : source_map) {
-    size_t active_count = pair.second;
+    const size_t active_count = pair.second;
 
     if (min_active_count > 0 && active_count >= min_active_count)
       continue;
@@ -757,8 +762,8 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
   }
 
   for (const std::pair<HDVertex, size_t>& pair : source_map) {
-    HDVertex source = pair.first;
-    size_t active_count = pair.second;
+    const HDVertex source = pair.first;
+    const size_t active_count = pair.second;
 
     if (active_count > min_active_count)
       continue;
@@ -784,7 +789,7 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
       std::cout << ") ]" << std::endl;
     }
 
-    bool is_safe = realize_source(source, hasse);
+    const bool is_safe = realize_source(source, hasse);
 
     if (logging::enabled) {
       // verbosity enabled
@@ -812,8 +817,8 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
     // uninitialized graph properties
     return false;
 
-  RBGraph g = *orig_g(hasse);
-  RBGraph gm = *orig_gm(hasse);
+  const RBGraph& g = *orig_g(hasse);
+  // const RBGraph& gm = *orig_gm(hasse);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -863,7 +868,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, source is a safe source
-  bool output = !is_redsigma(g_test);
+  const bool output = !is_redsigma(g_test);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -1177,7 +1182,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
         if (choice < s.size()) {
           // choice is a valid safe source index
           // set the source
-          source = *std::next(s.begin(), choice);
+          source = *std::next(s.cbegin(), choice);
 
           std::cout << "Source [ ";
 
@@ -1420,7 +1425,7 @@ realize(const RBVertex v, RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    RBVertex u = target(*e, g);
+    const RBVertex u = target(*e, g);
 
     if (is_inactive(u, g))
       lsc.push_back({ g[u].name, State::gain });

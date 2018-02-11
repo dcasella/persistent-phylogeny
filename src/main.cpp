@@ -148,8 +148,8 @@ int main(int argc, const char* argv[]) {
   for (const std::string& file : files) {
     // for each filename in files
     if (files.size() > 1) {
-      double d_perc = std::floor(100.0 * count_file / files.size());
-      size_t perc = static_cast<size_t>(d_perc);
+      const double d_perc = std::floor(100.0 * count_file / files.size());
+      const size_t perc = static_cast<size_t>(d_perc);
 
       if (perc < 10)
         std::cout << " ";
@@ -191,7 +191,7 @@ int main(int argc, const char* argv[]) {
         copy_graph(gm, g);
       }
 
-      std::list<SignedCharacter> output = reduce(g);
+      const std::list<SignedCharacter> output = reduce(g);
 
       std::stringstream reduction;
       for (const SignedCharacter& sc : output) {

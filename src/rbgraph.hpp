@@ -74,19 +74,19 @@ struct RBEdgeProperties {
   bipartite graph whose vertex set is S ∪ C.
 */
 struct RBVertexProperties {
-  std::string name; ///< Vertex name
-  Type type;        ///< Vertex type (Character or Species)
+  std::string name{}; ///< Vertex name
+  Type type{};        ///< Vertex type (Character or Species)
 };
 
 /**
   @brief Struct used to represent the properties of a red-black graph
 */
 struct RBGraphProperties {
-  size_t num_species = 0;    ///< Number of species in the graph
-  size_t num_characters = 0; ///< Number of characters in the graph
+  size_t num_species{};    ///< Number of species in the graph
+  size_t num_characters{}; ///< Number of characters in the graph
 
-  RBVertexBimap bimap; ///< Bidirectional map for vertex names and vertices in
-                       ///< the graph
+  RBVertexBimap bimap{}; ///< Bidirectional map for vertex names and vertices in
+                         ///< the graph
 };
 
 
@@ -197,7 +197,7 @@ struct if_not_maximal {
 
     @param[in] cm Maximal characters
   */
-  if_not_maximal(const std::list<RBVertex>& cm) : m_cm(&cm) {};
+  if_not_maximal(const std::list<RBVertex>& cm) : m_cm{&cm} {};
 
   /**
     @brief Overloading of operator() for if_not_maximal
@@ -208,11 +208,14 @@ struct if_not_maximal {
     @return True if \e v is not maximal character of \e g
   */
   inline bool operator()(const RBVertex v, const RBGraph& g) const {
-    return (std::find(m_cm->begin(), m_cm->end(), v) == m_cm->end());
+    if (m_cm == nullptr)
+      return false;
+
+    return (std::find(m_cm->cbegin(), m_cm->cend(), v) == m_cm->cend());
   }
 
 private:
-  const std::list<RBVertex>* m_cm;
+  const std::list<RBVertex>* const m_cm{};
 };
 
 
@@ -591,7 +594,7 @@ RBGraphVector connected_components(const RBGraph& g);
 
   @return Maximal characters (vertices) of \e g
 */
-std::list<RBVertex> maximal_characters(const RBGraph& g);
+const std::list<RBVertex> maximal_characters(const RBGraph& g);
 
 /**
   @brief Build the maximal reducible red-black graph of \e gm

@@ -22,7 +22,7 @@ void remove_vertex(const RBVertex v, RBGraph& g) {
 
 void remove_vertex(const std::string& v, RBGraph& g) {
   // find v in the bimap
-  RBVertex u = bimap(g).left.at(v);
+  const RBVertex u = bimap(g).left.at(v);
 
   if (is_species(u, g))
     num_species(g)--;
@@ -38,7 +38,7 @@ void remove_vertex(const std::string& v, RBGraph& g) {
 RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
   try {
     // if a vertex with the same name already exists
-    RBVertex u = bimap(g).left.at(name);
+    const RBVertex u = bimap(g).left.at(name);
     // return its descriptor and do nothing
     return u;
   }
@@ -46,7 +46,7 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
     // continue with the algorithm
   }
 
-  RBVertex v = boost::add_vertex(g);
+  const RBVertex v = boost::add_vertex(g);
 
   // insert v in the bimap
   bimap(g).insert(RBVertexBimap::value_type(name, v));
@@ -252,14 +252,14 @@ void read_graph(const std::string& filename, RBGraph& g) {
 
       // insert species in the graph
       for (size_t j = 0; j < species.size(); ++j) {
-        std::string v_name = "s" + std::to_string(j);
+        const std::string v_name = "s" + std::to_string(j);
 
         species[j] = add_vertex(v_name, Type::species, g);
       }
 
       // insert characters in the graph
       for (size_t j = 0; j < characters.size(); ++j) {
-        std::string v_name = "c" + std::to_string(j);
+        const std::string v_name = "c" + std::to_string(j);
 
         characters[j] = add_vertex(v_name, Type::character, g);
       }
@@ -283,8 +283,8 @@ void read_graph(const std::string& filename, RBGraph& g) {
           case '1':
             // add edge between species[s_index] and characters[c_index]
             {
-              size_t s_index = index / characters.size(),
-                     c_index = index % characters.size();
+              const size_t s_index = index / characters.size(),
+                           c_index = index % characters.size();
 
               if (s_index >= species.size() || c_index >= characters.size()) {
                 // input file parsing error
@@ -520,8 +520,8 @@ RBGraphVector connected_components(const RBGraph& g) {
   // add vertices to their respective subgraph
   for (const std::pair<RBVertex, RBVertexSize>& vcomp : map_comp) {
     // for each vertex
-    RBVertex v = vcomp.first;
-    RBVertexSize comp = vcomp.second;
+    const RBVertex v = vcomp.first;
+    const RBVertexSize comp = vcomp.second;
     RBGraph* component = components[comp].get();
 
     // add the vertex to *component and copy its descriptor in vertices[v]
@@ -531,21 +531,21 @@ RBGraphVector connected_components(const RBGraph& g) {
   // add edges to their respective vertices and subgraph
   for (const std::pair<RBVertex, RBVertexSize>& vcomp : map_comp) {
     // for each vertex
-    RBVertex v = vcomp.first;
+    const RBVertex v = vcomp.first;
 
     // prevent duplicate edges
     if (!is_species(v, g))
       continue;
 
-    RBVertex new_v = vertices[v];
-    RBVertexSize comp = vcomp.second;
+    const RBVertex new_v = vertices[v];
+    const RBVertexSize comp = vcomp.second;
     RBGraph* component = components[comp].get();
 
     RBOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(v, g);
     for (; e != e_end; ++e) {
       // for each out edge
-      RBVertex new_vt = vertices[target(*e, g)];
+      const RBVertex new_vt = vertices[target(*e, g)];
 
       RBEdge edge;
       std::tie(edge, std::ignore) = add_edge(
@@ -570,7 +570,7 @@ RBGraphVector connected_components(const RBGraph& g) {
   return components;
 }
 
-std::list<RBVertex> maximal_characters(const RBGraph& g) {
+const std::list<RBVertex> maximal_characters(const RBGraph& g) {
   std::list<RBVertex> cm;
   std::map<RBVertex, std::list<RBVertex>> sets;
 
@@ -624,7 +624,9 @@ std::list<RBVertex> maximal_characters(const RBGraph& g) {
         // for each species adjacent to v, S(C#)
 
         // find sv in the list of cmv's adjacent species
-        RBVertexIter in = std::find(sets[*cmv].begin(), sets[*cmv].end(), *sv);
+        std::list<RBVertex>::const_iterator in = std::find(
+          sets[*cmv].cbegin(), sets[*cmv].cend(), *sv
+        );
 
         // keep count of how many species are included (or not found) in
         // the list of cmv's adjacent species
@@ -697,7 +699,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
   copy_graph(g, gm);
 
   // compute the maximal characters of gm
-  std::list<RBVertex> cm = maximal_characters(gm);
+  const std::list<RBVertex> cm = maximal_characters(gm);
 
   if (logging::enabled) {
     // verbosity enabled

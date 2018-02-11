@@ -11,7 +11,7 @@ add_vertex(
     const std::list<std::string>& species,
     const std::list<std::string>& characters,
     HDGraph& hasse) {
-  HDVertex v = boost::add_vertex(hasse);
+  const HDVertex v = boost::add_vertex(hasse);
   hasse[v].species = species;
   hasse[v].characters = characters;
 
@@ -59,15 +59,15 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
     HDOutEdgeIter e, e_end;
     std::tie(e, e_end) = out_edges(*v, hasse);
     for (; e != e_end; ++e) {
-      HDVertex vt = target(*e, hasse);
+      const HDVertex vt = target(*e, hasse);
 
       os << " -";
 
-      SignedCharacterIter j = hasse[*e].signedcharacters.begin();
-      for (; j != hasse[*e].signedcharacters.end(); ++j) {
+      SignedCharacterIter j = hasse[*e].signedcharacters.cbegin();
+      for (; j != hasse[*e].signedcharacters.cend(); ++j) {
         os << *j;
 
-        if (std::next(j) != hasse[*e].signedcharacters.end())
+        if (std::next(j) != hasse[*e].signedcharacters.cend())
           os << ",";
       }
 
@@ -100,7 +100,7 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
 bool
 is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
   for (const std::string& a_str : a) {
-    if (std::find(b.begin(), b.end(), a_str) == b.end())
+    if (std::find(b.cbegin(), b.cend(), a_str) == b.cend())
       // exit the function at the first string of a not present in b
       return false;
   }
@@ -143,7 +143,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         continue;
 
       // vt = one of the characters adjacent to *v
-      RBVertex vt = target(*e, gm);
+      const RBVertex vt = target(*e, gm);
 
       // sets[index]'s other elements are the characters adjacent to S
       sets[index].push_back(vt);
@@ -176,7 +176,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       continue;
 
     // v = species of gm
-    RBVertex v = set.front();
+    const RBVertex v = set.front();
 
     // fill the list of characters names of v
     std::list<std::string> lcv;
@@ -232,7 +232,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         break;
       }
 
-      std::list<std::string> lhdv = hasse[*hdv].characters;
+      const std::list<std::string> lhdv = hasse[*hdv].characters;
 
       // TODO: check if edge building is done right
 
@@ -243,8 +243,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         // hdv is included in v
         for (const std::string& ci : lcv) {
           // for each character in hdv
-          StringIter in;
-          in = std::find(lhdv.begin(), lhdv.end(), ci);
+          StringIter in = std::find(lhdv.cbegin(), lhdv.cend(), ci);
 
           if (in == lhdv.end()) {
             // character is not present in lhdv
@@ -259,7 +258,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         // last iteration on the characters in the list has been performed
 
         // build a vertex for v and add it to the Hasse diagram
-        HDVertex u = add_vertex(gm[v].name, lcv, hasse);
+        const HDVertex u = add_vertex(gm[v].name, lcv, hasse);
 
         // build in_edges for the vertex and add them to the Hasse diagram
         for (const std::pair<HDVertex, std::string>& ei : new_edges) {
