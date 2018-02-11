@@ -278,9 +278,9 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
 /**
   @brief Add edge between \e u and \e v to \e g
 
-  @param[in]     u     Source Vertex
-  @param[in]     v     Target Vertex
-  @param[in,out] g     Red-black graph
+  @param[in]     u Source Vertex
+  @param[in]     v Target Vertex
+  @param[in,out] g Red-black graph
 
   @return Edge descriptor for the new edge.
           If the edge is already in the graph then a duplicate will not be
@@ -367,8 +367,8 @@ inline const RBVertexBimap bimap(const RBGraph& g) {
   @brief Remove \e v from \e g if it satisfies \c predicate
 
   @param[in]     v         Vertex
-  @param[in,out] g         Red-black graph
   @param[in]     predicate Predicate
+  @param[in,out] g         Red-black graph
 */
 template <typename Predicate>
 void remove_vertex_if(const RBVertex v, Predicate predicate, RBGraph& g) {
@@ -569,7 +569,7 @@ bool is_universal(const RBVertex v, const RBGraph& g);
   unique_ptr will be empty. This is because the purpose of the functions is to
   build the subgraphs, not copy the whole graph when it isn't needed.
 
-  @param[in]  g          Red-black graph
+  @param[in] g Red-black graph
 
   @return components Vector of unique pointers to each subgraph
 */

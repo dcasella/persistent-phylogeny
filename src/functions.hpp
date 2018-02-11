@@ -11,12 +11,14 @@
 
 /**
   @brief Safe chain DFS Visitor exception
+
   Thrown when \c initial_state_visitor finds a safe chain with a safe source
 */
 class InitialState : public std::exception {
 public:
   /**
     @brief Returns the reason of the exception
+
     @return C String
   */
   inline const char* what() const throw() {
@@ -164,7 +166,7 @@ public:
     consists of C(s), is connected to only inactive characters and the
     realization of C(s') in GRB does not induce red Σ-graphs in GRB.
 
-    @param[in] hasse   Hasse diagram graph
+    @param[in] hasse Hasse diagram graph
 
     @return True if \e source_v satisfies the test 1
   */
