@@ -44,7 +44,7 @@ TEST_TARGETS = $(TEST_SOURCES:.cpp=)
 
 all: $(TARGET) python
 
-debug: CEXTRA+=-DDEBUG
+debug: CEXTRA += -DDEBUG
 debug: all
 
 # C++ Main
