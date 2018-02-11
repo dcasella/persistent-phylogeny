@@ -2,8 +2,7 @@
 
 
 int main(int argc, const char* argv[]) {
-  RBGraph g;
-  RBGraph g1;
+  RBGraph g, g1;
   RBVertex v1, v2, v3, v4;
 
        add_vertex("v0", g);

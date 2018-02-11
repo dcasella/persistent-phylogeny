@@ -41,8 +41,8 @@ int main(int argc, const char* argv[]) {
   add_edge(s6, c3, g);
   add_edge(s6, c5, g);
 
-  RBGraph g1(g);
-  build_bimap(g1);
+  RBGraph g1;
+  copy_graph(g, g1);
 
   realize({ "c3", State::gain }, g);
   realize({ "c5", State::gain }, g);
