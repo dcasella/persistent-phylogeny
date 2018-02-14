@@ -224,17 +224,13 @@ int main(int argc, const char* argv[]) {
 
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << ": < " << reduction.str() << ">";
-      }
-
-      std::cout << std::endl;
-    }
-    catch (const NoReduction& e) {
-      std::cout << '\r' << "No (" << file << ")";
-
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << ": " << e.what();
+        if (exponential::enabled) {
+          // exponential algorithm enabled
+          std::cout << ": Successful reductions have been logged";
+        }
+        else {
+          std::cout << ": < " << reduction.str() << ">";
+        }
       }
 
       std::cout << std::endl;
@@ -249,7 +245,7 @@ int main(int argc, const char* argv[]) {
 
       std::cout << std::endl;
     }
-    catch (const std::runtime_error& e) {
+    catch (const std::exception& e) {
       std::cout << '\r' << "No (" << file << ")";
 
       if (logging::enabled) {
