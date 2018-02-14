@@ -244,12 +244,21 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse);
 */
 bool realize_source(const HDVertex source, const HDGraph& hasse);
 
+/**
+  @brief Check if \e reduction is not a complete c-reduction
+
+  @param[in] reduction List of signed characters
+
+  @return True if \e reduction is partial (with missing gained characters)
+*/
+bool is_partial(const std::list<SignedCharacter>& reduction);
+
 
 //=============================================================================
 // Algorithm main functions
 
 /**
-  @brief Computes an extended c-reduction that is a successful reduction of a
+  @brief Compute an extended c-reduction that is a successful reduction of a
          reducible graph
 
   A tree traversal of the positive characters of a tree T solving a graph GRB

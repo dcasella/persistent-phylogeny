@@ -880,6 +880,28 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
   return output;
 }
 
+bool is_partial(const std::list<SignedCharacter>& reduction) {
+  std::list<std::string> gained_c{};
+
+  for (const SignedCharacter& sc : reduction) {
+    if (sc.state == State::gain) {
+      gained_c.push_back(sc.character);
+
+      continue;
+    }
+
+    StringIter find_gained = std::find(
+      gained_c.cbegin(), gained_c.cend(), sc.character
+    );
+
+    if (find_gained == gained_c.cend()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 
 //=============================================================================
 // Algorithm main functions
@@ -1033,7 +1055,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::list<SignedCharacter> sc;
 
   // exponential safe source selection
-  if (s.size() > 1 && exponential::enabled) {
+  if (exponential::enabled) {
     // exponential algorithm enabled
     std::list<std::list<SignedCharacter>> sources_output;
 
@@ -1106,7 +1128,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       catch (const NoReduction& e) {
         if (logging::enabled) {
           // verbosity enabled
-          std::cout << "No successful reduction for safe source [ ";
+          std::cout << "No for safe source [ ";
 
           for (const std::string& kk : p[source].species) {
             std::cout << kk << " ";
@@ -1126,6 +1148,28 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     if (sources_output.empty())
       // no realization induces a successful reduction
       throw NoReduction();
+
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "Reductions: [" << std::endl;
+
+      for (const std::list<SignedCharacter>& lkk : sources_output) {
+        if (is_partial(lkk))
+          std::cout << "  Partial: ";
+        else
+          std::cout << "  Complete: ";
+
+        std::cout << "< ";
+
+        for (const SignedCharacter& kk : lkk) {
+          std::cout << kk << " ";
+        }
+
+        std::cout << ">" << std::endl;
+      }
+
+      std::cout << "]" << std::endl << std::endl;
+    }
 
     return sources_output.front();
   }
