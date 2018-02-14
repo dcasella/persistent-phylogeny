@@ -86,10 +86,6 @@ void initial_state_visitor::examine_edge(const HDEdge e,
     std::cout << "]" << std::endl;
   }
 
-  if (in_degree(vs, hasse) == 0)
-    // the source vertex of the edge is a source (indegree 0)
-    chain.clear();
-
   // add edge to the chain
   chain.push_back(e);
 }
@@ -211,15 +207,7 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     return;
   }
 
-  perform_test(hasse);
-
-  // remove the last added edge from the chain
-  chain.pop_back();
-
-  if (out_degree(vt, hasse) == 1)
-    // remove the second last added egde from the chain,
-    // since two edges were added in this function
-    chain.pop_back();
+  perform_test(vt, hasse);
 }
 
 void initial_state_visitor::finish_vertex(const HDVertex v,
@@ -248,24 +236,13 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
   if (out_degree(v, hasse) > 0 || v_in_chain || last_v != v) {
     // v is not the last vertex in the chain
     // (which means the visit is backtracking)
-
-    // remove the last added edge from the chain if the chain is not empty,
-    // since this chain has already been tested
-    if (!chain.empty())
-      chain.pop_back();
-
     return;
   }
 
-  perform_test(hasse);
-
-  // remove the last added edge from the chain if the chain is not empty,
-  // which is sure to be a tree edge
-  if (!chain.empty())
-    chain.pop_back();
+  perform_test(v, hasse);
 }
 
-void initial_state_visitor::perform_test(const HDGraph& hasse) {
+void initial_state_visitor::perform_test(const HDVertex v, const HDGraph& hasse) {
   if (m_safe_sources == nullptr || m_sources == nullptr)
     // uninitialized sources lists
     return;
@@ -275,11 +252,19 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
 
   // check if source_v is already in m_safe_sources or m_sources
   if ((!m_safe_sources->empty() && source_v == m_safe_sources->back()) ||
-      (!m_sources->empty() && source_v == m_sources->back()))
+      (!m_sources->empty() && source_v == m_sources->back())) {
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << std::endl
+                << "Chain detected, but its Source has already been processed"
+                << std::endl << std::endl;
+    }
+
     return;
+  }
 
   // test if chain is a safe chain
-  if (!safe_chain(hasse))
+  if (!safe_chain(v, hasse))
     // chain is not a safe chain
     return;
 
@@ -311,7 +296,7 @@ void initial_state_visitor::perform_test(const HDGraph& hasse) {
   m_sources->push_back(source_v);
 }
 
-bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
+bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
   if (orig_g(hasse) == nullptr || orig_gm(hasse) == nullptr)
     // uninitialized graph properties
     return false;
@@ -339,11 +324,25 @@ bool initial_state_visitor::safe_chain(const HDGraph& hasse) {
   }
 
   for (const HDEdge& e : chain) {
-    lsc.insert(
-      lsc.end(),
-      hasse[e].signedcharacters.cbegin(),
-      hasse[e].signedcharacters.cend()
-    );
+    for (const SignedCharacter& sc : hasse[e].signedcharacters) {
+      StringIter check_sc_in_chain = std::find(
+        hasse[v].characters.cbegin(), hasse[v].characters.cend(), sc.character
+      );
+
+      if (check_sc_in_chain == hasse[v].characters.cend())
+        // ignore previous edge in the chain (other chain, old edge)
+        break;
+
+      SignedCharacterIter check_sc_in_lsc = std::find(
+        lsc.cbegin(), lsc.cend(), sc
+      );
+
+      if (check_sc_in_lsc != lsc.cend())
+        // remove previous signed character in lsc - it might be out of order
+        lsc.erase(check_sc_in_lsc);
+
+      lsc.push_back(sc);
+    }
   }
 
   if (logging::enabled) {

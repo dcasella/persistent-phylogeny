@@ -140,9 +140,10 @@ public:
     Call \e safe_chain to check if \e chain is a safe chain. If it is, add
     source_v to the list of sources.
 
+    @param[in] v     Current vertex
     @param[in] hasse Hasse diagram graph
   */
-  void perform_test(const HDGraph& hasse);
+  void perform_test(const HDVertex v, const HDGraph& hasse);
 
   /**
     @brief Check if \e chain is a safe chain in \e hasse
@@ -152,11 +153,12 @@ public:
     Then C is safe if the c-reduction S(C) of C is feasible for the graph and
     applying S(C) to GRB results in a graph that has no red Σ-graphs.
 
+    @param[in] v     Current vertex
     @param[in] hasse Hasse diagram graph
 
     @return True if \e chain is a safe chain in \e hasse
   */
-  bool safe_chain(const HDGraph& hasse);
+  bool safe_chain(const HDVertex v, const HDGraph& hasse);
 
   /**
     @brief Test if \e source_v satisfies the test 1 in \e hasse
@@ -233,7 +235,7 @@ std::list<HDVertex>
 safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse);
 
 /**
-  @brief Check if the realization of \e source does not induce red Σ-graph.
+  @brief Check if the realization of \e source does not induce red Σ-graph
 
   @param[in] source Source vertex
   @param[in] hasse  Hasse diagram graph
