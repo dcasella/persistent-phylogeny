@@ -335,18 +335,18 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
                 << "Empty chain" << std::endl << std::endl;
     }
 
-    // test if the diagram is degenerate
-    if (num_edges(hasse) > 0) {
-      // chain is empty and the diagram is not degenerate
-      // which means the chain is not actually safe
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << "Hasse diagram is non-degenerate; ignoring its source."
-                  << std::endl << std::endl;
-      }
+    // // test if the diagram is degenerate
+    // if (num_edges(hasse) > 0) {
+    //   // chain is empty and the diagram is not degenerate
+    //   // which means the chain is not actually safe
+    //   if (logging::enabled) {
+    //     // verbosity enabled
+    //     std::cout << "Hasse diagram is non-degenerate; ignoring its source."
+    //               << std::endl << std::endl;
+    //   }
 
-      return false;
-    }
+    //   return false;
+    // }
 
     return true;
   }
