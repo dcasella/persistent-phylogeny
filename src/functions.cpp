@@ -192,22 +192,29 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     std::cout << "]" << std::endl;
   }
 
-  if (out_degree(vt, hasse) == 1) {
-    // e is not the last edge in the chain (vt is not a sink in hasse),
-    // but it may be needed for the chain to complete
-    HDOutEdgeIter oe;
-    std::tie(oe, std::ignore) = out_edges(vt, hasse);
-
-    // add outedge to the chain
-    chain.push_back(*oe);
-  }
-  else if (out_degree(vt, hasse) > 1) {
+  if (out_degree(vt, hasse) > 1) {
     // e is not the last edge in the chain (vt is not a sink in hasse),
     // ignore it and keep going
     return;
   }
 
-  perform_test(vt, hasse);
+  HDVertex v_test = vt;
+
+  while (out_degree(v_test, hasse) == 1) {
+    // e is not the last edge in the chain (vt is not a sink in hasse),
+    // but it may be needed for the chain to complete
+
+    HDOutEdgeIter oe;
+    std::tie(oe, std::ignore) = out_edges(v_test, hasse);
+
+    // add outedge to the chain
+    chain.push_back(*oe);
+
+    // update v_test to current vt
+    v_test = target(*oe, hasse);
+  }
+
+  perform_test(v_test, hasse);
 }
 
 void initial_state_visitor::finish_vertex(const HDVertex v,
@@ -283,6 +290,20 @@ void initial_state_visitor::perform_test(const HDVertex v, const HDGraph& hasse)
     // source_v is a safe source, return (don't add it to m_sources)
     return;
 
+  // test if the list of safe sources is empty
+  if (!m_safe_sources->empty()) {
+    // list of safe sources is not empty, return (don't add it to m_sources)
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << std::endl
+                << "Test 3 wouldn't be feasible: "
+                << "the list of safe sources is not empty"
+                << std::endl << std::endl;
+    }
+
+    return;
+  }
+
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
@@ -306,12 +327,25 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
 
   // chain holds the list of edges representing the chain
 
+  // test if the chain is empty
   if (chain.empty()) {
-    // chain being empty means it's not actually a chain?
     if (logging::enabled) {
       // verbosity enabled
       std::cout << std::endl
                 << "Empty chain" << std::endl << std::endl;
+    }
+
+    // test if the diagram is degenerate
+    if (num_edges(hasse) > 0) {
+      // chain is empty and the diagram is not degenerate
+      // which means the chain is not actually safe
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << "Hasse diagram is non-degenerate; ignoring its source."
+                  << std::endl << std::endl;
+      }
+
+      return false;
     }
 
     return true;
@@ -330,7 +364,7 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
       );
 
       if (check_sc_in_chain == hasse[v].characters.cend())
-        // ignore previous edge in the chain (other chain, old edge)
+        // ignore wrong edge (other chain, old edge)
         break;
 
       SignedCharacterIter check_sc_in_lsc = std::find(
@@ -800,6 +834,19 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
 
     output.push_back(source);
 
+    if (exponential::enabled || interactive::enabled || nthsource::index > 0) {
+      // exponential algorithm or user interaction enabled
+      // or safe source selection index is not 0
+      if (logging::enabled) {
+        // verbosity enabled
+        std::cout << std::endl
+                  << "Source added to the list of safe sources"
+                  << std::endl << std::endl;
+      }
+
+      continue;
+    }
+
     return output;
   }
 
@@ -957,8 +1004,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       std::list<SignedCharacter> lsc;
       std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
 
-      output.splice(output.end(), lsc);
-      output.splice(output.end(), reduce(g));
+      output.splice(output.cend(), lsc);
+      output.splice(output.cend(), reduce(g));
 
       // return < v-, reduce(g) >
       return output;
@@ -987,8 +1034,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       std::list<SignedCharacter> lsc;
       std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
 
-      output.splice(output.end(), lsc);
-      output.splice(output.end(), reduce(g));
+      output.splice(output.cend(), lsc);
+      output.splice(output.cend(), reduce(g));
 
       // return < v+, reduce(g) >
       return output;
@@ -1007,7 +1054,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // build subgraphs (connected components) g1, g2, etc.
     // return < reduce(g1), reduce(g2), ... >
     for (size_t i = 0; i < components.size(); ++i) {
-      output.splice(output.end(), reduce(*components[i].get()));
+      output.splice(output.cend(), reduce(*components[i].get()));
     }
 
     // return < reduce(g1), reduce(g2), ... >
@@ -1316,8 +1363,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   // append the list of realized characters and the recursive call to the
   // output in constant time (std::list::splice simply moves pointers around
   // instead of copying the data)
-  output.splice(output.end(), sc);
-  output.splice(output.end(), reduce(g));
+  output.splice(output.cend(), sc);
+  output.splice(output.cend(), reduce(g));
 
   // return < sc, reduce(g) >
   return output;
@@ -1427,7 +1474,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
       std::list<SignedCharacter> lsc;
       std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
 
-      output.splice(output.end(), lsc);
+      output.splice(output.cend(), lsc);
 
       return std::make_pair(output, true);
     }
@@ -1448,7 +1495,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
       std::list<SignedCharacter> lsc;
       std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
 
-      output.splice(output.end(), lsc);
+      output.splice(output.cend(), lsc);
 
       return std::make_pair(output, true);
     }
@@ -1496,7 +1543,7 @@ realize(const std::list<SignedCharacter>& lsc, RBGraph& g) {
     if (!feasible)
       return std::make_pair(sc, false);
 
-    output.splice(output.end(), sc);
+    output.splice(output.cend(), sc);
   }
 
   return std::make_pair(output, true);
