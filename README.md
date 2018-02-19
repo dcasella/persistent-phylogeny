@@ -66,10 +66,77 @@ Make sure everything works correctly.
 $ ./run_tests.sh
 ```
 
+## Usage
+
+```
+ppp [OPTION...] FILE...
+```
+
+**ppp** corresponds to the executable binary.
+
+**OPTION** is a list of options - can be omitted.
+
+**FILE** is a list of file paths (1 or more).
+
+### Options
+
+```
+-h or  --help
+```
+
+Display this message.
+
+___
+
+```
+-v or --verbose
+```
+
+Display the operations performed by the program.
+
+___
+
+```
+-x or --exponential
+```
+
+Exponential version of the algorithm.  
+This option can be used to test every possible combination of safe sources.  
+It is also mutually exclusive with `--interactive`.
+
+___
+
+```
+-i or --interactive
+```
+
+User input driven execution.  
+This option can be used to manually select which safe source to realize.  
+It is also mutually exclusive with `--exponential`.
+
+___
+
+```
+-m or --maximal
+```
+
+Run the algorithm on the maximal subgraph instead of the full graph.  
+This is done by calculating a maximal reducible graph before running the algorithm.
+
+___
+
+```
+-n N or --nthsource N
+```
+
+Select the nth safe source when possible (default 0 - the option can be omitted).  
+This option can be used to automatically select the nth safe source to realize (instead of manually selecting it each time with `--interactive`).  
+It is also mutually exclusive with `--exponential` and `--interactive`.
+
 ## Running
 
 ```
-$ ./bin/ppp file...
+$ ./bin/ppp FILE...
 ```
 
 The program will call the `reduce` function on each graph read from the files.
@@ -79,13 +146,19 @@ Examples:
 Listing the single files
 
 ```
-$ ./bin/ppp file1 dir2/file2
+$ ./bin/ppp file1 dir1/file2 dir1/file3
 ```
 
-Or with globs
+Or with globs (if your shell supports it)
 
 ```
 $ ./bin/ppp dir1/*
+```
+
+Or with options (order doesn't matter - still supports globs)
+
+```
+$ ./bin/ppp -m -v file1
 ```
 
 ## Input file structure
