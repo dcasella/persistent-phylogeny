@@ -123,6 +123,21 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // access v_map[S] in costant time, instead of iterating on sets to find the
   // correct list
 
+  auto compare_names = [](const std::string& a, const std::string& b) {
+    size_t a_index, b_index;
+    std::stringstream ss;
+
+    ss.str(a.substr(1));
+    ss >> a_index;
+
+    ss.clear();
+
+    ss.str(b.substr(1));
+    ss >> b_index;
+
+    return a_index < b_index;
+  };
+
   // initialize sets and v_map for each species in the graph
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
@@ -184,22 +199,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       lcv.push_back(gm[cv].name);
     }
 
-    auto compare_characters = [](const std::string& a, const std::string& b) {
-      size_t a_index, b_index;
-      std::stringstream ss;
-
-      ss.str(a.substr(1));
-      ss >> a_index;
-
-      ss.clear();
-
-      ss.str(b.substr(1));
-      ss >> b_index;
-
-      return a_index < b_index;
-    };
-
-    lcv.sort(compare_characters);
+    lcv.sort(compare_names);
 
     if (first_iteration) {
       // first iteration of the loop:
@@ -313,5 +313,16 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         remove_edge(e, hasse);
       }
     }
+  }
+
+  // sort species names in each vertex
+  std::tie(u, u_end) = vertices(hasse);
+  for (; u != u_end; ++u) {
+    std::list<std::string> species = hasse[*u].species;
+
+    species.sort(compare_names);
+
+    hasse[*u].species.clear();
+    hasse[*u].species.splice(hasse[*u].species.cend(), species);
   }
 }
