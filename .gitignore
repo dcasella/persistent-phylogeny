@@ -16,3 +16,6 @@ docs/
 # Text files
 *.txt
 *.log
+
+# Tarballs
+*.tar.gz
