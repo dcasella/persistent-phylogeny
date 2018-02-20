@@ -137,8 +137,10 @@ public:
   /**
     @brief Test if \e chain is a safe chain with \e source_v as source
 
-    Call \e safe_chain to check if \e chain is a safe chain. If it is, add
-    source_v to the list of sources.
+    Call \e safe_chain to check if \e chain is a safe chain. If it is, run
+    Test 1 on \e source_v.
+    If Test 1 succeds, add \e source_v to the list of safe sources.
+    If Test 1 fails, add \e source_v to the list of sources (maybe safe).
 
     @param[in] v     Current vertex
     @param[in] hasse Hasse diagram graph
@@ -174,21 +176,6 @@ public:
   */
   bool safe_source_test1(const HDGraph& hasse);
 
-  /**
-    @brief Test if \e source_v satisfies the test 2 in \e hasse
-
-    Test 2:
-    A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-    consists of C(s) + other maximal characters, is connected to only inactive
-    characters and the realization of C(s') in GRB does not induce red Σ-graphs
-    in GRB.
-
-    @param[in] hasse Hasse diagram graph
-
-    @return True if \e source_v satisfies the test 2
-  */
-  bool safe_source_test2(const HDGraph& hasse);
-
 private:
   std::list<HDVertex>* const m_safe_sources{};
   std::list<HDVertex>* const m_sources{};
@@ -219,9 +206,28 @@ private:
 std::list<HDVertex> initial_states(const HDGraph& hasse);
 
 /**
+  @brief Test if \e sources contain a source that satisfies the test 2 in
+         \e hasse
+
+  Test 2:
+  A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
+  consists of C(s) + other maximal characters, is connected to only inactive
+  characters and the realization of C(s') in GRB does not induce red Σ-graphs
+  in GRB.
+
+  @param[in] sources List of source vertices
+  @param[in] hasse Hasse diagram graph
+
+  @return List of sources that satisfy the test 2
+*/
+std::list<HDVertex>
+safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse);
+
+/**
   @brief Test if \e sources contain a source that satisfies the test 3 in
          \e hasse
 
+  Test 3:
   A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
   consists of C(s) + other active characters, and the realization of C(s') in
   GRB does not induce red Σ-graphs in GRB.
