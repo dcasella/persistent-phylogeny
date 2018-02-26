@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ "$1" = 'clear' ]; then
+if [ "$1" = 'clear' ] || [ "$1" = 'clean' ]; then
 	printf 'Clearing...\n'
 
 	rm -rf tests/output
@@ -14,7 +14,7 @@ mkdir -p tests/output
 
 printf 'Running PPP...\n'
 
-for file; do
+for file in tests/input/??_??_*.txt; do
 	printf "File: $file\n"
 
 	bin/ppp "$file" -m -x -v > tests/output/$(basename $file .txt).log
