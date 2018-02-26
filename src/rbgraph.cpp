@@ -734,31 +734,105 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
   return gm;
 }
 
-bool is_redsigma(const RBGraph& g) {
-  bool output = false;
-  RBGraphVector components = connected_components(g);
+bool has_red_sigmagraph(const RBGraph& g) {
+  size_t count_actives = 0;
 
-  // if g is connected or empty
-  if (components.size() <= 1) {
-    RBVertexIter v, v_end;
-    std::tie(v, v_end) = vertices(g);
-    for (; v != v_end; ++v) {
-      if (!is_character(*v, g))
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    if (is_active(*v, g))
+      count_actives++;
+
+    if (count_actives == 2)
+      break;
+  }
+
+  // if count_actives doesn't reach 2, g can't contain a red sigma-graph
+  if (count_actives < 2)
+    return false;
+
+  std::tie(v, v_end) = vertices(g);
+  for (; v != v_end; ++v) {
+    if (!is_active(*v, g))
+      continue;
+    // for each active character
+
+    for (RBVertexIter u = std::next(v); u != v_end; ++u) {
+      if (!is_active(*u, g))
         continue;
+      // for each active character coming after *v
 
-      if (is_inactive(*v, g) || is_free(*v, g))
-        return output;
+      // check if characters *v and *u are part of a red sigma-graph
+      if (has_red_sigmapath(*v, *u, g))
+        return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g) {
+  // vertex that connects c0 and c1 (always with red edges)
+  RBVertex junction = 0;
+
+  bool half_sigma = false;
+
+  RBOutEdgeIter e, e_end;
+  std::tie(e, e_end) = out_edges(c0, g);
+  for (; e != e_end; ++e) {
+    if (!is_red(*e, g))
+      continue;
+
+    RBVertex s = target(*e, g);
+
+    // for each species connected to c0 via a red edge
+
+    RBEdge edgec1;
+    bool existsc1;
+    std::tie(edgec1, existsc1) = edge(c1, s, g);
+
+    // check if s can be a junction vertex
+    if (junction == 0 && existsc1 && is_red(edgec1, g)) {
+      junction = s;
+
+      continue;
     }
 
-    // Return True if g isn't empty (Empty graph isn't red sigma)
-    return !is_empty(g);
+    // check if s and c1 are connected
+    if (existsc1)
+      // skip s
+      continue;
+
+    half_sigma = true;
+
+    if (junction != 0)
+      break;
   }
 
-  // if g is disconnected
-  for (const std::unique_ptr<RBGraph>& component : components) {
-    // recursively check if any subgraph is red sigma
-    output |= is_redsigma(*component.get());
+  if (!half_sigma || junction == 0)
+    return false;
+
+  std::tie(e, e_end) = out_edges(c1, g);
+  for (; e != e_end; ++e) {
+    RBVertex s = target(*e, g);
+
+    if (!is_red(*e, g) || s == junction)
+      continue;
+
+    // for each species connected to c1 via a red edge (which is not junction)
+
+    RBEdge edgec0;
+    bool existsc0;
+    std::tie(edgec0, existsc0) = edge(c0, s, g);
+
+    // check if s and c0 are connected
+    if (existsc0)
+      // skip s
+      continue;
+
+    return true;
   }
 
-  return output;
+  return false;
 }

@@ -613,15 +613,29 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g);
 RBGraph maximal_reducible_graph(const RBGraph& g, const bool active = false);
 
 /**
-  @brief Check if \e g is a red Σ-graph
+  @brief Check if \e g contains a red Σ-graph
 
-  A red-black graph containing a red Σ-graph cannot be reduce to an empty graph
-  by a c-reduction.
+  A red-black graph containing a red Σ-graph cannot be reduced to an empty
+  graph by a c-reduction.
 
   @param[in] g Red-black graph
 
-  @return True if \e g is a red Σ-graph
+  @return True if \e g contains a red Σ-graph
 */
-bool is_redsigma(const RBGraph& g);
+bool has_red_sigmagraph(const RBGraph& g);
+
+/**
+  @brief Check if \e g contains a red Σ-graph with characters \e c0 and \e c1
+
+  This function should only be called by \e has_redsigma.
+
+  @param[in] c0 Vertex
+  @param[in] c1 Vertex
+  @param[in] g  Red-black graph
+
+  @return True if \e g contains a red Σ-graph with characters \e c0 and \e c1
+*/
+bool
+has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g);
 
 #endif // RBGRAPH_HPP

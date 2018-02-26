@@ -428,7 +428,7 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, chain is a safe chain
-  const bool output = !is_redsigma(g_test);
+  const bool output = !has_red_sigmagraph(g_test);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -903,7 +903,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, source is a safe source
-  const bool output = !is_redsigma(g_test);
+  const bool output = !has_red_sigmagraph(g_test);
 
   if (logging::enabled) {
     // verbosity enabled
