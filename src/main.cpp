@@ -27,8 +27,10 @@ int main(int argc, const char* argv[]) {
     "\n\n"
     "Options"
   );
+
+  general_options.add_options()
   // option: help message
-  general_options.add_options()(
+  (
     "help,h",
     "Display this message.\n"
   )
@@ -37,6 +39,12 @@ int main(int argc, const char* argv[]) {
     "verbose,v",
     boost::program_options::bool_switch(&logging::enabled),
     "Display the operations performed by the program.\n"
+  )
+  // option: testpy, test reduce output with a python script
+  (
+    "testpy,t",
+    boost::program_options::bool_switch()->default_value(false),
+    "Test the output of the algorithm with check_reduction.py.\n"
   )
   // option: exponential, test every possible combination of safe sources
   (
@@ -83,8 +91,7 @@ int main(int argc, const char* argv[]) {
 
   // initialize options
   boost::program_options::options_description cmdline_options;
-  // add the options menu and the hidden options to the
-  // available options
+  // add the options menu and the hidden options to the available options
   cmdline_options.add(general_options).add(hidden_options);
 
   // initialize the variables map
@@ -133,16 +140,21 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
-  if (files.size() > 1)
+  if (files.size() > 1) {
     std::cout << "Running PPP on " << files.size() << " files."
               << std::endl << std::endl;
+  }
 
-  // initialize the python interpreter
-  setenv("PYTHONPATH", "bin", 1);
-  Py_Initialize();
+  boost::python::object pymod;
 
-  // import check_reduction.py
-  boost::python::object pymod = boost::python::import("check_reduction");
+  if (vm["testpy"].as<bool>()) {
+    // initialize the python interpreter
+    setenv("PYTHONPATH", "bin", 1);
+    Py_Initialize();
+
+    // import check_reduction.py
+    pymod = boost::python::import("check_reduction");
+  }
 
   size_t count_file = 0;
   for (const std::string& file : files) {
@@ -198,26 +210,28 @@ int main(int argc, const char* argv[]) {
         reduction << sc << " ";
       }
 
-      if (vm["maximal"].as<bool>()) {
-        // run the function check_reduction(filename, reduction), store its
-        // output in pycheck
-        boost::python::object pycheck = pymod.attr("check_reduction")
-                                                  (file, reduction.str(),
-                                                   keep_c.str());
+      if (vm["testpy"].as<bool>()) {
+        if (vm["maximal"].as<bool>()) {
+          // run the function check_reduction(filename, reduction), store its
+          // output in pycheck
+          boost::python::object pycheck = pymod.attr("check_reduction")
+                                                    (file, reduction.str(),
+                                                     keep_c.str());
 
-        if (!boost::python::extract<bool>(pycheck)())
-          // check_reduction(filename, reduction) returned False
-          throw NoReduction();
-      }
-      else {
-        // run the function check_reduction(filename, reduction), store its
-        // output in pycheck
-        boost::python::object pycheck = pymod.attr("check_reduction")
-                                                  (file, reduction.str());
+          if (!boost::python::extract<bool>(pycheck)())
+            // check_reduction(filename, reduction) returned False
+            throw NoReduction();
+        }
+        else {
+          // run the function check_reduction(filename, reduction), store its
+          // output in pycheck
+          boost::python::object pycheck = pymod.attr("check_reduction")
+                                                    (file, reduction.str());
 
-        if (!boost::python::extract<bool>(pycheck)())
-          // check_reduction(filename, reduction) returned False
-          throw NoReduction();
+          if (!boost::python::extract<bool>(pycheck)())
+            // check_reduction(filename, reduction) returned False
+            throw NoReduction();
+        }
       }
 
       std::cout << '\r' << "Ok (" << file << ")";

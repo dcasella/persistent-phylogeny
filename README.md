@@ -97,6 +97,16 @@ Display the operations performed by the program.
 ___
 
 ```
+-t or --testpy
+```
+
+Test the output of the algorithm with check_reduction.py.
+This can be used to make sure the output of the program is correct.
+**Don't** use this option when benchmarking; Boost.Python slows down the program by a lot.
+
+___
+
+```
 -x or --exponential
 ```
 
