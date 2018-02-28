@@ -332,8 +332,8 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
     // uninitialized graph properties
     return false;
 
-  const RBGraph& g = *orig_g(hasse);
-  // const RBGraph& gm = *orig_gm(hasse);
+  // const RBGraph& g = *orig_g(hasse);
+  const RBGraph& gm = *orig_gm(hasse);
 
   // chain holds the list of edges representing the chain
 
@@ -398,29 +398,29 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
       std::cout << kk << " ";
     }
 
-    std::cout << "> on a copy of graph G" << std::endl;
+    std::cout << "> on a copy of graph Gm" << std::endl;
   }
 
-  // copy g to g_test
-  RBGraph g_test;
-  copy_graph(g, g_test);
+  // copy gm to gm_test
+  RBGraph gm_test;
+  copy_graph(gm, gm_test);
 
   // test if lsc is a safe chain
   bool feasible;
-  std::tie(std::ignore, feasible) = realize(lsc, g_test);
+  std::tie(std::ignore, feasible) = realize(lsc, gm_test);
 
   if (logging::enabled) {
     // verbosity enabled
     std::cout << std::endl
-              << "G (copy) after the realization of the chain" << std::endl
+              << "Gm (copy) after the realization of the chain" << std::endl
               << "Adjacency lists:" << std::endl
-              << g_test << std::endl << std::endl;
+              << gm_test << std::endl << std::endl;
   }
 
   if (!feasible) {
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << "Realization not feasible for G (copy)"
+      std::cout << "Realization not feasible for Gm (copy)"
                 << std::endl << std::endl;
     }
 
@@ -428,14 +428,14 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, chain is a safe chain
-  const bool output = !has_red_sigmagraph(g_test);
+  const bool output = !has_red_sigmagraph(gm_test);
 
   if (logging::enabled) {
     // verbosity enabled
     if (output)
-      std::cout << "No red Σ-graph in G (copy)" << std::endl << std::endl;
+      std::cout << "No red Σ-graph in Gm (copy)" << std::endl << std::endl;
     else
-      std::cout << "Found red Σ-graph in G (copy)" << std::endl << std::endl;
+      std::cout << "Found red Σ-graph in Gm (copy)" << std::endl << std::endl;
   }
 
   return output;
