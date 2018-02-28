@@ -709,7 +709,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
       std::cout << gm[kk].name << " ";
     }
 
-    std::cout << "}" << std::endl;
+    std::cout << "} - Count: " << cm.size() << std::endl;
   }
 
   // remove non-maximal characters of gm
