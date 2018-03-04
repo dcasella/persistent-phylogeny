@@ -1,26 +1,28 @@
 #!/usr/bin/env bash
 
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [ "$1" = 'clear' ] || [ "$1" = 'clean' ]; then
 	printf 'Clearing...\n'
 
-	rm -rf tests/output
+	rm -rf $DIR/../tests/output
 
 	printf 'Done\n'
 
 	exit 0
 fi
 
-mkdir -p tests/output
+mkdir -p $DIR/../tests/output
 
 printf 'Running PPP...\n'
 
-for file in tests/input/??_??_*.txt; do
+for file in $DIR/../tests/input/??_??_*.txt; do
 	printf "File: $file\n"
 
-	bin/ppp "$file" -m -x -v > tests/output/$(basename $file .txt).log
+	$DIR/../bin/ppp "$file" -m -x -v > $DIR/../tests/output/$(basename $file .txt).log
 done
 
-cd tests/output
+cd $DIR/../tests/output
 
 printf 'Zipping...\n'
 
@@ -33,7 +35,7 @@ tar -cf no_20_N.tar.gz no_20_*_M.log &&
 tar -cf no_40_N.tar.gz no_40_*_M.log &&
 tar -cf no_80_N.tar.gz no_80_*_M.log
 
-cd $PWD
+cd $DIR
 
 printf 'Done\n'
 
