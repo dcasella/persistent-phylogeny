@@ -58,14 +58,6 @@ $ cd persistent-phylogeny
 $ make
 ```
 
-#### Run tests (optional)
-
-Make sure everything works correctly.
-
-```
-$ ./run_tests.sh
-```
-
 ## Usage
 
 ```
