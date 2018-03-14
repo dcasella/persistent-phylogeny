@@ -187,18 +187,20 @@ int main(int argc, const char* argv[]) {
         std::cout << std::endl;
       }
 
-      std::stringstream keep_c;
+      std::stringstream keep_c{};
 
       if (vm["maximal"].as<bool>()) {
         RBGraph gm = maximal_reducible_graph(g);
 
-        RBVertexIter v, v_end;
-        std::tie(v, v_end) = vertices(gm);
-        for (; v != v_end; ++v) {
-          if (!is_character(*v, gm))
-            continue;
+        if (vm["testpy"].as<bool>()) {
+          RBVertexIter v, v_end;
+          std::tie(v, v_end) = vertices(gm);
+          for (; v != v_end; ++v) {
+            if (!is_character(*v, gm))
+              continue;
 
-          keep_c << g[*v].name.substr(1) << " ";
+            keep_c << g[*v].name.substr(1) << " ";
+          }
         }
 
         g.clear();
