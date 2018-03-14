@@ -16,7 +16,7 @@
   Red-black graph traits
 */
 typedef boost::adjacency_list_traits<
-  boost::setS,       // OutEdgeList
+  boost::slistS,     // OutEdgeList
   boost::listS,      // VertexList
   boost::undirectedS // Directed
 > RBTraits;
@@ -99,7 +99,7 @@ struct RBGraphProperties {
   Red-black graph
 */
 typedef boost::adjacency_list<
-  boost::setS,        // OutEdgeList
+  boost::slistS,      // OutEdgeList
   boost::listS,       // VertexList
   boost::undirectedS, // Directed
   RBVertexProperties, // VertexProperties
