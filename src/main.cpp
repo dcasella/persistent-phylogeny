@@ -52,6 +52,7 @@ int main(int argc, const char* argv[]) {
     boost::program_options::bool_switch(&exponential::enabled),
     "Exponential version of the algorithm.\n"
     "(Mutually exclusive with --interactive)\n"
+    "(Mutually exclusive with --nthsource)\n"
   )
   // option: interactive, let the user select which path to take
   (
@@ -59,6 +60,7 @@ int main(int argc, const char* argv[]) {
     boost::program_options::bool_switch(&interactive::enabled),
     "User input driven execution.\n"
     "(Mutually exclusive with --exponential)\n"
+    "(Mutually exclusive with --nthsource)\n"
   )
   // option: maximal, read graph and reduce it to maximal
   (
@@ -71,7 +73,7 @@ int main(int argc, const char* argv[]) {
     "nthsource,n",
     boost::program_options::value<size_t>(&nthsource::index)
       ->default_value(0),
-    " Select the nth safe source when possible.\n"
+    "Select the nth safe source when possible.\n"
     "(Mutually exclusive with --exponential)\n"
     "(Mutually exclusive with --interactive)\n"
   );

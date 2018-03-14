@@ -94,7 +94,7 @@ ___
 
 Test the output of the algorithm with check_reduction.py.
 This can be used to make sure the output of the program is correct.
-**Don't** use this option when benchmarking; Boost.Python slows down the program by a lot.
+**Don't** use this option when benchmarking; the Python script takes time to complete.
 
 ___
 
@@ -104,7 +104,7 @@ ___
 
 Exponential version of the algorithm.  
 This option can be used to test every possible combination of safe sources.  
-It is also mutually exclusive with `--interactive`.
+It is also mutually exclusive with `--interactive` and `--nthsource`.
 
 ___
 
@@ -114,7 +114,7 @@ ___
 
 User input driven execution.  
 This option can be used to manually select which safe source to realize.  
-It is also mutually exclusive with `--exponential`.
+It is also mutually exclusive with `--exponential` and `--nthsource`.
 
 ___
 

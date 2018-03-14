@@ -10,7 +10,8 @@
 // Data structures
 
 /**
-  Strongly typed 1-bit enum class used for character state.
+  Scoped enumeration type whose underlying size is 1 byte, used for character
+  state.
 
   State is paired with a character in the struct SignedCharacter.
 */

@@ -34,7 +34,7 @@ typedef boost::bimap<
 // Data structures
 
 /**
-  Strongly typed 1-bit enum class used for edge color.
+  Scoped enumeration type whose underlying size is 1 byte, used for edge color.
 
   Color is used to label edges in a red-black graph.
 */
@@ -44,7 +44,7 @@ enum class Color : bool {
 };
 
 /**
-  Strongly typed 1-bit enum class used for vertex type.
+  Scoped enumeration type whose underlying size is 1 byte, used for vertex type.
 
   Type is used to label vertices in a red-black graph.
 */
