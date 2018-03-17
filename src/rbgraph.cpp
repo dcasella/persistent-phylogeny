@@ -15,7 +15,7 @@ void remove_vertex(const RBVertex v, RBGraph& g) {
     num_characters(g)--;
 
   // delete v from the bimap
-  bimap(g).right.erase(v);
+  bimap(g).left.erase(g[v].name);
 
   boost::remove_vertex(v, g);
 }
@@ -227,6 +227,13 @@ void read_graph(const std::string& filename, RBGraph& g) {
   bool first_line = true;
   std::string line;
   std::ifstream file(filename);
+
+  if (!file) {
+    // input file doesn't exist
+    throw std::runtime_error(
+      "Failed to read graph from file: no such file or directory"
+    );
+  }
 
   size_t index = 0;
   while (std::getline(file, line)) {
@@ -572,10 +579,10 @@ RBGraphVector connected_components(const RBGraph& g) {
 
 const std::list<RBVertex> maximal_characters(const RBGraph& g) {
   std::list<RBVertex> cm;
-  std::map<RBVertex, std::list<RBVertex>> sets;
+  std::map<RBVertex, std::list<RBVertex>> adj_spec;
 
-  // how sets is going to be structured:
-  // sets[C] => < List of adjacent species to C >
+  // how adj_spec is going to be structured:
+  // adj_spec[C] => < List of adjacent species to C >
 
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
@@ -594,7 +601,7 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
       if (is_red(*e, g) || !is_species(vt, g))
         break;
 
-      sets[*v].push_back(vt);
+      adj_spec[*v].push_back(vt);
     }
 
     if (cm.empty()) {
@@ -603,12 +610,12 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
       continue;
     }
 
-    // sets[*v] now contains the list of species adjacent to v
+    // adj_spec[*v] now contains the list of species adjacent to v
 
     bool skip_cycle = false;
     bool subst = false;
 
-    // check if sets[*v] is subset of the species adjacent to cmv
+    // check if adj_spec[*v] is subset of the species adjacent to cmv
     RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
     for (; cmv != cmv_end; ++cmv) {
       // for each species in cm
@@ -619,25 +626,25 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
       size_t count_excl = 0;
       bool keep_char = false;
 
-      RBVertexIter sv = sets[*v].begin(), sv_end = sets[*v].end();
+      RBVertexIter sv = adj_spec[*v].begin(), sv_end = adj_spec[*v].end();
       for (; sv != sv_end; ++sv) {
         // for each species adjacent to v, S(C#)
 
         // find sv in the list of cmv's adjacent species
         std::list<RBVertex>::const_iterator in = std::find(
-          sets[*cmv].cbegin(), sets[*cmv].cend(), *sv
+          adj_spec[*cmv].cbegin(), adj_spec[*cmv].cend(), *sv
         );
 
         // keep count of how many species are included (or not found) in
         // the list of cmv's adjacent species
-        if (in != sets[*cmv].end())
+        if (in != adj_spec[*cmv].end())
           count_incl++;
         else
           count_excl++;
 
         if (std::next(sv) == sv_end) {
           // last iteration on the species in the list has been performed
-          if (count_incl == sets[*cmv].size() && count_excl > 0) {
+          if (count_incl == adj_spec[*cmv].size() && count_excl > 0) {
             // the list of adjacent species to v is a superset of the list of
             // adjacent species to cmv, which means cmv can be replaced
             // by v in the list of maximal characters Cm
@@ -653,14 +660,14 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
 
             cmv--;
           }
-          else if (count_incl < sets[*cmv].size() && count_excl > 0) {
+          else if (count_incl < adj_spec[*cmv].size() && count_excl > 0) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
             if (!subst)
               keep_char = true;
           }
-          else if (count_incl == sets[*cmv].size()) {
+          else if (count_incl == adj_spec[*cmv].size()) {
             // the list of adjacent species to v is the same as the list of
             // adjacent species to cmv, so v can be ignored in the next
             // iterations on the characters in Cm
