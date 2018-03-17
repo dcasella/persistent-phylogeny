@@ -1,7 +1,8 @@
 # G++
 
 CC     = g++ -std=c++14
-CFLAGS = -O3 -Wall
+CFLAGS = -Wall
+COPT   = -O3
 CEXTRA =
 
 # Boost C++11 ABI changes compatibility
@@ -17,7 +18,7 @@ PYTHON_LIB  = python2.7
 PYTHON_LIBS = -l$(PYTHON_LIB)
 PYTHON_DIR  = /usr/include/$(PYTHON_LIB)
 
-CC_FULL = $(CC) $(CFLAGS) $(CEXTRA) $(CXX11_ABI) -I$(SRC_DIR) -I$(PYTHON_DIR)
+CC_FULL = $(CC) $(CFLAGS) $(COPT) $(CEXTRA) $(CXX11_ABI) -I$(SRC_DIR) -I$(PYTHON_DIR)
 
 # Folders
 
