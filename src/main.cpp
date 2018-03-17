@@ -161,18 +161,26 @@ int main(int argc, const char* argv[]) {
   size_t count_file = 0;
   for (const std::string& file : files) {
     // for each filename in files
-    if (files.size() > 1) {
-      const double d_perc = std::floor(100.0 * count_file / files.size());
-      const size_t perc = static_cast<size_t>(d_perc);
 
-      if (perc < 10)
-        std::cout << " ";
-
-      std::cout << "\033[32m" << perc
-                << "\033[39m ("<< file << ")" << std::flush;
+    if (logging::enabled) {
+      // verbosity enabled
+      std::cout << "F  (" << file << ")" << std::endl;
     }
     else {
-      std::cout << "F  (" << file << ")" << std::flush;
+      // verbosity disabled
+      if (files.size() > 1) {
+        const double d_perc = std::floor(100.0 * count_file / files.size());
+        const size_t perc = static_cast<size_t>(d_perc);
+
+        if (perc < 10)
+          std::cout << " ";
+
+        std::cout << "\033[32m" << perc
+                  << "\033[39m ("<< file << ")" << std::flush;
+      }
+      else {
+        std::cout << "F  (" << file << ")" << std::flush;
+      }
     }
 
     count_file++;
@@ -181,11 +189,6 @@ int main(int argc, const char* argv[]) {
 
     try {
       read_graph(file, g);
-
-      if (logging::enabled) {
-        // verbosity enabled
-        std::cout << std::endl;
-      }
 
       std::stringstream keep_c{};
 
@@ -238,7 +241,12 @@ int main(int argc, const char* argv[]) {
         }
       }
 
-      std::cout << '\r' << "Ok (" << file << ")";
+      if (!logging::enabled) {
+        // verbosity disabled
+        std::cout << '\r';
+      }
+
+      std::cout << "Ok (" << file << ")";
 
       if (logging::enabled) {
         // verbosity enabled
@@ -254,7 +262,12 @@ int main(int argc, const char* argv[]) {
       std::cout << std::endl;
     }
     catch (const boost::python::error_already_set& e) {
-      std::cout << '\r' << "No (" << file << ")";
+      if (!logging::enabled) {
+        // verbosity disabled
+        std::cout << '\r';
+      }
+
+      std::cout << "No (" << file << ")";
 
       if (logging::enabled) {
         // verbosity enabled
@@ -264,7 +277,12 @@ int main(int argc, const char* argv[]) {
       std::cout << std::endl;
     }
     catch (const std::exception& e) {
-      std::cout << '\r' << "No (" << file << ")";
+      if (!logging::enabled) {
+        // verbosity disabled
+        std::cout << '\r';
+      }
+
+      std::cout << "No (" << file << ")";
 
       if (logging::enabled) {
         // verbosity enabled
