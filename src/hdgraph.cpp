@@ -109,18 +109,18 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
 }
 
 void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
-  std::vector<std::list<RBVertex>> sets(num_species(gm));
-  std::map<RBVertex, std::list<RBVertex>> v_map;
+  std::vector<std::list<RBVertex>> vec_adj_char(num_species(gm));
+  std::map<RBVertex, std::list<RBVertex>> adj_char;
 
-  // how sets is going to be structured:
-  // sets[index] => < S, List of characters adjacent to S >
+  // how vec_adj_char is going to be structured:
+  // vec_adj_char[index] => < S, List of characters adjacent to S >
 
-  // how v_map is going to be structured:
-  // v_map[S] => < List of characters adjacent to S >
+  // how adj_char is going to be structured:
+  // adj_char[S] => < List of characters adjacent to S >
 
-  // sets is used to sort the lists by number of elements, this is why we store
+  // vec_adj_char is used to sort the lists by number of elements, this is why we store
   // the list of adjacent characters to S. While we store S to be able to
-  // access v_map[S] in costant time, instead of iterating on sets to find the
+  // access adj_char[S] in costant time, instead of iterating on vec_adj_char to find the
   // correct list
 
   auto compare_names = [](const std::string& a, const std::string& b) {
@@ -138,7 +138,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     return a_index < b_index;
   };
 
-  // initialize sets and v_map for each species in the graph
+  // initialize vec_adj_char and adj_char for each species in the graph
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
   for (size_t index = 0; v != v_end; ++v) {
@@ -146,8 +146,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       continue;
     // for each species vertex
 
-    // sets[index]'s first element is the species vertex
-    sets[index].push_back(*v);
+    // vec_adj_char[index]'s first element is the species vertex
+    vec_adj_char[index].push_back(*v);
 
     // build v's set of adjacent characters
     RBOutEdgeIter e, e_end;
@@ -160,15 +160,15 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // vt = one of the characters adjacent to *v
       const RBVertex vt = target(*e, gm);
 
-      // sets[index]'s other elements are the characters adjacent to S
-      sets[index].push_back(vt);
-      // v_map[S]'s elements are the characters adjacent to S
-      v_map[*v].push_back(vt);
+      // vec_adj_char[index]'s other elements are the characters adjacent to S
+      vec_adj_char[index].push_back(vt);
+      // adj_char[S]'s elements are the characters adjacent to S
+      adj_char[*v].push_back(vt);
     }
 
     // if the species *v would have 0 characters, ignore it
-    if (sets[index].size() == 1) {
-      sets[index].clear();
+    if (vec_adj_char[index].size() == 1) {
+      vec_adj_char[index].clear();
 
       continue;
     }
@@ -181,11 +181,11 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     return a.size() < b.size();
   };
 
-  // sort sets by size in ascending order
-  std::sort(sets.begin(), sets.end(), compare_size);
+  // sort vec_adj_char by size in ascending order
+  std::sort(vec_adj_char.begin(), vec_adj_char.end(), compare_size);
 
   bool first_iteration = true;
-  for (const std::list<RBVertex>& set : sets) {
+  for (const std::list<RBVertex>& set : vec_adj_char) {
     // for each set of characters
     if (set.empty())
       continue;
@@ -195,7 +195,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
 
     // fill the list of characters names of v
     std::list<std::string> lcv;
-    for (const RBVertex& cv : v_map[v]) {
+    for (const RBVertex& cv : adj_char[v]) {
       lcv.push_back(gm[cv].name);
     }
 
@@ -204,7 +204,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     if (first_iteration) {
       // first iteration of the loop:
       // add v to the Hasse diagram, and being the first vertex of the graph
-      // there's no need to do any work.
+      // there's no need to do any work
       add_vertex(gm[v].name, lcv, hasse);
 
       first_iteration = false;
