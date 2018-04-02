@@ -345,19 +345,6 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
                 << "Empty chain" << std::endl << std::endl;
     }
 
-    // // test if the diagram is degenerate
-    // if (num_edges(hasse) > 0) {
-    //   // chain is empty and the diagram is not degenerate
-    //   // which means the chain is not actually safe
-    //   if (logging::enabled) {
-    //     // verbosity enabled
-    //     std::cout << "Hasse diagram is non-degenerate; ignoring its source."
-    //               << std::endl << std::endl;
-    //   }
-
-    //   return false;
-    // }
-
     return true;
   }
 
@@ -1042,8 +1029,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // if graph is not connected
     // build subgraphs (connected components) g1, g2, etc.
     // return < reduce(g1), reduce(g2), ... >
-    for (size_t i = 0; i < components.size(); ++i) {
-      output.splice(output.cend(), reduce(*components[i].get()));
+    for (const std::unique_ptr<RBGraph>& component : components) {
+      output.splice(output.cend(), reduce(*component.get()));
     }
 
     // return < reduce(g1), reduce(g2), ... >
@@ -1221,7 +1208,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     std::cout << "========================================"
               << "========================================"
               << std::endl << std::endl
-              << "List of available source indices to choose from:"
+              << "List of available source indexes to choose from:"
               << std::endl;
 
     size_t index = 0;

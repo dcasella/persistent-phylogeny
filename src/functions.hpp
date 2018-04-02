@@ -12,7 +12,7 @@
 /**
   @brief Safe chain DFS Visitor exception
 
-  Thrown when \c initial_state_visitor finds a safe chain with a safe source
+  Thrown when \e initial_state_visitor finds a safe chain with a safe source
 */
 class InitialState : public std::exception {
 public:
@@ -29,7 +29,7 @@ public:
 /**
   @brief Reduce exception
 
-  Thrown when \c reduce can't reduce the graph anymore
+  Thrown when \e reduce can't reduce the graph anymore
 */
 class NoReduction : public std::exception {
 public:
