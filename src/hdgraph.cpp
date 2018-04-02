@@ -1,4 +1,5 @@
 #include "hdgraph.hpp"
+#include <boost/graph/graph_utility.hpp>
 
 
 //=============================================================================
@@ -8,8 +9,8 @@
 
 HDVertex
 add_vertex(
-    const std::list<std::string>& species,
-    const std::list<std::string>& characters,
+    const std::list<int>& species,
+    const std::list<int>& characters,
     HDGraph& hasse) {
   const HDVertex v = boost::add_vertex(hasse);
   hasse[v].species = species;
@@ -44,14 +45,14 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
   for (; v != v_end; ++v) {
     os << "[ ";
 
-    for (const std::string& i : hasse[*v].species) {
-      os << i << " ";
+    for (const int& i : hasse[*v].species) {
+      os << "s" << i << " ";
     }
 
     os << "( ";
 
-    for (const std::string& i : hasse[*v].characters) {
-      os << i << " ";
+    for (const int& i : hasse[*v].characters) {
+      os << "c" << i << " ";
     }
 
     os << ") ]:";
@@ -73,14 +74,14 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
 
       os << "-> [ ";
 
-      for (const std::string& i : hasse[vt].species) {
-        os << i << " ";
+      for (const int& i : hasse[vt].species) {
+        os << "s" << i << " ";
       }
 
       os << "( ";
 
-      for (const std::string& i : hasse[vt].characters) {
-        os << i << " ";
+      for (const int& i : hasse[vt].characters) {
+        os << "c" << i << " ";
       }
 
       os << ") ];";
@@ -98,10 +99,10 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
 // Algorithm functions
 
 bool
-is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
-  for (const std::string& a_str : a) {
-    if (std::find(b.cbegin(), b.cend(), a_str) == b.cend())
-      // exit the function at the first string of a not present in b
+is_included(const std::list<int>& a, const std::list<int>& b) {
+  for (const int& a_element : a) {
+    if (std::find(b.cbegin(), b.cend(), a_element) == b.cend())
+      // exit the function at the first element of a not present in b
       return false;
   }
 
@@ -122,21 +123,6 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // the list of adjacent characters to S. While we store S to be able to
   // access adj_char[S] in costant time, instead of iterating on vec_adj_char to find the
   // correct list
-
-  auto compare_names = [](const std::string& a, const std::string& b) {
-    size_t a_index, b_index;
-    std::stringstream ss;
-
-    ss.str(a.substr(1));
-    ss >> a_index;
-
-    ss.clear();
-
-    ss.str(b.substr(1));
-    ss >> b_index;
-
-    return a_index < b_index;
-  };
 
   // initialize vec_adj_char and adj_char for each species in the graph
   RBVertexIter v, v_end;
@@ -194,18 +180,18 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     const RBVertex v = set.front();
 
     // fill the list of characters names of v
-    std::list<std::string> lcv;
+    std::list<int> lcv;
     for (const RBVertex& cv : adj_char[v]) {
-      lcv.push_back(gm[cv].name);
+      lcv.push_back(gm[cv].index);
     }
 
-    lcv.sort(compare_names);
+    lcv.sort();
 
     if (first_iteration) {
       // first iteration of the loop:
       // add v to the Hasse diagram, and being the first vertex of the graph
       // there's no need to do any work
-      add_vertex(gm[v].name, lcv, hasse);
+      add_vertex(gm[v].index, lcv, hasse);
 
       first_iteration = false;
 
@@ -213,8 +199,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     }
 
     // new_edges will contain the list of edges that may be added to the Hasse
-    // diagram: HDVertex is the source, std::string is the edge label
-    std::list<std::pair<HDVertex, std::string>> new_edges;
+    // diagram: HDVertex is the source, int is the edge label
+    std::list<std::pair<HDVertex, int>> new_edges;
 
     // check if there is a vertex with the same characters as v or if v needs
     // to be added to the Hasse diagram
@@ -227,12 +213,12 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         // v and hdv have the same characters
 
         // add v to the list of species in hdv
-        hasse[*hdv].species.push_back(gm[v].name);
+        hasse[*hdv].species.push_back(gm[v].index);
 
         break;
       }
 
-      const std::list<std::string> lhdv = hasse[*hdv].characters;
+      const std::list<int> lhdv = hasse[*hdv].characters;
 
       // TODO: check if edge building is done right
 
@@ -241,9 +227,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
       // *hdv -*ci-> v
       if (is_included(lhdv, lcv)) {
         // hdv is included in v
-        for (const std::string& ci : lcv) {
+        for (const int& ci : lcv) {
           // for each character in hdv
-          StringIter in = std::find(lhdv.cbegin(), lhdv.cend(), ci);
+          IntIter in = std::find(lhdv.cbegin(), lhdv.cend(), ci);
 
           if (in == lhdv.end()) {
             // character is not present in lhdv
@@ -258,10 +244,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         // last iteration on the characters in the list has been performed
 
         // build a vertex for v and add it to the Hasse diagram
-        const HDVertex u = add_vertex(gm[v].name, lcv, hasse);
+        const HDVertex u = add_vertex(gm[v].index, lcv, hasse);
 
         // build in_edges for the vertex and add them to the Hasse diagram
-        for (const std::pair<HDVertex, std::string>& ei : new_edges) {
+        for (const std::pair<HDVertex, int>& ei : new_edges) {
           // for each new edge to add to the Hasse diagram
           HDEdge edge;
           std::tie(edge, std::ignore) = add_edge(ei.first, u, hasse);
@@ -318,9 +304,9 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // sort species names in each vertex
   std::tie(u, u_end) = vertices(hasse);
   for (; u != u_end; ++u) {
-    std::list<std::string> species = hasse[*u].species;
+    std::list<int> species = hasse[*u].species;
 
-    species.sort(compare_names);
+    species.sort();
 
     hasse[*u].species.clear();
     hasse[*u].species.splice(hasse[*u].species.cend(), species);

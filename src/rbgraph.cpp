@@ -9,55 +9,68 @@
 // Boost functions (overloading)
 
 void remove_vertex(const RBVertex v, RBGraph& g) {
-  if (is_species(v, g))
+  // delete v from the corresponding map
+  if (is_species(v, g)) {
+    species_map(g).erase(g[v].index);
     num_species(g)--;
-  else
+  }
+  else {
+    character_map(g).erase(g[v].index);
     num_characters(g)--;
-
-  // delete v from the bimap
-  bimap(g).left.erase(g[v].name);
+  }
 
   boost::remove_vertex(v, g);
 }
 
-void remove_vertex(const std::string& v, RBGraph& g) {
-  // find v in the bimap
-  const RBVertex u = bimap(g).left.at(v);
+void remove_vertex(const int index, const Type type, RBGraph& g) {
+  // find vertex in the corresponding map and delete it
+  RBVertex v;
 
-  if (is_species(u, g))
+  if (type == Type::species) {
+    v = species_map(g).at(index);
+    species_map(g).erase(index);
     num_species(g)--;
-  else
+  }
+  else {
+    v = character_map(g).at(index);
+    character_map(g).erase(index);
     num_characters(g)--;
+  }
 
-  // delete v from the bimap
-  bimap(g).left.erase(v);
-
-  boost::remove_vertex(u, g);
+  boost::remove_vertex(v, g);
 }
 
-RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
+RBVertex add_vertex(const int index, const Type type, RBGraph& g) {
+  RBVertex v;
+
   try {
-    // if a vertex with the same name already exists
-    const RBVertex u = bimap(g).left.at(name);
+    // if a vertex with the same index already exists
+    if (type == Type::species)
+      v = species_map(g).at(index);
+    else
+      v = character_map(g).at(index);
+
     // return its descriptor and do nothing
-    return u;
+    return v;
   }
   catch (const std::out_of_range& e) {
     // continue with the algorithm
   }
 
-  const RBVertex v = boost::add_vertex(g);
+  v = boost::add_vertex(g);
 
-  // insert v in the bimap
-  bimap(g).insert(RBVertexBimap::value_type(name, v));
-
-  g[v].name = name;
+  g[v].index = index;
   g[v].type = type;
 
-  if (is_species(v, g))
+  // insert v in the corresponding map
+  if (is_species(v, g)) {
+    species_map(g)[index] = v;
     num_species(g)++;
-  else
+  }
+  else {
+    character_map(g)[index] = v;
     num_characters(g)++;
+  }
 
   return v;
 }
@@ -76,13 +89,17 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
 //=============================================================================
 // General functions
 
-void build_bimap(RBGraph& g) {
-  bimap(g).clear();
+void build_index_maps(RBGraph& g) {
+  species_map(g).clear();
+  character_map(g).clear();
 
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    bimap(g).insert(RBVertexBimap::value_type(g[*v].name, *v));
+    if (is_species(*v, g))
+      species_map(g)[g[*v].index] = *v;
+    else
+      character_map(g)[g[*v].index] = *v;
   }
 }
 
@@ -104,8 +121,8 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy) {
   num_species(g_copy) = num_species(g);
   num_characters(g_copy) = num_characters(g);
 
-  // rebuild g_copy's bimap
-  build_bimap(g_copy);
+  // rebuild g_copy's index maps
+  build_index_maps(g_copy);
 }
 
 void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
@@ -129,8 +146,8 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
   num_species(g_copy) = num_species(g);
   num_characters(g_copy) = num_characters(g);
 
-  // rebuild g_copy's bimap
-  build_bimap(g_copy);
+  // rebuild g_copy's index maps
+  build_index_maps(g_copy);
 }
 
 std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
@@ -150,7 +167,8 @@ std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
       edge += " -";
       edge += (is_red(*e, g) ? "r" : "-");
       edge += "- ";
-      edge += g[target(*e, g)].name;
+      edge += (is_species(target(*e, g), g) ? "s" : "c");
+      edge += std::to_string(g[target(*e, g)].index);
       edge += ";";
 
       edges.push_back(edge);
@@ -178,7 +196,11 @@ std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
       edges_str.append(edge);
     }
 
-    std::string line(g[*v].name + ":" + edges_str);
+    std::string line;
+    line += (is_species(*v, g) ? "s" : "c");
+    line += std::to_string(g[*v].index);
+    line += ":";
+    line += edges_str;
 
     if (std::next(v) != v_end)
       line += "\n";
@@ -258,17 +280,13 @@ void read_graph(const std::string& filename, RBGraph& g) {
       }
 
       // insert species in the graph
-      for (size_t j = 0; j < species.size(); ++j) {
-        const std::string v_name = "s" + std::to_string(j);
-
-        species[j] = add_vertex(v_name, Type::species, g);
+      for (size_t i = 0; i < species.size(); ++i) {
+        species[i] = add_vertex(i, Type::species, g);
       }
 
       // insert characters in the graph
-      for (size_t j = 0; j < characters.size(); ++j) {
-        const std::string v_name = "c" + std::to_string(j);
-
-        characters[j] = add_vertex(v_name, Type::character, g);
+      for (size_t i = 0; i < characters.size(); ++i) {
+        characters[i] = add_vertex(i, Type::character, g);
       }
 
       first_line = false;
@@ -532,7 +550,7 @@ RBGraphVector connected_components(const RBGraph& g) {
     RBGraph* component = components[comp].get();
 
     // add the vertex to *component and copy its descriptor in vertices[v]
-    vertices[v] = add_vertex(g[v].name, g[v].type, *component);
+    vertices[v] = add_vertex(g[v].index, g[v].type, *component);
   }
 
   // add edges to their respective vertices and subgraph
@@ -697,6 +715,8 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
 
   cm.reverse();
 
+  // implement shuffle to test things out
+
   return cm;
 }
 
@@ -713,7 +733,7 @@ RBGraph maximal_reducible_graph(const RBGraph& g, const bool active) {
     std::cout << "Maximal characters Cm = { ";
 
     for (const RBVertex& kk : cm) {
-      std::cout << gm[kk].name << " ";
+      std::cout << gm[kk].type << gm[kk].index << " ";
     }
 
     std::cout << "} - Count: " << cm.size() << std::endl;

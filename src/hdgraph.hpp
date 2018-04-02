@@ -3,7 +3,6 @@
 
 #include "globals.hpp"
 #include "rbgraph.hpp"
-#include <boost/graph/graph_utility.hpp>
 
 
 //=============================================================================
@@ -26,8 +25,8 @@ enum class State : bool {
   Each character c+ and c− is called a signed character.
 */
 struct SignedCharacter {
-  std::string character{};   ///< Character name
-  State state = State::gain; ///< Character state
+  int character{}; ///< Character index
+  State state;     ///< Character state
 };
 
 
@@ -59,8 +58,8 @@ struct HDEdgeProperties {
   species of GM ordered by the relation ≤, where s1 ≤ s2 if C(s1) ⊆ C(s2).
 */
 struct HDVertexProperties {
-  std::list<std::string> species{};    ///< List of species that label the vertex
-  std::list<std::string> characters{}; ///< List of characters of the species
+  std::list<int> species{};    ///< List of species that label the vertex
+  std::list<int> characters{}; ///< List of characters of the species
 };
 
 /**
@@ -169,7 +168,7 @@ inline std::ostream& operator<<(std::ostream& os, const State s) {
   @return Updated output stream
 */
 inline std::ostream& operator<<(std::ostream& os, const SignedCharacter sc) {
-  return os << sc.character << sc.state;
+  return os << "c" << sc.character << sc.state;
 }
 
 /**
@@ -191,33 +190,33 @@ inline bool operator==(const SignedCharacter& a, const SignedCharacter b) {
 /**
   @brief Add vertex with \e species and \e characters to \e hasse
 
-  @param[in]     species    List of species names
-  @param[in]     characters List of character names
+  @param[in]     species    List of species indexes
+  @param[in]     characters List of character indexes
   @param[in,out] hasse      Hasse diagram graph
 
   @return Vertex descriptor for the new vertex
 */
 HDVertex
 add_vertex(
-    const std::list<std::string>& species,
-    const std::list<std::string>& characters,
+    const std::list<int>& species,
+    const std::list<int>& characters,
     HDGraph& hasse);
 
 /**
   @brief Add vertex with \e species and \e characters to \e hasse
 
-  @param[in]     species    Species name
-  @param[in]     characters List of character names
+  @param[in]     species    Species index
+  @param[in]     characters List of character indexes
   @param[in,out] hasse      Hasse diagram graph
 
   @return Vertex descriptor for the new vertex
 */
 inline HDVertex
 add_vertex(
-    const std::string& species,
-    const std::list<std::string>& characters,
+    const int species,
+    const std::list<int>& characters,
     HDGraph& hasse) {
-  return add_vertex(std::list<std::string>{species}, characters, hasse);
+  return add_vertex(std::list<int>{species}, characters, hasse);
 }
 
 /**
@@ -285,13 +284,13 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse);
 /**
   @brief Returns True if \e a is included in \e b
 
-  @param[in] a List of character names (strings)
-  @param[in] b List of character names (strings)
+  @param[in] a List of character indexes
+  @param[in] b List of character indexes
 
   @return True if \e a is included in \e b, False otherwise
 */
 bool
-is_included(const std::list<std::string>& a, const std::list<std::string>& b);
+is_included(const std::list<int>& a, const std::list<int>& b);
 
 /**
   @brief Build the Hasse diagram of \e gm

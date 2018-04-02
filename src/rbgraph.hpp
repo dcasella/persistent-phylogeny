@@ -3,8 +3,6 @@
 
 #include "globals.hpp"
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/bimap.hpp>
-#include <boost/bimap/unordered_set_of.hpp>
 #include <iostream>
 
 
@@ -21,12 +19,10 @@ typedef boost::adjacency_list_traits<
 > RBTraits;
 
 /**
-  Bidirectional map of strings and vertices (red-black graph)
+  Map of vertex indices and vertices (red-black graph)
 */
-typedef boost::bimap<
-  boost::bimaps::unordered_set_of<std::string>,
-  boost::bimaps::unordered_set_of<RBTraits::vertex_descriptor>
-> RBVertexBimap;
+typedef std::map<int, RBTraits::vertex_descriptor> RBIndexMap;
+// typedef std::unordered_map<int, RBTraits::vertex_descriptor> RBIndexMap;
 
 
 //=============================================================================
@@ -73,8 +69,8 @@ struct RBEdgeProperties {
   bipartite graph whose vertex set is S ∪ C.
 */
 struct RBVertexProperties {
-  std::string name{}; ///< Vertex name
-  Type type{};        ///< Vertex type (Character or Species)
+  int index{}; ///< Vertex index
+  Type type{}; ///< Vertex type (Character or Species)
 };
 
 /**
@@ -84,8 +80,8 @@ struct RBGraphProperties {
   size_t num_species{};    ///< Number of species in the graph
   size_t num_characters{}; ///< Number of characters in the graph
 
-  RBVertexBimap bimap{}; ///< Bidirectional map for vertex names and vertices in
-                         ///< the graph
+  RBIndexMap species_map{};   ///< Map for species indexes and vertices
+  RBIndexMap character_map{}; ///< Map for character indexes and vertices
 };
 
 
@@ -168,6 +164,24 @@ typedef std::vector<std::unique_ptr<RBGraph>> RBGraphVector;
 
 
 //=============================================================================
+// Enum / Struct operator overloads
+
+/**
+  @brief Overloading of operator<< for Type
+
+  @param[in] os Output stream
+  @param[in] t  Type
+
+  @return Updated output stream
+*/
+inline std::ostream& operator<<(std::ostream& os, const Type t) {
+  const bool type_char = (t == Type::species);
+
+  return os << (type_char ? "s" : "c");
+}
+
+
+//=============================================================================
 // Auxiliary structs and classes
 
 /**
@@ -230,34 +244,34 @@ private:
 void remove_vertex(const RBVertex v, RBGraph& g);
 
 /**
-  @brief Remove \e v from \e g
+  @brief Remove vertex with \e index from \e g
 
-  @param[in]     v Vertex name
-  @param[in,out] g Red-black graph
+  @param[in]     index Vertex index
+  @param[in,out] g     Red-black graph
 */
-void remove_vertex(const std::string& v, RBGraph& g);
+void remove_vertex(const int index, RBGraph& g);
 
 /**
-  @brief Add vertex with \e name and \e type to \e g
+  @brief Add vertex with \e index and \e type to \e g
 
-  @param[in]     name Name
-  @param[in]     type Type
-  @param[in,out] g    Red-black graph
+  @param[in]     index Name
+  @param[in]     type  Type
+  @param[in,out] g     Red-black graph
 
   @return Vertex descriptor for the new vertex
 */
-RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g);
+RBVertex add_vertex(const int index, const Type type, RBGraph& g);
 
 /**
-  @brief Add vertex with \e name to \e g
+  @brief Add vertex with \e index to \e g
 
-  @param[in]     name Name
-  @param[in,out] g    Red-black graph
+  @param[in]     index Name
+  @param[in,out] g     Red-black graph
 
   @return Vertex descriptor for the new vertex
 */
-inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
-  return add_vertex(name, Type::species, g);
+inline RBVertex add_vertex(const int index, RBGraph& g) {
+  return add_vertex(index, Type::species, g);
 }
 
 /**
@@ -344,25 +358,47 @@ inline const size_t num_characters(const RBGraph& g) {
 }
 
 /**
-  @brief Return the bidirectional map in \e g
+  @brief Return the species map in \e g
 
   @param[in] g Red-black graph
 
-  @return Reference to the bidirectional map in \e g
+  @return Reference to the species map in \e g
 */
-inline RBVertexBimap& bimap(RBGraph& g) {
-  return g[boost::graph_bundle].bimap;
+inline RBIndexMap& species_map(RBGraph& g) {
+  return g[boost::graph_bundle].species_map;
 }
 
 /**
-  @brief Return the bidirectional map (const) in \e g
+  @brief Return the species map (const) in \e g
 
   @param[in] g Red-black graph
 
-  @return Constant bidirectional map in \e g
+  @return Constant species map in \e g
 */
-inline const RBVertexBimap bimap(const RBGraph& g) {
-  return g[boost::graph_bundle].bimap;
+inline const RBIndexMap species_map(const RBGraph& g) {
+  return g[boost::graph_bundle].species_map;
+}
+
+/**
+  @brief Return the character map in \e g
+
+  @param[in] g Red-black graph
+
+  @return Reference to the character map in \e g
+*/
+inline RBIndexMap& character_map(RBGraph& g) {
+  return g[boost::graph_bundle].character_map;
+}
+
+/**
+  @brief Return the character map (const) in \e g
+
+  @param[in] g Red-black graph
+
+  @return Constant character map in \e g
+*/
+inline const RBIndexMap character_map(const RBGraph& g) {
+  return g[boost::graph_bundle].character_map;
 }
 
 /**
@@ -382,22 +418,27 @@ void remove_vertex_if(const RBVertex v, Predicate predicate, RBGraph& g) {
 }
 
 /**
-  @brief Build the index map in \e g
+  @brief Build the index maps in \e g
 
   @param[in] g Red-black graph
 */
-void build_index_map(RBGraph& g);
+void build_index_maps(RBGraph& g);
 
 /**
-  @brief Return the vertex descriptor of the vertex named \c v in \c g
+  @brief Return the vertex descriptor of the vertex with \e index in \e g
 
-  @param[in] v Vertex name
-  @param[in] g Red-black graph
+  @param[in] index Vertex index
+  @param[in] type  Vertex type
+  @param[in] g     Red-black graph
 
   @return Vertex
 */
-inline const RBVertex get_vertex(const std::string& v, const RBGraph& g) {
-  return bimap(g).left.at(v);
+inline const RBVertex
+get_vertex(const int index, const Type type, const RBGraph& g) {
+  if (type == Type::species)
+    return species_map(g).at(index);
+  else
+    return character_map(g).at(index);
 }
 
 /**

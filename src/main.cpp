@@ -202,7 +202,7 @@ int main(int argc, const char* argv[]) {
             if (!is_character(*v, gm))
               continue;
 
-            keep_c << g[*v].name.substr(1) << " ";
+            keep_c << g[*v].index << " ";
           }
         }
 

@@ -26,8 +26,8 @@ void initial_state_visitor::start_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "DFS: start_vertex: [ ";
 
-    for (const std::string& kk : hasse[v].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[v].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -44,8 +44,8 @@ void initial_state_visitor::discover_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "DFS: discover_vertex: [ ";
 
-    for (const std::string& kk : hasse[v].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[v].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -63,8 +63,8 @@ void initial_state_visitor::examine_edge(const HDEdge e,
     // verbosity enabled
     std::cout << "DFS: examine_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vs].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "] -";
@@ -79,8 +79,8 @@ void initial_state_visitor::examine_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vt].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -99,8 +99,8 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "DFS: tree_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vs].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "] -";
@@ -115,8 +115,8 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vt].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -134,8 +134,8 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "DFS: back_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vs].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "] -";
@@ -150,8 +150,8 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vt].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -169,8 +169,8 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     // verbosity enabled
     std::cout << "DFS: forward_or_cross_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vs].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "] -";
@@ -185,8 +185,8 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[vt].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -223,8 +223,8 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "DFS: finish_vertex: [ ";
 
-    for (const std::string& kk : hasse[v].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[v].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "]" << std::endl;
@@ -350,13 +350,13 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
 
   std::list<SignedCharacter> lsc;
 
-  for (const std::string& c : hasse[source_v].characters) {
+  for (const int& c : hasse[source_v].characters) {
     lsc.push_back({ c, State::gain });
   }
 
   for (const HDEdge& e : chain) {
     for (const SignedCharacter& sc : hasse[e].signedcharacters) {
-      StringIter check_sc_in_chain = std::find(
+      IntIter check_sc_in_chain = std::find(
         hasse[v].characters.cbegin(), hasse[v].characters.cend(), sc.character
       );
 
@@ -444,8 +444,8 @@ bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
 
   // search for a species s+ in GRB|CM∪A that consists of C(s) and is connected
   // to only inactive characters
-  for (const std::string& species_name : hasse[source_v].species) {
-    const RBVertex source_s = get_vertex(species_name, gm);
+  for (const int& species_index : hasse[source_v].species) {
+    const RBVertex source_s = get_vertex(species_index, Type::species, gm);
     // for each source species (s+) in source_v
     bool active = false;
 
@@ -468,7 +468,7 @@ bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
 
     if (logging::enabled) {
       // verbosity enabled
-      std::cout << "Source species: " << species_name
+      std::cout << "Source species: s" << species_index
                 << std::endl;
     }
 
@@ -528,14 +528,14 @@ std::list<HDVertex> initial_states(const HDGraph& hasse) {
       for (const HDVertex& i : sources) {
         std::cout << "[ ";
 
-        for (const std::string& kk : hasse[i].species) {
-          std::cout << kk << " ";
+        for (const int& kk : hasse[i].species) {
+          std::cout << "s" << kk << " ";
         }
 
         std::cout << "( ";
 
-        for (const std::string& kk : hasse[i].characters) {
-          std::cout << kk << " ";
+        for (const int& kk : hasse[i].characters) {
+          std::cout << "c" << kk << " ";
         }
 
         std::cout << ") ] ";
@@ -557,14 +557,14 @@ std::list<HDVertex> initial_states(const HDGraph& hasse) {
     for (const HDVertex& i : output) {
       std::cout << "[ ";
 
-      for (const std::string& kk : hasse[i].species) {
-        std::cout << kk << " ";
+      for (const int& kk : hasse[i].species) {
+        std::cout << "s" << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : hasse[i].characters) {
-        std::cout << kk << " ";
+      for (const int& kk : hasse[i].characters) {
+        std::cout << "c" << kk << " ";
       }
 
       std::cout << ") ] ";
@@ -593,19 +593,19 @@ safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse) {
   }
 
   // list of characters of GRB|CM∪A
-  std::list<std::string> gm_c;
+  std::list<int> gm_c;
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
   for (; v != v_end; ++v) {
     if (!is_character(*v, gm))
       continue;
 
-    gm_c.push_back(gm[*v].name);
+    gm_c.push_back(gm[*v].index);
   }
 
   for (const HDVertex& source : sources) {
     // list of characters of source
-    const std::list<std::string> source_c = hasse[source].characters;
+    const std::list<int> source_c = hasse[source].characters;
 
     // search for a species s+ in GRB|CM∪A that consists of C(s) and a set of
     // maximal characters, and is connected to only inactive characters
@@ -615,17 +615,17 @@ safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse) {
         continue;
 
       // if s+ is in source it means that it was already tested in Test 1
-      StringIter search = std::find(
+      IntIter search = std::find(
         hasse[source].species.cbegin(),
         hasse[source].species.cend(),
-        gm[*v].name
+        gm[*v].index
       );
 
       if (search != hasse[source].species.cend())
         // s+ is in source, search for another species
         continue;
 
-      std::list<std::string> maximal_c;
+      std::list<int> maximal_c;
       size_t count_maximal = 0;
       bool active = false;
 
@@ -643,19 +643,19 @@ safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse) {
           const RBVertex vt = target(*e, gm);
 
           // search if vt is a maximal character in source_c
-          StringIter search = std::find(
-            source_c.cbegin(), source_c.cend(), gm[vt].name
+          IntIter search = std::find(
+            source_c.cbegin(), source_c.cend(), gm[vt].index
           );
 
           if (search == source_c.cend()) {
             // vt is not a maximal character in source_c
 
             // search if vt is a maximal character in GRB|CM∪A
-            search = std::find(gm_c.cbegin(), gm_c.cend(), gm[vt].name);
+            search = std::find(gm_c.cbegin(), gm_c.cend(), gm[vt].index);
 
             if (search != gm_c.cend())
               // add vt to the set of maximal characters
-              maximal_c.push_back(gm[vt].name);
+              maximal_c.push_back(gm[vt].index);
           }
           else {
             count_maximal++;
@@ -673,8 +673,8 @@ safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse) {
 
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "Source species (+ other maximal characters): "
-                  << gm[*v].name << std::endl;
+        std::cout << "Source species (+ other maximal characters): s"
+                  << gm[*v].index << std::endl;
       }
 
       output.push_back(source);
@@ -733,8 +733,8 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
     bool source_active = true;
 
     // make sure every species s+ is connected to active characters
-    for (const std::string& species_name : hasse[source].species) {
-      RBVertex source_s = get_vertex(species_name, gm);
+    for (const int& species_index : hasse[source].species) {
+      RBVertex source_s = get_vertex(species_index, Type::species, gm);
       // for each source species (s+) in source
       size_t active_count = 0;
 
@@ -794,14 +794,14 @@ safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse) {
       // verbosity enabled
       std::cout << "Source (+ active characters): [ ";
 
-      for (const std::string& kk : hasse[source].species) {
-        std::cout << kk << " ";
+      for (const int& kk : hasse[source].species) {
+        std::cout << "s" << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : hasse[source].characters) {
-        std::cout << kk << " ";
+      for (const int& kk : hasse[source].characters) {
+        std::cout << "c" << kk << " ";
       }
 
       std::cout << ") ]" << std::endl;
@@ -846,14 +846,14 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
     // verbosity enabled
     std::cout << "Test source realization: [ ";
 
-    for (const std::string& kk : hasse[source].species) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[source].species) {
+      std::cout << "s" << kk << " ";
     }
 
     std::cout << "( ";
 
-    for (const std::string& kk : hasse[source].characters) {
-      std::cout << kk << " ";
+    for (const int& kk : hasse[source].characters) {
+      std::cout << "c" << kk << " ";
     }
 
     std::cout << ") ] on a copy of graph G" << std::endl;
@@ -865,7 +865,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
 
   // initialize the list of characters of source
   std::list<SignedCharacter> source_lsc;
-  for (const std::string& ci : hasse[source].characters) {
+  for (const int& ci : hasse[source].characters) {
     source_lsc.push_back({ ci, State::gain });
   }
 
@@ -904,7 +904,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
 }
 
 bool is_partial(const std::list<SignedCharacter>& reduction) {
-  std::list<std::string> gained_c{};
+  std::list<int> gained_c{};
 
   for (const SignedCharacter& sc : reduction) {
     if (sc.state == State::gain) {
@@ -913,7 +913,7 @@ bool is_partial(const std::list<SignedCharacter>& reduction) {
       continue;
     }
 
-    StringIter find_gained = std::find(
+    IntIter find_gained = std::find(
       gained_c.cbegin(), gained_c.cend(), sc.character
     );
 
@@ -968,17 +968,18 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
+    //!! INEFFICIENT, CALCULATES CCOMPS A LOT OF TIMES !!
     if (is_free(*v, g)) {
       // if v is free
       // realize v-
       // return < v-, reduce(g) >
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "G free character " << g[*v].name << std::endl;
+        std::cout << "G free character c" << g[*v].index << std::endl;
       }
 
       std::list<SignedCharacter> lsc;
-      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
+      std::tie(lsc, std::ignore) = realize({ g[*v].index, State::lose }, g);
 
       output.splice(output.cend(), lsc);
       output.splice(output.cend(), reduce(g));
@@ -998,17 +999,18 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
+    //!! INEFFICIENT, CALCULATES CCOMPS A LOT OF TIMES !!
     if (is_universal(*v, g)) {
       // if v is universal
       // realize v+
       // return < v+, reduce(g) >
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "G universal character " << g[*v].name << std::endl;
+        std::cout << "G universal character c" << g[*v].index << std::endl;
       }
 
       std::list<SignedCharacter> lsc;
-      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
+      std::tie(lsc, std::ignore) = realize({ g[*v].index, State::gain }, g);
 
       output.splice(output.cend(), lsc);
       output.splice(output.cend(), reduce(g));
@@ -1091,14 +1093,14 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
         // verbosity enabled
         std::cout << "Current safe source: [ ";
 
-        for (const std::string& kk : p[source].species) {
-          std::cout << kk << " ";
+        for (const int& kk : p[source].species) {
+          std::cout << "s" << kk << " ";
         }
 
         std::cout << "( ";
 
-        for (const std::string& kk : p[source].characters) {
-          std::cout << kk << " ";
+        for (const int& kk : p[source].characters) {
+          std::cout << "c" << kk << " ";
         }
 
         std::cout << ") ]" << std::endl << std::endl;
@@ -1107,7 +1109,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // realize the characters of the safe source
       sc.clear();
 
-      for (const std::string& ci : p[source].characters) {
+      for (const int& ci : p[source].characters) {
         sc.push_back({ ci, State::gain });
       }
 
@@ -1131,14 +1133,14 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
           // verbosity enabled
           std::cout << "Ok for safe source [ ";
 
-          for (const std::string& kk : p[source].species) {
-            std::cout << kk << " ";
+          for (const int& kk : p[source].species) {
+            std::cout << "s" << kk << " ";
           }
 
           std::cout << "( ";
 
-          for (const std::string& kk : p[source].characters) {
-            std::cout << kk << " ";
+          for (const int& kk : p[source].characters) {
+            std::cout << "c" << kk << " ";
           }
 
           std::cout << ") ]" << std::endl << std::endl;
@@ -1153,14 +1155,14 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
           // verbosity enabled
           std::cout << "No for safe source [ ";
 
-          for (const std::string& kk : p[source].species) {
-            std::cout << kk << " ";
+          for (const int& kk : p[source].species) {
+            std::cout << "s" << kk << " ";
           }
 
           std::cout << "( ";
 
-          for (const std::string& kk : p[source].characters) {
-            std::cout << kk << " ";
+          for (const int& kk : p[source].characters) {
+            std::cout << "c" << kk << " ";
           }
 
           std::cout << ") ]" << std::endl << std::endl;
@@ -1215,14 +1217,14 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     for (const HDVertex& source : s) {
       std::cout << "  - " << index << ": [ ";
 
-      for (const std::string& kk : p[source].species) {
-        std::cout << kk << " ";
+      for (const int& kk : p[source].species) {
+        std::cout << "s" << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : p[source].characters) {
-        std::cout << kk << " ";
+      for (const int& kk : p[source].characters) {
+        std::cout << "c" << kk << " ";
       }
 
       std::cout << ") ]" << std::endl;
@@ -1252,14 +1254,14 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
           std::cout << "Source [ ";
 
-          for (const std::string& kk : p[source].species) {
-            std::cout << kk << " ";
+          for (const int& kk : p[source].species) {
+            std::cout << "s" << kk << " ";
           }
 
           std::cout << "( ";
 
-          for (const std::string& kk : p[source].characters) {
-            std::cout << kk << " ";
+          for (const int& kk : p[source].characters) {
+            std::cout << "c" << kk << " ";
           }
 
           std::cout << ") ] selected" << std::endl << std::endl;
@@ -1277,7 +1279,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
     sc.clear();
 
-    for (const std::string& ci : p[source].characters) {
+    for (const int& ci : p[source].characters) {
       sc.push_back({ ci, State::gain });
     }
 
@@ -1298,14 +1300,14 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // verbosity enabled
       std::cout << "Source [ ";
 
-      for (const std::string& kk : p[source].species) {
-        std::cout << kk << " ";
+      for (const int& kk : p[source].species) {
+        std::cout << "s" << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : p[source].characters) {
-        std::cout << kk << " ";
+      for (const int& kk : p[source].characters) {
+        std::cout << "c" << kk << " ";
       }
 
       std::cout << ") ] selected " << std::endl << std::endl;
@@ -1318,7 +1320,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
   sc.clear();
 
-  for (const std::string& ci : p[source].characters) {
+  for (const int& ci : p[source].characters) {
     sc.push_back({ ci, State::gain });
   }
 
@@ -1355,7 +1357,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
 
   // get the vertex in g whose name is sc.character
   try {
-    cv = get_vertex(sc.character, g);
+    cv = get_vertex(sc.character, Type::character, g);
   }
   catch (const std::out_of_range& e) {
     // g has no vertex named sc.character
@@ -1439,16 +1441,17 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
+    //!! INEFFICIENT, CALCULATES CCOMPS A LOT OF TIMES !!
     if (is_free(*v, g)) {
       // if v is free
       // realize v-
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "G free character " << g[*v].name << std::endl;
+        std::cout << "G free character c" << g[*v].index << std::endl;
       }
 
       std::list<SignedCharacter> lsc;
-      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::lose }, g);
+      std::tie(lsc, std::ignore) = realize({ g[*v].index, State::lose }, g);
 
       output.splice(output.cend(), lsc);
 
@@ -1460,16 +1463,17 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
+    //!! INEFFICIENT, CALCULATES CCOMPS A LOT OF TIMES !!
     if (is_universal(*v, g)) {
       // if v is universal
       // realize v+
       if (logging::enabled) {
         // verbosity enabled
-        std::cout << "G universal character " << g[*v].name << std::endl;
+        std::cout << "G universal character c" << g[*v].index << std::endl;
       }
 
       std::list<SignedCharacter> lsc;
-      std::tie(lsc, std::ignore) = realize({ g[*v].name, State::gain }, g);
+      std::tie(lsc, std::ignore) = realize({ g[*v].index, State::gain }, g);
 
       output.splice(output.cend(), lsc);
 
@@ -1494,7 +1498,7 @@ realize(const RBVertex v, RBGraph& g) {
     const RBVertex u = target(*e, g);
 
     if (is_inactive(u, g))
-      lsc.push_back({ g[u].name, State::gain });
+      lsc.push_back({ g[u].index, State::gain });
   }
 
   return realize(lsc, g);

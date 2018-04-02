@@ -45,8 +45,8 @@ namespace nthsource {
 // Typedefs used for readabily
 
 /**
-  Iterator (const) of a list of strings
+  Iterator (const) of a list of integers
 */
-typedef std::list<std::string>::const_iterator StringIter;
+typedef std::list<int>::const_iterator IntIter;
 
 #endif // GLOBALS_HPP

@@ -4,6 +4,7 @@
 #include "globals.hpp"
 #include "rbgraph.hpp"
 #include "hdgraph.hpp"
+#include <boost/graph/graph_utility.hpp>
 
 
 //=============================================================================
