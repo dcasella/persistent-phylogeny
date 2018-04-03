@@ -3,8 +3,6 @@
 
 #include "globals.hpp"
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/bimap.hpp>
-#include <boost/bimap/unordered_set_of.hpp>
 #include <iostream>
 
 
@@ -21,12 +19,9 @@ typedef boost::adjacency_list_traits<
 > RBTraits;
 
 /**
-  Bidirectional map of strings and vertices (red-black graph)
+  Map of strings and vertices (red-black graph)
 */
-typedef boost::bimap<
-  boost::bimaps::unordered_set_of<std::string>,
-  boost::bimaps::unordered_set_of<RBTraits::vertex_descriptor>
-> RBVertexBimap;
+typedef std::map<std::string, RBTraits::vertex_descriptor> RBVertexNameMap;
 
 
 //=============================================================================
@@ -84,8 +79,8 @@ struct RBGraphProperties {
   size_t num_species{};    ///< Number of species in the graph
   size_t num_characters{}; ///< Number of characters in the graph
 
-  RBVertexBimap bimap{}; ///< Bidirectional map for vertex names and vertices in
-                         ///< the graph
+  RBVertexNameMap vertex_map{}; ///< Map for vertex names and vertices in the
+                                ///< graph
 };
 
 
@@ -230,12 +225,12 @@ private:
 void remove_vertex(const RBVertex v, RBGraph& g);
 
 /**
-  @brief Remove \e v from \e g
+  @brief Remove vertex \e name from \e g
 
-  @param[in]     v Vertex name
-  @param[in,out] g Red-black graph
+  @param[in]     name Vertex name
+  @param[in,out] g    Red-black graph
 */
-void remove_vertex(const std::string& v, RBGraph& g);
+void remove_vertex(const std::string& name, RBGraph& g);
 
 /**
   @brief Add vertex with \e name and \e type to \e g
@@ -344,25 +339,25 @@ inline const size_t num_characters(const RBGraph& g) {
 }
 
 /**
-  @brief Return the bidirectional map in \e g
+  @brief Return the map in \e g
 
   @param[in] g Red-black graph
 
-  @return Reference to the bidirectional map in \e g
+  @return Reference to the map in \e g
 */
-inline RBVertexBimap& bimap(RBGraph& g) {
-  return g[boost::graph_bundle].bimap;
+inline RBVertexNameMap& vertex_map(RBGraph& g) {
+  return g[boost::graph_bundle].vertex_map;
 }
 
 /**
-  @brief Return the bidirectional map (const) in \e g
+  @brief Return the map (const) in \e g
 
   @param[in] g Red-black graph
 
-  @return Constant bidirectional map in \e g
+  @return Constant map in \e g
 */
-inline const RBVertexBimap bimap(const RBGraph& g) {
-  return g[boost::graph_bundle].bimap;
+inline const RBVertexNameMap vertex_map(const RBGraph& g) {
+  return g[boost::graph_bundle].vertex_map;
 }
 
 /**
@@ -382,14 +377,14 @@ void remove_vertex_if(const RBVertex v, Predicate predicate, RBGraph& g) {
 }
 
 /**
-  @brief Build the bimap in \c g
+  @brief Build the map in \e g
 
   @param[in] g Red-black graph
 */
-void build_bimap(RBGraph& g);
+void build_vertex_map(RBGraph& g);
 
 /**
-  @brief Return the vertex descriptor of the vertex \c name in \c g
+  @brief Return the vertex descriptor of the vertex \e name in \e g
 
   @param[in] name Vertex name
   @param[in] g    Red-black graph
@@ -397,7 +392,7 @@ void build_bimap(RBGraph& g);
   @return Vertex
 */
 inline const RBVertex get_vertex(const std::string& name, const RBGraph& g) {
-  return bimap(g).left.at(name);
+  return vertex_map(g).at(name);
 }
 
 /**

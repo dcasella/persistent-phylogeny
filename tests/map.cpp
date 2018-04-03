@@ -11,19 +11,19 @@ int main(int argc, const char* argv[]) {
   v3 = add_vertex("v3", g);
   v4 = add_vertex("v4", g);
 
-  RBVertexBimap& bm = bimap(g);
+  RBVertexNameMap& v_map = vertex_map(g);
 
   assert(num_vertices(g) == 5);
-  assert(bm.left.at("v0") == v0 && bm.right.at(v0) == "v0");
-  assert(bm.left.at("v1") == v1 && bm.right.at(v1) == "v1");
-  assert(bm.left.at("v2") == v2 && bm.right.at(v2) == "v2");
-  assert(bm.left.at("v3") == v3 && bm.right.at(v3) == "v3");
-  assert(bm.left.at("v4") == v4 && bm.right.at(v4) == "v4");
+  assert(v_map.at("v0") == v0 && g[v0].name == "v0");
+  assert(v_map.at("v1") == v1 && g[v1].name == "v1");
+  assert(v_map.at("v2") == v2 && g[v2].name == "v2");
+  assert(v_map.at("v3") == v3 && g[v3].name == "v3");
+  assert(v_map.at("v4") == v4 && g[v4].name == "v4");
 
   remove_vertex(v4, g);
 
   try {
-    bm.left.at("v4"); // bm.right.at(v4);
+    v_map.at("v4");
   }
   catch (const std::out_of_range& e) {
     assert(num_vertices(g) == 4);
@@ -32,7 +32,7 @@ int main(int argc, const char* argv[]) {
   remove_vertex("v3", g);
 
   try {
-    bm.left.at("v3"); // bm.right.at(v3);
+    v_map.at("v3");
   }
   catch (const std::out_of_range& e) {
     assert(num_vertices(g) == 3);
@@ -41,10 +41,10 @@ int main(int argc, const char* argv[]) {
   v3 = add_vertex("v3", g);
   v4 = add_vertex("v3", g);
 
-  assert(bm.left.at("v3") == v3 && bm.right.at(v3) == "v3");
+  assert(v_map.at("v3") == v3 && g[v3].name == "v3");
   assert(v3 == v4);
 
-  std::cout << "bimap: tests passed" << std::endl;
+  std::cout << "map: tests passed" << std::endl;
 
   return 0;
 }

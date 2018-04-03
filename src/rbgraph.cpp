@@ -14,31 +14,31 @@ void remove_vertex(const RBVertex v, RBGraph& g) {
   else
     num_characters(g)--;
 
-  // delete v from the bimap
-  bimap(g).left.erase(g[v].name);
+  // delete v from the map
+  vertex_map(g).erase(g[v].name);
 
   boost::remove_vertex(v, g);
 }
 
-void remove_vertex(const std::string& v, RBGraph& g) {
-  // find v in the bimap
-  const RBVertex u = bimap(g).left.at(v);
+void remove_vertex(const std::string& name, RBGraph& g) {
+  // find v in the map
+  const RBVertex v = vertex_map(g).at(name);
 
-  if (is_species(u, g))
+  if (is_species(v, g))
     num_species(g)--;
   else
     num_characters(g)--;
 
-  // delete v from the bimap
-  bimap(g).left.erase(v);
+  // delete v from the map
+  vertex_map(g).erase(name);
 
-  boost::remove_vertex(u, g);
+  boost::remove_vertex(v, g);
 }
 
 RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
   try {
     // if a vertex with the same name already exists
-    const RBVertex u = bimap(g).left.at(name);
+    const RBVertex u = vertex_map(g).at(name);
     // return its descriptor and do nothing
     return u;
   }
@@ -48,8 +48,8 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
 
   const RBVertex v = boost::add_vertex(g);
 
-  // insert v in the bimap
-  bimap(g).insert(RBVertexBimap::value_type(name, v));
+  // insert v in the map
+  vertex_map(g)[name] = v;
 
   g[v].name = name;
   g[v].type = type;
@@ -76,13 +76,13 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
 //=============================================================================
 // General functions
 
-void build_bimap(RBGraph& g) {
-  bimap(g).clear();
+void build_vertex_map(RBGraph& g) {
+  vertex_map(g).clear();
 
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    bimap(g).insert(RBVertexBimap::value_type(g[*v].name, *v));
+    vertex_map(g)[g[*v].name] = *v;
   }
 }
 
@@ -104,8 +104,8 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy) {
   num_species(g_copy) = num_species(g);
   num_characters(g_copy) = num_characters(g);
 
-  // rebuild g_copy's bimap
-  build_bimap(g_copy);
+  // rebuild g_copy's map
+  build_vertex_map(g_copy);
 }
 
 void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
@@ -129,8 +129,8 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
   num_species(g_copy) = num_species(g);
   num_characters(g_copy) = num_characters(g);
 
-  // rebuild g_copy's bimap
-  build_bimap(g_copy);
+  // rebuild g_copy's map
+  build_vertex_map(g_copy);
 }
 
 std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
