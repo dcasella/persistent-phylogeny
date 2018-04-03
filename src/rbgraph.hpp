@@ -3,7 +3,6 @@
 
 #include "globals.hpp"
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/random.hpp>
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
 #include <iostream>
@@ -64,7 +63,7 @@ enum class Type : bool {
   inactive), or it is incident only on red edges (in this case c is active).
 */
 struct RBEdgeProperties {
-  Color color = Color::black; ///< Edge color (Red or Black)
+  Color color{}; ///< Edge color (Red or Black)
 };
 
 /**
@@ -141,12 +140,12 @@ typedef boost::graph_traits<RBGraph>::vertices_size_type RBVertexSize;
 // Maps
 
 /**
-  Map of vertex indices (red-black graph)
+  Map of vertex indexes (red-black graph)
 */
 typedef std::map<RBVertex, RBVertexSize> RBVertexIMap;
 
 /**
-  Associative property map of vertex indices (red-black graph)
+  Associative property map of vertex indexes (red-black graph)
 */
 typedef boost::associative_property_map<RBVertexIMap> RBVertexIAssocMap;
 
@@ -367,7 +366,7 @@ inline const RBVertexBimap bimap(const RBGraph& g) {
 }
 
 /**
-  @brief Remove \e v from \e g if it satisfies \c predicate
+  @brief Remove \e v from \e g if it satisfies \e predicate
 
   @param[in]     v         Vertex
   @param[in]     predicate Predicate
@@ -390,19 +389,19 @@ void remove_vertex_if(const RBVertex v, Predicate predicate, RBGraph& g) {
 void build_bimap(RBGraph& g);
 
 /**
-  @brief Return the vertex descriptor of the vertex named \c v in \c g
+  @brief Return the vertex descriptor of the vertex \c name in \c g
 
-  @param[in] v Vertex name
-  @param[in] g Red-black graph
+  @param[in] name Vertex name
+  @param[in] g    Red-black graph
 
   @return Vertex
 */
-inline RBVertex get_vertex(const std::string& v, const RBGraph& g) {
-  return bimap(g).left.at(v);
+inline const RBVertex get_vertex(const std::string& name, const RBGraph& g) {
+  return bimap(g).left.at(name);
 }
 
 /**
-  @brief Copy graph \c g to graph \c g_copy
+  @brief Copy graph \e g to graph \e g_copy
 
   @param[in]     g      Red-black graph
   @param[in,out] g_copy Red-black graph
@@ -410,7 +409,7 @@ inline RBVertex get_vertex(const std::string& v, const RBGraph& g) {
 void copy_graph(const RBGraph& g, RBGraph& g_copy);
 
 /**
-  @brief Copy graph \c g to graph \c g_copy and fill its vertex map
+  @brief Copy graph \e g to graph \e g_copy and fill its vertex map
 
   @param[in]     g      Red-black graph
   @param[in,out] g_copy Red-black graph
@@ -568,7 +567,7 @@ bool is_universal(const RBVertex v, const RBGraph& g);
   @brief Build the red-black subgraphs of \e g.
          Each subgraph is a copy of the respective connected component
 
-  If the graph \c g is connected, RBGraphVector will be of size 1, but the
+  If the graph \e g is connected, RBGraphVector will be of size 1, but the
   unique_ptr will be empty. This is because the purpose of the functions is to
   build the subgraphs, not copy the whole graph when it isn't needed.
 
@@ -605,8 +604,8 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g);
   The induced graph GRB|CM is a maximal reducible graph.
 
   @param[in] g      Red-black graph
-  @param[in] active True: keep all active characters from \c g (GRB|CM∪A);
-                    False: ignore all active characters from \c g (GRB|CM).
+  @param[in] active True: keep all active characters from \e g (GRB|CM∪A);
+                    False: ignore all active characters from \e g (GRB|CM).
 
   @return Maximal reducible graph
 */

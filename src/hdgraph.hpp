@@ -133,12 +133,12 @@ typedef boost::graph_traits<HDGraph>::vertices_size_type HDVertexSize;
 // Maps
 
 /**
-  Map of vertex indices (Hasse diagram)
+  Map of vertex indexes (Hasse diagram)
 */
 typedef std::map<HDVertex, HDVertexSize> HDVertexIMap;
 
 /**
-  Associative property map of vertex indices (Hasse diagram)
+  Associative property map of vertex indexes (Hasse diagram)
 */
 typedef boost::associative_property_map<HDVertexIMap> HDVertexIAssocMap;
 
