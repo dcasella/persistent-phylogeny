@@ -540,7 +540,7 @@ RBGraphVector connected_components(const RBGraph& g) {
     // for each vertex
     const RBVertex v = vcomp.first;
 
-    // prevent duplicate edges
+    // prevent duplicate edges from characters to species
     if (!is_species(v, g))
       continue;
 
@@ -554,10 +554,14 @@ RBGraphVector connected_components(const RBGraph& g) {
       // for each out edge
       const RBVertex new_vt = vertices[target(*e, g)];
 
-      RBEdge edge;
-      std::tie(edge, std::ignore) = add_edge(
-        new_v, new_vt, g[*e].color, *component
-      );
+      bool exists;
+      std::tie(std::ignore, exists) = edge(new_v, new_vt, *component);
+
+      // prevent duplicate edges on non-bipartite graphs
+      if (exists)
+        continue;
+
+      add_edge(new_v, new_vt, g[*e].color, *component);
     }
   }
 
@@ -568,8 +572,8 @@ RBGraphVector connected_components(const RBGraph& g) {
     else {
       std::cout << "Connected components: " << comp_count << std::endl;
 
-      for (size_t i = 0; i < comp_count; ++i) {
-        std::cout << *components[i].get() << std::endl << std::endl;
+      for (const std::unique_ptr<RBGraph>& component : components) {
+        std::cout << *component.get() << std::endl << std::endl;
       }
     }
   }
