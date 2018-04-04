@@ -962,13 +962,27 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     std::cout << "G not empty" << std::endl;
   }
 
+  RBVertexIMap i_map, c_map;
+  RBVertexIAssocMap i_assocmap(i_map), c_assocmap(c_map);
+
+  // fill the vertex index map i_assocmap
+  RBVertexIter v, v_end;
+  std::tie(v, v_end) = vertices(g);
+  for (size_t index = 0; v != v_end; ++v, ++index) {
+    boost::put(i_assocmap, *v, index);
+  }
+
+  // get number of components and the components map
+  size_t c_count = boost::connected_components(
+    g, c_assocmap, boost::vertex_index_map(i_assocmap)
+  );
+
   // realize free characters in the graph
   // TODO: check if this is needed (realize already does this?)
-  RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
-    if (is_free(*v, g)) {
+    if (is_free(*v, g, c_map)) {
       // if v is free
       // realize v-
       // return < v-, reduce(g) >
@@ -998,7 +1012,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
-    if (is_universal(*v, g)) {
+    if (is_universal(*v, g, c_map)) {
       // if v is universal
       // realize v+
       // return < v+, reduce(g) >
@@ -1023,9 +1037,8 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     std::cout << "G no universal characters" << std::endl;
   }
 
-  RBGraphVector components = connected_components(g);
-
-  if (components.size() > 1) {
+  if (c_count > 1) {
+    RBGraphVector components = connected_components(g, c_map, c_count);
     // if graph is not connected
     // build subgraphs (connected components) g1, g2, etc.
     // return < reduce(g1), reduce(g2), ... >
@@ -1036,8 +1049,6 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // return < reduce(g1), reduce(g2), ... >
     return output;
   }
-
-  components.clear();
 
   if (logging::enabled) {
     // verbosity enabled
@@ -1362,18 +1373,20 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     return std::make_pair(output, false);
   }
 
-  RBVertexIMap map_index, map_comp;
-  RBVertexIAssocMap i_map(map_index), c_map(map_comp);
+  RBVertexIMap i_map, c_map;
+  RBVertexIAssocMap i_assocmap(i_map), c_assocmap(c_map);
 
   // fill vertex index map
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (size_t index = 0; v != v_end; ++v, ++index) {
-    boost::put(i_map, *v, index);
+    boost::put(i_assocmap, *v, index);
   }
 
   // build the components map
-  boost::connected_components(g, c_map, boost::vertex_index_map(i_map));
+  boost::connected_components(
+    g, c_assocmap, boost::vertex_index_map(i_assocmap)
+  );
 
   if (sc.state == State::gain && is_inactive(cv, g)) {
     // c+ and c is inactive
@@ -1387,7 +1400,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
     // - delete all black edges incident on c
     std::tie(v, v_end) = vertices(g);
     for (; v != v_end; ++v) {
-      if (!is_species(*v, g) || map_comp[*v] != map_comp[cv])
+      if (!is_species(*v, g) || c_map.at(*v) != c_map.at(cv))
         continue;
       // for each species in the same connected component of cv
 
@@ -1435,11 +1448,22 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   // delete all isolated vertices
   remove_singletons(g);
 
+  // fill vertex index map
+  std::tie(v, v_end) = vertices(g);
+  for (size_t index = 0; v != v_end; ++v, ++index) {
+    boost::put(i_assocmap, *v, index);
+  }
+
+  // build the components map
+  boost::connected_components(
+    g, c_assocmap, boost::vertex_index_map(i_assocmap)
+  );
+
   // realize all free characters that came up after realizing sc
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
-    if (is_free(*v, g)) {
+    if (is_free(*v, g, c_map)) {
       // if v is free
       // realize v-
       if (logging::enabled) {
@@ -1460,7 +1484,7 @@ realize(const SignedCharacter& sc, RBGraph& g) {
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
     // for each vertex
-    if (is_universal(*v, g)) {
+    if (is_universal(*v, g, c_map)) {
       // if v is universal
       // realize v+
       if (logging::enabled) {

@@ -87,18 +87,18 @@ void build_vertex_map(RBGraph& g) {
 }
 
 void copy_graph(const RBGraph& g, RBGraph& g_copy) {
-  RBVertexIMap map_index;
-  RBVertexIAssocMap i_map(map_index);
+  RBVertexIMap index_map;
+  RBVertexIAssocMap index_assocmap(index_map);
 
-  // fill the vertex index map i_map
+  // fill the vertex index map index_assocmap
   RBVertexIter u, u_end;
   std::tie(u, u_end) = vertices(g);
   for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_map, *u, index);
+    boost::put(index_assocmap, *u, index);
   }
 
   // copy g to g_copy
-  copy_graph(g, g_copy, boost::vertex_index_map(i_map));
+  copy_graph(g, g_copy, boost::vertex_index_map(index_assocmap));
 
   // update g_copy's number of species and characters
   num_species(g_copy) = num_species(g);
@@ -109,20 +109,20 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy) {
 }
 
 void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
-  RBVertexIMap i_map;
+  RBVertexIMap index_map;
   RBVertexAssocMap v_assocmap(v_map);
-  RBVertexIAssocMap i_assocmap(i_map);
+  RBVertexIAssocMap index_assocmap(index_map);
 
-  // fill the vertex index map i_assocmap
+  // fill the vertex index map index_assocmap
   RBVertexIter u, u_end;
   std::tie(u, u_end) = vertices(g);
   for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_assocmap, *u, index);
+    boost::put(index_assocmap, *u, index);
   }
 
   // copy g to g_copy, fill the vertex map v_assocmap (and v_map)
   copy_graph(
-    g, g_copy, boost::vertex_index_map(i_assocmap).orig_to_copy(v_assocmap)
+    g, g_copy, boost::vertex_index_map(index_assocmap).orig_to_copy(v_assocmap)
   );
 
   // update g_copy's number of species and characters
@@ -386,37 +386,40 @@ bool is_free(const RBVertex v, const RBGraph& g) {
   if (!is_character(v, g))
     return false;
 
-  size_t count_species = 0;
-
-  RBVertexIMap map_index, map_comp;
-  RBVertexIAssocMap i_map(map_index), c_map(map_comp);
+  RBVertexIMap index_map, comp_map;
+  RBVertexIAssocMap index_assocmap(index_map), comp_assocmap(comp_map);
 
   // fill vertex index map
   RBVertexIter u, u_end;
   std::tie(u, u_end) = vertices(g);
   for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_map, *u, index);
+    boost::put(index_assocmap, *u, index);
   }
 
   // build the components map
-  size_t num_comps = boost::connected_components(
-    g, c_map, boost::vertex_index_map(i_map)
+  boost::connected_components(
+    g, comp_assocmap, boost::vertex_index_map(index_assocmap)
   );
+
+  return is_free(v, g, comp_map);
+}
+
+bool is_free(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map) {
+  if (!is_character(v, g))
+    return false;
 
   size_t tot_species = 0;
 
-  if (num_comps == 1) {
-    tot_species = num_species(g);
-  }
-  else {
-    std::tie(u, u_end) = vertices(g);
-    for (; u != u_end; ++u) {
-      if (!is_species(*u, g) || map_comp[v] != map_comp[*u])
-        continue;
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (; u != u_end; ++u) {
+    if (!is_species(*u, g) || c_map.at(v) != c_map.at(*u))
+      continue;
 
-      tot_species++;
-    }
+    tot_species++;
   }
+
+  size_t count_species = 0;
 
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
@@ -437,37 +440,41 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   if (!is_character(v, g))
     return false;
 
-  size_t count_species = 0;
-
-  RBVertexIMap map_index, map_comp;
-  RBVertexIAssocMap i_map(map_index), c_map(map_comp);
+  RBVertexIMap index_map, comp_map;
+  RBVertexIAssocMap index_assocmap(index_map), comp_assocmap(comp_map);
 
   // fill vertex index map
   RBVertexIter u, u_end;
   std::tie(u, u_end) = vertices(g);
   for (size_t index = 0; u != u_end; ++u, ++index) {
-    boost::put(i_map, *u, index);
+    boost::put(index_assocmap, *u, index);
   }
 
   // build the components map
-  size_t num_comps = boost::connected_components(
-    g, c_map, boost::vertex_index_map(i_map)
+  boost::connected_components(
+    g, comp_assocmap, boost::vertex_index_map(index_assocmap)
   );
+
+  return is_universal(v, g, comp_map);
+}
+
+bool
+is_universal(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map) {
+  if (!is_character(v, g))
+    return false;
 
   size_t tot_species = 0;
 
-  if (num_comps == 1) {
-    tot_species = num_species(g);
-  }
-  else {
-    std::tie(u, u_end) = vertices(g);
-    for (; u != u_end; ++u) {
-      if (!is_species(*u, g) || map_comp[v] != map_comp[*u])
-        continue;
+  RBVertexIter u, u_end;
+  std::tie(u, u_end) = vertices(g);
+  for (; u != u_end; ++u) {
+    if (!is_species(*u, g) || c_map.at(v) != c_map.at(*u))
+      continue;
 
-      tot_species++;
-    }
+    tot_species++;
   }
+
+  size_t count_species = 0;
 
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
@@ -485,47 +492,52 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
 }
 
 RBGraphVector connected_components(const RBGraph& g) {
-  RBGraphVector components;
-  RBVertexIMap map_index, map_comp;
-  RBVertexIAssocMap i_map(map_index), c_map(map_comp);
+  RBVertexIMap index_map, comp_map;
+  RBVertexIAssocMap index_assocmap(index_map), comp_assocmap(comp_map);
 
-  // fill the vertex index map i_map
+  // fill the vertex index map index_assocmap
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (size_t index = 0; v != v_end; ++v, ++index) {
-    boost::put(i_map, *v, index);
+    boost::put(index_assocmap, *v, index);
   }
 
   // get number of components and the components map
   size_t comp_count = boost::connected_components(
-    g, c_map, boost::vertex_index_map(i_map)
+    g, comp_assocmap, boost::vertex_index_map(index_assocmap)
   );
 
-  // how map_comp is structured (after running boost::connected_components):
-  // map_comp[i] => < vertex_in_g, component_index >
+  // how comp_map is structured (after running boost::connected_components):
+  // comp_map[i] => < vertex_in_g, component_index >
 
+  return connected_components(g, comp_map, comp_count);
+}
+
+RBGraphVector
+connected_components(const RBGraph& g, const RBVertexIMap& c_map,
+                     const size_t c_count) {
+  RBGraphVector components;
   RBVertexMap vertices;
 
   // how vertices is going to be structured:
   // vertices[vertex_in_g] => vertex_in_component
 
   // resize subgraph components
-  components.clear();
-  components.resize(comp_count);
+  components.resize(c_count);
 
   // initialize subgraph components
-  for (size_t i = 0; i < comp_count; ++i) {
+  for (size_t i = 0; i < c_count; ++i) {
     components[i] = std::make_unique<RBGraph>();
   }
 
-  if (comp_count <= 1)
+  if (c_count <= 1)
     // graph is connected
     return components;
 
   // graph is disconnected
 
   // add vertices to their respective subgraph
-  for (const std::pair<RBVertex, RBVertexSize>& vcomp : map_comp) {
+  for (const std::pair<RBVertex, RBVertexSize>& vcomp : c_map) {
     // for each vertex
     const RBVertex v = vcomp.first;
     const RBVertexSize comp = vcomp.second;
@@ -536,7 +548,7 @@ RBGraphVector connected_components(const RBGraph& g) {
   }
 
   // add edges to their respective vertices and subgraph
-  for (const std::pair<RBVertex, RBVertexSize>& vcomp : map_comp) {
+  for (const std::pair<RBVertex, RBVertexSize>& vcomp : c_map) {
     // for each vertex
     const RBVertex v = vcomp.first;
 
@@ -566,11 +578,11 @@ RBGraphVector connected_components(const RBGraph& g) {
   }
 
   if (logging::enabled) {
-    if (comp_count == 1) {
+    if (c_count == 1) {
       std::cout << "G connected" << std::endl;
     }
     else {
-      std::cout << "Connected components: " << comp_count << std::endl;
+      std::cout << "Connected components: " << c_count << std::endl;
 
       for (const std::unique_ptr<RBGraph>& component : components) {
         std::cout << *component.get() << std::endl << std::endl;

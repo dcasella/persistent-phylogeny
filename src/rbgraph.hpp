@@ -546,6 +546,20 @@ inline bool is_empty(const RBGraph& g) {
 bool is_free(const RBVertex v, const RBGraph& g);
 
 /**
+  @brief Check if \e v is free in \e g
+
+  A vertex is free in a red-black graph if it's an active character that is
+  connected to all species of the graph by red dges.
+
+  @param[in] v     Vertex
+  @param[in] g     Red-black graph
+  @param[in] c_map Components map of \e g
+
+  @return True if \e v is free in \e g
+*/
+bool is_free(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map);
+
+/**
   @brief Check if \e v is universal in \e g
 
   A vertex is free in a red-black graph if it's an inactive character that is
@@ -557,6 +571,21 @@ bool is_free(const RBVertex v, const RBGraph& g);
   @return True if \e v is universal in \e g
 */
 bool is_universal(const RBVertex v, const RBGraph& g);
+
+/**
+  @brief Check if \e v is universal in \e g
+
+  A vertex is free in a red-black graph if it's an inactive character that is
+  connected to all species of the graph by black dges.
+
+  @param[in] v     Vertex
+  @param[in] g     Red-black graph
+  @param[in] c_map Components map of \e g
+
+  @return True if \e v is universal in \e g
+*/
+bool
+is_universal(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map);
 
 /**
   @brief Build the red-black subgraphs of \e g.
@@ -571,6 +600,24 @@ bool is_universal(const RBVertex v, const RBGraph& g);
   @return components Vector of unique pointers to each subgraph
 */
 RBGraphVector connected_components(const RBGraph& g);
+
+/**
+  @brief Build the red-black subgraphs of \e g.
+         Each subgraph is a copy of the respective connected component
+
+  If the graph \e g is connected, RBGraphVector will be of size 1, but the
+  unique_ptr will be empty. This is because the purpose of the functions is to
+  build the subgraphs, not copy the whole graph when it isn't needed.
+
+  @param[in] g       Red-black graph
+  @param[in] c_map   Components map of \e g
+  @param[in] c_count Number of connected components of \e g
+
+  @return components Vector of unique pointers to each subgraph
+*/
+RBGraphVector
+connected_components(const RBGraph& g, const RBVertexIMap& c_map,
+                     const size_t c_count);
 
 /**
   @brief Build the list of maximal characters of \e g
