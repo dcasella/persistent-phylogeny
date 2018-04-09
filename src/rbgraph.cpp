@@ -711,8 +711,6 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
     }
   }
 
-  cm.reverse();
-
   return cm;
 }
 
