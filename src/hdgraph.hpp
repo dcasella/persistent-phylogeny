@@ -1,10 +1,9 @@
 #ifndef HDGRAPH_HPP
 #define HDGRAPH_HPP
 
+#include <boost/graph/graph_utility.hpp>
 #include "globals.hpp"
 #include "rbgraph.hpp"
-#include <boost/graph/graph_utility.hpp>
-
 
 //=============================================================================
 // Data structures
@@ -16,8 +15,8 @@
   State is paired with a character in the struct SignedCharacter.
 */
 enum class State : bool {
-  lose, ///< The paired character is lost
-  gain  ///< The paired character is gained
+  lose,  ///< The paired character is lost
+  gain   ///< The paired character is gained
 };
 
 /**
@@ -26,10 +25,9 @@ enum class State : bool {
   Each character c+ and c− is called a signed character.
 */
 struct SignedCharacter {
-  std::string character{};   ///< Character name
-  State state = State::gain; ///< Character state
+  std::string character{};    ///< Character name
+  State state = State::gain;  ///< Character state
 };
-
 
 //=============================================================================
 // Bundled properties
@@ -46,8 +44,8 @@ struct SignedCharacter {
   For each character c, we allow at most one edge labeled by c−.
 */
 struct HDEdgeProperties {
-  std::list<SignedCharacter> signedcharacters{}; ///< List of SignedCharacters
-                                                 ///< that label the edge
+  std::list<SignedCharacter> signedcharacters{};  ///< List of SignedCharacters
+                                                  ///< that label the edge
 };
 
 /**
@@ -59,18 +57,17 @@ struct HDEdgeProperties {
   species of GM ordered by the relation ≤, where s1 ≤ s2 if C(s1) ⊆ C(s2).
 */
 struct HDVertexProperties {
-  std::list<std::string> species{};    ///< List of species that label the vertex
-  std::list<std::string> characters{}; ///< List of characters of the species
+  std::list<std::string> species{};  ///< List of species that label the vertex
+  std::list<std::string> characters{};  ///< List of characters of the species
 };
 
 /**
   @brief Struct used to represent the properties of a Hasse diagram
 */
 struct HDGraphProperties {
-  const RBGraph* g{};  ///< Original red-black graph
-  const RBGraph* gm{}; ///< Original maximal reducible graph
+  const RBGraph* g{};   ///< Original red-black graph
+  const RBGraph* gm{};  ///< Original maximal reducible graph
 };
-
 
 //=============================================================================
 // Typedefs used for readabily
@@ -80,14 +77,14 @@ struct HDGraphProperties {
 /**
   Hasse diagram
 */
-typedef boost::adjacency_list<
-  boost::setS,           // OutEdgeList
-  boost::vecS,           // VertexList
-  boost::bidirectionalS, // Directed
-  HDVertexProperties,    // VertexProperties
-  HDEdgeProperties,      // EdgeProperties
-  HDGraphProperties      // GraphProperties
-> HDGraph;
+typedef boost::adjacency_list<boost::setS,            // OutEdgeList
+                              boost::vecS,            // VertexList
+                              boost::bidirectionalS,  // Directed
+                              HDVertexProperties,     // VertexProperties
+                              HDEdgeProperties,       // EdgeProperties
+                              HDGraphProperties       // GraphProperties
+                              >
+    HDGraph;
 
 // Descriptors
 
@@ -142,7 +139,6 @@ typedef std::map<HDVertex, HDVertexSize> HDVertexIMap;
 */
 typedef boost::associative_property_map<HDVertexIMap> HDVertexIAssocMap;
 
-
 //=============================================================================
 // Enum / Struct operator overloads
 
@@ -184,7 +180,6 @@ inline bool operator==(const SignedCharacter& a, const SignedCharacter b) {
   return (a.character == b.character && a.state == b.state);
 }
 
-
 //=============================================================================
 // Boost functions (overloading)
 
@@ -197,11 +192,8 @@ inline bool operator==(const SignedCharacter& a, const SignedCharacter b) {
 
   @return Vertex descriptor for the new vertex
 */
-HDVertex
-add_vertex(
-    const std::list<std::string>& species,
-    const std::list<std::string>& characters,
-    HDGraph& hasse);
+HDVertex add_vertex(const std::list<std::string>& species,
+                    const std::list<std::string>& characters, HDGraph& hasse);
 
 /**
   @brief Add vertex with \e species and \e characters to \e hasse
@@ -212,11 +204,9 @@ add_vertex(
 
   @return Vertex descriptor for the new vertex
 */
-inline HDVertex
-add_vertex(
-    const std::string& species,
-    const std::list<std::string>& characters,
-    HDGraph& hasse) {
+inline HDVertex add_vertex(const std::string& species,
+                           const std::list<std::string>& characters,
+                           HDGraph& hasse) {
   return add_vertex(std::list<std::string>{species}, characters, hasse);
 }
 
@@ -235,13 +225,9 @@ add_vertex(
           When the flag is false, the returned edge descriptor points to the
           already existing edge
 */
-std::pair<HDEdge, bool>
-add_edge(
-    const HDVertex u,
-    const HDVertex v,
-    const std::list<SignedCharacter>& signedcharacters,
-    HDGraph& hasse);
-
+std::pair<HDEdge, bool> add_edge(
+    const HDVertex u, const HDVertex v,
+    const std::list<SignedCharacter>& signedcharacters, HDGraph& hasse);
 
 //=============================================================================
 // General functions
@@ -278,7 +264,6 @@ inline const RBGraph* const orig_gm(const HDGraph& hasse) {
 */
 std::ostream& operator<<(std::ostream& os, const HDGraph& hasse);
 
-
 //=============================================================================
 // Algorithm functions
 
@@ -290,8 +275,8 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse);
 
   @return True if \e a is included in \e b, False otherwise
 */
-bool
-is_included(const std::list<std::string>& a, const std::list<std::string>& b);
+bool is_included(const std::list<std::string>& a,
+                 const std::list<std::string>& b);
 
 /**
   @brief Build the Hasse diagram of \e gm
@@ -311,4 +296,4 @@ is_included(const std::list<std::string>& a, const std::list<std::string>& b);
 */
 void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm);
 
-#endif // HDGRAPH_HPP
+#endif  // HDGRAPH_HPP

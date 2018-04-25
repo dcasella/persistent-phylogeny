@@ -1,10 +1,8 @@
 #ifndef FUNCTIONS_HPP
 #define FUNCTIONS_HPP
 
-#include "globals.hpp"
-#include "rbgraph.hpp"
 #include "hdgraph.hpp"
-
+#include "rbgraph.hpp"
 
 //=============================================================================
 // Auxiliary structs and classes
@@ -15,15 +13,13 @@
   Thrown when \e initial_state_visitor finds a safe chain with a safe source
 */
 class InitialState : public std::exception {
-public:
+ public:
   /**
     @brief Returns the reason of the exception
 
     @return C String
   */
-  inline const char* what() const throw() {
-    return "Found initial state";
-  }
+  inline const char* what() const throw() { return "Found initial state"; }
 };
 
 /**
@@ -32,22 +28,20 @@ public:
   Thrown when \e reduce can't reduce the graph anymore
 */
 class NoReduction : public std::exception {
-public:
+ public:
   /**
     @brief Returns the reason of the exception
 
     @return C String
   */
-  inline const char* what() const throw() {
-    return "Could not reduce graph";
-  }
+  inline const char* what() const throw() { return "Could not reduce graph"; }
 };
 
 /**
   @brief DFS Visitor used in depth_first_search
 */
 class initial_state_visitor : public boost::default_dfs_visitor {
-public:
+ public:
   /**
     @brief DFS Visitor default constructor
   */
@@ -176,14 +170,13 @@ public:
   */
   bool safe_source_test1(const HDGraph& hasse);
 
-private:
+ private:
   std::list<HDVertex>* const m_safe_sources{};
   std::list<HDVertex>* const m_sources{};
   std::list<HDEdge> chain{};
   HDVertex source_v{};
   HDVertex last_v{};
 };
-
 
 //=============================================================================
 // Algorithm functions
@@ -220,8 +213,8 @@ std::list<HDVertex> initial_states(const HDGraph& hasse);
 
   @return List of sources that satisfy the test 2
 */
-std::list<HDVertex>
-safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse);
+std::list<HDVertex> safe_source_test2(const std::list<HDVertex>& sources,
+                                      const HDGraph& hasse);
 
 /**
   @brief Test if \e sources contain a source that satisfies the test 3 in
@@ -237,8 +230,8 @@ safe_source_test2(const std::list<HDVertex>& sources, const HDGraph& hasse);
 
   @return List of sources that satisfy the test 3
 */
-std::list<HDVertex>
-safe_source_test3(const std::list<HDVertex>& sources, const HDGraph& hasse);
+std::list<HDVertex> safe_source_test3(const std::list<HDVertex>& sources,
+                                      const HDGraph& hasse);
 
 /**
   @brief Check if the realization of \e source does not induce red Σ-graph
@@ -258,7 +251,6 @@ bool realize_source(const HDVertex source, const HDGraph& hasse);
   @return True if \e reduction is partial (with missing gained characters)
 */
 bool is_partial(const std::list<SignedCharacter>& reduction);
-
 
 //=============================================================================
 // Algorithm main functions
@@ -307,8 +299,8 @@ std::list<SignedCharacter> reduce(RBGraph& g);
           If the realization was successful then the bool flag will be true.
           When the flag is false, the returned list is empty
 */
-std::pair<std::list<SignedCharacter>, bool>
-realize(const SignedCharacter& sc, RBGraph& g);
+std::pair<std::list<SignedCharacter>, bool> realize(const SignedCharacter& sc,
+                                                    RBGraph& g);
 
 /**
   @brief Realize the inactive characters of the species \e v in \e g
@@ -329,8 +321,8 @@ realize(const SignedCharacter& sc, RBGraph& g);
           If the realization was successful then the bool flag will be true.
           When the flag is false, the returned list is empty
 */
-std::pair<std::list<SignedCharacter>, bool>
-realize(const RBVertex v, RBGraph& g);
+std::pair<std::list<SignedCharacter>, bool> realize(const RBVertex v,
+                                                    RBGraph& g);
 
 /**
   @brief Realize the list of characters \e lsc (+ or - each) in \e g
@@ -346,7 +338,7 @@ realize(const RBVertex v, RBGraph& g);
           If the realizations were successful then the bool flag will be true.
           When the flag is false, the returned list is empty
 */
-std::pair<std::list<SignedCharacter>, bool>
-realize(const std::list<SignedCharacter>& lsc, RBGraph& g);
+std::pair<std::list<SignedCharacter>, bool> realize(
+    const std::list<SignedCharacter>& lsc, RBGraph& g);
 
 #endif

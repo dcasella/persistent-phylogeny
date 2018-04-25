@@ -1,16 +1,12 @@
 #include "hdgraph.hpp"
 
-
 //=============================================================================
 // Boost functions (overloading)
 
 // Hasse Diagram
 
-HDVertex
-add_vertex(
-    const std::list<std::string>& species,
-    const std::list<std::string>& characters,
-    HDGraph& hasse) {
+HDVertex add_vertex(const std::list<std::string>& species,
+                    const std::list<std::string>& characters, HDGraph& hasse) {
   const HDVertex v = boost::add_vertex(hasse);
   hasse[v].species = species;
   hasse[v].characters = characters;
@@ -18,12 +14,9 @@ add_vertex(
   return v;
 }
 
-std::pair<HDEdge, bool>
-add_edge(
-    const HDVertex u,
-    const HDVertex v,
-    const std::list<SignedCharacter>& signedcharacters,
-    HDGraph& hasse) {
+std::pair<HDEdge, bool> add_edge(
+    const HDVertex u, const HDVertex v,
+    const std::list<SignedCharacter>& signedcharacters, HDGraph& hasse) {
   HDEdge e;
   bool exists;
   std::tie(e, exists) = boost::add_edge(u, v, hasse);
@@ -31,7 +24,6 @@ add_edge(
 
   return std::make_pair(e, exists);
 }
-
 
 //=============================================================================
 // General functions
@@ -67,8 +59,7 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
       for (; j != hasse[*e].signedcharacters.cend(); ++j) {
         os << *j;
 
-        if (std::next(j) != hasse[*e].signedcharacters.cend())
-          os << ",";
+        if (std::next(j) != hasse[*e].signedcharacters.cend()) os << ",";
       }
 
       os << "-> [ ";
@@ -86,19 +77,17 @@ std::ostream& operator<<(std::ostream& os, const HDGraph& hasse) {
       os << ") ];";
     }
 
-    if (std::next(v) != v_end)
-      os << std::endl;
+    if (std::next(v) != v_end) os << std::endl;
   }
 
   return os;
 }
 
-
 //=============================================================================
 // Algorithm functions
 
-bool
-is_included(const std::list<std::string>& a, const std::list<std::string>& b) {
+bool is_included(const std::list<std::string>& a,
+                 const std::list<std::string>& b) {
   for (const std::string& a_str : a) {
     if (std::find(b.cbegin(), b.cend(), a_str) == b.cend())
       // exit the function at the first string of a not present in b
@@ -118,10 +107,10 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   // how adj_char is going to be structured:
   // adj_char[S] => < List of characters adjacent to S >
 
-  // vec_adj_char is used to sort the lists by number of elements, this is why we store
-  // the list of adjacent characters to S. While we store S to be able to
-  // access adj_char[S] in costant time, instead of iterating on vec_adj_char to find the
-  // correct list
+  // vec_adj_char is used to sort the lists by number of elements, this is why
+  // we store the list of adjacent characters to S. While we store S to be able
+  // to access adj_char[S] in costant time, instead of iterating on vec_adj_char
+  // to find the correct list
 
   auto compare_names = [](const std::string& a, const std::string& b) {
     size_t a_index, b_index;
@@ -142,8 +131,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(gm);
   for (size_t index = 0; v != v_end; ++v) {
-    if (!is_species(*v, gm))
-      continue;
+    if (!is_species(*v, gm)) continue;
     // for each species vertex
 
     // vec_adj_char[index]'s first element is the species vertex
@@ -154,8 +142,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
     std::tie(e, e_end) = out_edges(*v, gm);
     for (; e != e_end; ++e) {
       // ignore active characters
-      if (is_red(*e, gm))
-        continue;
+      if (is_red(*e, gm)) continue;
 
       // vt = one of the characters adjacent to *v
       const RBVertex vt = target(*e, gm);
@@ -187,8 +174,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   bool first_iteration = true;
   for (const std::list<RBVertex>& set : vec_adj_char) {
     // for each set of characters
-    if (set.empty())
-      continue;
+    if (set.empty()) continue;
 
     // v = species of gm
     const RBVertex v = set.front();
@@ -265,7 +251,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
           // for each new edge to add to the Hasse diagram
           HDEdge edge;
           std::tie(edge, std::ignore) = add_edge(ei.first, u, hasse);
-          hasse[edge].signedcharacters.push_back({ ei.second, State::gain });
+          hasse[edge].signedcharacters.push_back({ei.second, State::gain});
         }
 
         break;
@@ -284,8 +270,7 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
   HDVertexIter u, u_end;
   std::tie(u, u_end) = vertices(hasse);
   for (; u != u_end; ++u) {
-    if (in_degree(*u, hasse) == 0 || out_degree(*u, hasse) == 0)
-      continue;
+    if (in_degree(*u, hasse) == 0 || out_degree(*u, hasse) == 0) continue;
     // for each internal vertex in hasse
 
     HDInEdgeIter ie, ie_end;
@@ -299,9 +284,8 @@ void hasse_diagram(HDGraph& hasse, const RBGraph& g, const RBGraph& gm) {
         // source -> u -> target
         HDEdge e;
         bool exists;
-        std::tie(e, exists) = edge(
-          source(*ie, hasse), target(*oe, hasse), hasse
-        );
+        std::tie(e, exists) =
+            edge(source(*ie, hasse), target(*oe, hasse), hasse);
 
         if (!exists)
           // no transitivity between source and target

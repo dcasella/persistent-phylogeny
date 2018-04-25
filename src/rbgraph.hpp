@@ -1,10 +1,9 @@
 #ifndef RBGRAPH_HPP
 #define RBGRAPH_HPP
 
-#include "globals.hpp"
 #include <boost/graph/adjacency_list.hpp>
 #include <iostream>
-
+#include "globals.hpp"
 
 //=============================================================================
 // Forward declaration for typedefs
@@ -12,17 +11,16 @@
 /**
   Red-black graph traits
 */
-typedef boost::adjacency_list_traits<
-  boost::slistS,     // OutEdgeList
-  boost::listS,      // VertexList
-  boost::undirectedS // Directed
-> RBTraits;
+typedef boost::adjacency_list_traits<boost::slistS,      // OutEdgeList
+                                     boost::listS,       // VertexList
+                                     boost::undirectedS  // Directed
+                                     >
+    RBTraits;
 
 /**
   Map of strings and vertices (red-black graph)
 */
 typedef std::map<std::string, RBTraits::vertex_descriptor> RBVertexNameMap;
-
 
 //=============================================================================
 // Data structures
@@ -33,8 +31,8 @@ typedef std::map<std::string, RBTraits::vertex_descriptor> RBVertexNameMap;
   Color is used to label edges in a red-black graph.
 */
 enum class Color : bool {
-  black, ///< The character incident on the labeled edge is inactive
-  red    ///< The character incident on the labeled edge is active
+  black,  ///< The character incident on the labeled edge is inactive
+  red     ///< The character incident on the labeled edge is active
 };
 
 /**
@@ -43,10 +41,9 @@ enum class Color : bool {
   Type is used to label vertices in a red-black graph.
 */
 enum class Type : bool {
-  species,  ///< The labeled vertex is a species
-  character ///< The labeled vertex is a character
+  species,   ///< The labeled vertex is a species
+  character  ///< The labeled vertex is a character
 };
-
 
 //=============================================================================
 // Bundled properties
@@ -58,7 +55,7 @@ enum class Type : bool {
   inactive), or it is incident only on red edges (in this case c is active).
 */
 struct RBEdgeProperties {
-  Color color{}; ///< Edge color (Red or Black)
+  Color color{};  ///< Edge color (Red or Black)
 };
 
 /**
@@ -68,21 +65,20 @@ struct RBEdgeProperties {
   bipartite graph whose vertex set is S ∪ C.
 */
 struct RBVertexProperties {
-  std::string name{}; ///< Vertex name
-  Type type{};        ///< Vertex type (Character or Species)
+  std::string name{};  ///< Vertex name
+  Type type{};         ///< Vertex type (Character or Species)
 };
 
 /**
   @brief Struct used to represent the properties of a red-black graph
 */
 struct RBGraphProperties {
-  size_t num_species{};    ///< Number of species in the graph
-  size_t num_characters{}; ///< Number of characters in the graph
+  size_t num_species{};     ///< Number of species in the graph
+  size_t num_characters{};  ///< Number of characters in the graph
 
-  RBVertexNameMap vertex_map{}; ///< Map for vertex names and vertices in the
-                                ///< graph
+  RBVertexNameMap vertex_map{};  ///< Map for vertex names and vertices in the
+                                 ///< graph
 };
-
 
 //=============================================================================
 // Typedefs used for readabily
@@ -92,14 +88,14 @@ struct RBGraphProperties {
 /**
   Red-black graph
 */
-typedef boost::adjacency_list<
-  boost::slistS,      // OutEdgeList
-  boost::listS,       // VertexList
-  boost::undirectedS, // Directed
-  RBVertexProperties, // VertexProperties
-  RBEdgeProperties,   // EdgeProperties
-  RBGraphProperties   // GraphProperties
-> RBGraph;
+typedef boost::adjacency_list<boost::slistS,       // OutEdgeList
+                              boost::listS,        // VertexList
+                              boost::undirectedS,  // Directed
+                              RBVertexProperties,  // VertexProperties
+                              RBEdgeProperties,    // EdgeProperties
+                              RBGraphProperties    // GraphProperties
+                              >
+    RBGraph;
 
 // Descriptors
 
@@ -161,7 +157,6 @@ typedef boost::associative_property_map<RBVertexMap> RBVertexAssocMap;
 */
 typedef std::vector<std::unique_ptr<RBGraph>> RBGraphVector;
 
-
 //=============================================================================
 // Auxiliary structs and classes
 
@@ -202,16 +197,14 @@ struct if_not_maximal {
     @return True if \e v is not maximal character of \e g
   */
   inline bool operator()(const RBVertex v, const RBGraph& g) const {
-    if (m_cm == nullptr)
-      return false;
+    if (m_cm == nullptr) return false;
 
     return (std::find(m_cm->cbegin(), m_cm->cend(), v) == m_cm->cend());
   }
 
-private:
+ private:
   const std::list<RBVertex>* const m_cm{};
 };
-
 
 //=============================================================================
 // Boost functions (overloading)
@@ -269,8 +262,8 @@ inline RBVertex add_vertex(const std::string& name, RBGraph& g) {
           When the flag is false, the returned edge descriptor points to the
           already existing edge
 */
-std::pair<RBEdge, bool>
-add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
+std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
+                                 const Color color, RBGraph& g);
 
 /**
   @brief Add edge between \e u and \e v to \e g
@@ -285,11 +278,10 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g);
           When the flag is false, the returned edge descriptor points to the
           already existing edge
 */
-inline std::pair<RBEdge, bool>
-add_edge(const RBVertex u, const RBVertex v, RBGraph& g) {
+inline std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
+                                        RBGraph& g) {
   return add_edge(u, v, Color::black, g);
 }
-
 
 //=============================================================================
 // General functions
@@ -432,7 +424,6 @@ std::ostream& operator<<(std::ostream& os, const RBGraph& g);
 */
 void read_graph(const std::string& filename, RBGraph& g);
 
-
 //=============================================================================
 // Algorithm functions
 
@@ -528,9 +519,7 @@ void remove_singletons(RBGraph& g);
 
   @return True if \e g is empty
 */
-inline bool is_empty(const RBGraph& g) {
-  return (num_vertices(g) == 0);
-}
+inline bool is_empty(const RBGraph& g) { return (num_vertices(g) == 0); }
 
 /**
   @brief Check if \e v is free in \e g
@@ -584,8 +573,8 @@ bool is_universal(const RBVertex v, const RBGraph& g);
 
   @return True if \e v is universal in \e g
 */
-bool
-is_universal(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map);
+bool is_universal(const RBVertex v, const RBGraph& g,
+                  const RBVertexIMap& c_map);
 
 /**
   @brief Build the red-black subgraphs of \e g.
@@ -615,9 +604,8 @@ RBGraphVector connected_components(const RBGraph& g);
 
   @return components Vector of unique pointers to each subgraph
 */
-RBGraphVector
-connected_components(const RBGraph& g, const RBVertexIMap& c_map,
-                     const size_t c_count);
+RBGraphVector connected_components(const RBGraph& g, const RBVertexIMap& c_map,
+                                   const size_t c_count);
 
 /**
   @brief Build the list of maximal characters of \e g
@@ -676,7 +664,6 @@ bool has_red_sigmagraph(const RBGraph& g);
 
   @return True if \e g contains a red Σ-graph with characters \e c0 and \e c1
 */
-bool
-has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g);
+bool has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g);
 
-#endif // RBGRAPH_HPP
+#endif  // RBGRAPH_HPP

@@ -1,9 +1,8 @@
 #include "rbgraph.hpp"
-#include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/copy.hpp>
+#include <boost/graph/graph_utility.hpp>
 #include <fstream>
-
 
 //=============================================================================
 // Boost functions (overloading)
@@ -41,8 +40,7 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
     const RBVertex u = vertex_map(g).at(name);
     // return its descriptor and do nothing
     return u;
-  }
-  catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range& e) {
     // continue with the algorithm
   }
 
@@ -62,8 +60,8 @@ RBVertex add_vertex(const std::string& name, const Type type, RBGraph& g) {
   return v;
 }
 
-std::pair<RBEdge, bool>
-add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
+std::pair<RBEdge, bool> add_edge(const RBVertex u, const RBVertex v,
+                                 const Color color, RBGraph& g) {
   RBEdge e;
   bool exists;
   std::tie(e, exists) = boost::add_edge(u, v, g);
@@ -71,7 +69,6 @@ add_edge(const RBVertex u, const RBVertex v, const Color color, RBGraph& g) {
 
   return std::make_pair(e, exists);
 }
-
 
 //=============================================================================
 // General functions
@@ -121,9 +118,8 @@ void copy_graph(const RBGraph& g, RBGraph& g_copy, RBVertexMap& v_map) {
   }
 
   // copy g to g_copy, fill the vertex map v_assocmap (and v_map)
-  copy_graph(
-    g, g_copy, boost::vertex_index_map(index_assocmap).orig_to_copy(v_assocmap)
-  );
+  copy_graph(g, g_copy,
+             boost::vertex_index_map(index_assocmap).orig_to_copy(v_assocmap));
 
   // update g_copy's number of species and characters
   num_species(g_copy) = num_species(g);
@@ -180,8 +176,7 @@ std::ostream& operator<<(std::ostream& os, const RBGraph& g) {
 
     std::string line(g[*v].name + ":" + edges_str);
 
-    if (std::next(v) != v_end)
-      line += "\n";
+    if (std::next(v) != v_end) line += "\n";
 
     if (is_species(*v, g))
       species.push_back(line);
@@ -231,8 +226,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
   if (!file) {
     // input file doesn't exist
     throw std::runtime_error(
-      "Failed to read graph from file: no such file or directory"
-    );
+        "Failed to read graph from file: no such file or directory");
   }
 
   size_t index = 0;
@@ -253,8 +247,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
       if (species.size() == 0 || characters.size() == 0) {
         // input file parsing error
         throw std::runtime_error(
-          "Failed to read graph from file: badly formatted line 0"
-        );
+            "Failed to read graph from file: badly formatted line 0");
       }
 
       // insert species in the graph
@@ -272,8 +265,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
       }
 
       first_line = false;
-    }
-    else {
+    } else {
       char value;
 
       // read binary matrix
@@ -281,11 +273,11 @@ void read_graph(const std::string& filename, RBGraph& g) {
         bool red_edge = false;
 
         switch (value) {
-          #ifdef DEBUG
+#ifdef DEBUG
           case '2':
             // permit red edges from input matrix only if debugging
             red_edge = true;
-          #endif
+#endif
 
           case '1':
             // add edge between species[s_index] and characters[c_index]
@@ -296,17 +288,14 @@ void read_graph(const std::string& filename, RBGraph& g) {
               if (s_index >= species.size() || c_index >= characters.size()) {
                 // input file parsing error
                 throw std::runtime_error(
-                  "Failed to read graph from file: oversized matrix"
-                );
+                    "Failed to read graph from file: oversized matrix");
               }
 
               RBEdge edge;
-              std::tie(edge, std::ignore) = add_edge(
-                species[s_index], characters[c_index], g
-              );
+              std::tie(edge, std::ignore) =
+                  add_edge(species[s_index], characters[c_index], g);
 
-              if (red_edge)
-                g[edge].color = Color::red;
+              if (red_edge) g[edge].color = Color::red;
             }
             break;
 
@@ -317,8 +306,7 @@ void read_graph(const std::string& filename, RBGraph& g) {
           default:
             // input file parsing error
             throw std::runtime_error(
-              "Failed to read graph from file: unexpected value in matrix"
-            );
+                "Failed to read graph from file: unexpected value in matrix");
         }
 
         index++;
@@ -329,45 +317,37 @@ void read_graph(const std::string& filename, RBGraph& g) {
   if (index != species.size() * characters.size()) {
     // input file parsing error
     throw std::runtime_error(
-      "Failed to read graph from file: undersized matrix"
-    );
+        "Failed to read graph from file: undersized matrix");
   }
 
   if (species.size() == 0 || characters.size() == 0) {
     // input file parsing error
-    throw std::runtime_error(
-      "Failed to read graph from file: empty file"
-    );
+    throw std::runtime_error("Failed to read graph from file: empty file");
   }
 }
-
 
 //=============================================================================
 // Algorithm functions
 
 bool is_active(const RBVertex v, const RBGraph& g) {
-  if (!is_character(v, g))
-    return false;
+  if (!is_character(v, g)) return false;
 
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (!is_red(*e, g) || !is_species(target(*e, g), g))
-      return false;
+    if (!is_red(*e, g) || !is_species(target(*e, g), g)) return false;
   }
 
   return true;
 }
 
 bool is_inactive(const RBVertex v, const RBGraph& g) {
-  if (!is_character(v, g))
-    return false;
+  if (!is_character(v, g)) return false;
 
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (!is_black(*e, g) || !is_species(target(*e, g), g))
-      return false;
+    if (!is_black(*e, g) || !is_species(target(*e, g), g)) return false;
   }
 
   return true;
@@ -383,8 +363,7 @@ void remove_singletons(RBGraph& g) {
 }
 
 bool is_free(const RBVertex v, const RBGraph& g) {
-  if (!is_character(v, g))
-    return false;
+  if (!is_character(v, g)) return false;
 
   RBVertexIMap index_map, comp_map;
   RBVertexIAssocMap index_assocmap(index_map), comp_assocmap(comp_map);
@@ -397,24 +376,21 @@ bool is_free(const RBVertex v, const RBGraph& g) {
   }
 
   // build the components map
-  boost::connected_components(
-    g, comp_assocmap, boost::vertex_index_map(index_assocmap)
-  );
+  boost::connected_components(g, comp_assocmap,
+                              boost::vertex_index_map(index_assocmap));
 
   return is_free(v, g, comp_map);
 }
 
 bool is_free(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map) {
-  if (!is_character(v, g))
-    return false;
+  if (!is_character(v, g)) return false;
 
   size_t tot_species = 0;
 
   RBVertexIter u, u_end;
   std::tie(u, u_end) = vertices(g);
   for (; u != u_end; ++u) {
-    if (!is_species(*u, g) || c_map.at(v) != c_map.at(*u))
-      continue;
+    if (!is_species(*u, g) || c_map.at(v) != c_map.at(*u)) continue;
 
     tot_species++;
   }
@@ -424,21 +400,18 @@ bool is_free(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (!is_red(*e, g) || !is_species(target(*e, g), g))
-      return false;
+    if (!is_red(*e, g) || !is_species(target(*e, g), g)) return false;
 
     count_species++;
   }
 
-  if (count_species != tot_species)
-    return false;
+  if (count_species != tot_species) return false;
 
   return true;
 }
 
 bool is_universal(const RBVertex v, const RBGraph& g) {
-  if (!is_character(v, g))
-    return false;
+  if (!is_character(v, g)) return false;
 
   RBVertexIMap index_map, comp_map;
   RBVertexIAssocMap index_assocmap(index_map), comp_assocmap(comp_map);
@@ -451,25 +424,22 @@ bool is_universal(const RBVertex v, const RBGraph& g) {
   }
 
   // build the components map
-  boost::connected_components(
-    g, comp_assocmap, boost::vertex_index_map(index_assocmap)
-  );
+  boost::connected_components(g, comp_assocmap,
+                              boost::vertex_index_map(index_assocmap));
 
   return is_universal(v, g, comp_map);
 }
 
-bool
-is_universal(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map) {
-  if (!is_character(v, g))
-    return false;
+bool is_universal(const RBVertex v, const RBGraph& g,
+                  const RBVertexIMap& c_map) {
+  if (!is_character(v, g)) return false;
 
   size_t tot_species = 0;
 
   RBVertexIter u, u_end;
   std::tie(u, u_end) = vertices(g);
   for (; u != u_end; ++u) {
-    if (!is_species(*u, g) || c_map.at(v) != c_map.at(*u))
-      continue;
+    if (!is_species(*u, g) || c_map.at(v) != c_map.at(*u)) continue;
 
     tot_species++;
   }
@@ -479,14 +449,12 @@ is_universal(const RBVertex v, const RBGraph& g, const RBVertexIMap& c_map) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    if (!is_black(*e, g) || !is_species(target(*e, g), g))
-      return false;
+    if (!is_black(*e, g) || !is_species(target(*e, g), g)) return false;
 
     count_species++;
   }
 
-  if (count_species != tot_species)
-    return false;
+  if (count_species != tot_species) return false;
 
   return true;
 }
@@ -504,8 +472,7 @@ RBGraphVector connected_components(const RBGraph& g) {
 
   // get number of components and the components map
   size_t comp_count = boost::connected_components(
-    g, comp_assocmap, boost::vertex_index_map(index_assocmap)
-  );
+      g, comp_assocmap, boost::vertex_index_map(index_assocmap));
 
   // how comp_map is structured (after running boost::connected_components):
   // comp_map[i] => < vertex_in_g, component_index >
@@ -513,9 +480,8 @@ RBGraphVector connected_components(const RBGraph& g) {
   return connected_components(g, comp_map, comp_count);
 }
 
-RBGraphVector
-connected_components(const RBGraph& g, const RBVertexIMap& c_map,
-                     const size_t c_count) {
+RBGraphVector connected_components(const RBGraph& g, const RBVertexIMap& c_map,
+                                   const size_t c_count) {
   RBGraphVector components;
   RBVertexMap vertices;
 
@@ -553,8 +519,7 @@ connected_components(const RBGraph& g, const RBVertexIMap& c_map,
     const RBVertex v = vcomp.first;
 
     // prevent duplicate edges from characters to species
-    if (!is_species(v, g))
-      continue;
+    if (!is_species(v, g)) continue;
 
     const RBVertex new_v = vertices[v];
     const RBVertexSize comp = vcomp.second;
@@ -570,8 +535,7 @@ connected_components(const RBGraph& g, const RBVertexIMap& c_map,
       std::tie(std::ignore, exists) = edge(new_v, new_vt, *component);
 
       // prevent duplicate edges on non-bipartite graphs
-      if (exists)
-        continue;
+      if (exists) continue;
 
       add_edge(new_v, new_vt, g[*e].color, *component);
     }
@@ -580,8 +544,7 @@ connected_components(const RBGraph& g, const RBVertexIMap& c_map,
   if (logging::enabled) {
     if (c_count == 1) {
       std::cout << "G connected" << std::endl;
-    }
-    else {
+    } else {
       std::cout << "Connected components: " << c_count << std::endl;
 
       for (const std::unique_ptr<RBGraph>& component : components) {
@@ -603,8 +566,7 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (!is_character(*v, g))
-      continue;
+    if (!is_character(*v, g)) continue;
     // for each character vertex
 
     // build v's set of adjacent species
@@ -614,8 +576,7 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
       RBVertex vt = target(*e, g);
 
       // if v is active or connected to random nodes ignore it
-      if (is_red(*e, g) || !is_species(vt, g))
-        break;
+      if (is_red(*e, g) || !is_species(vt, g)) break;
 
       adj_spec[*v].push_back(vt);
     }
@@ -635,8 +596,7 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
     RBVertexIter cmv = cm.begin(), cmv_end = cm.end();
     for (; cmv != cmv_end; ++cmv) {
       // for each species in cm
-      if (skip_cycle)
-        break;
+      if (skip_cycle) break;
 
       size_t count_incl = 0;
       size_t count_excl = 0;
@@ -647,9 +607,8 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
         // for each species adjacent to v, S(C#)
 
         // find sv in the list of cmv's adjacent species
-        std::list<RBVertex>::const_iterator in = std::find(
-          adj_spec[*cmv].cbegin(), adj_spec[*cmv].cend(), *sv
-        );
+        std::list<RBVertex>::const_iterator in =
+            std::find(adj_spec[*cmv].cbegin(), adj_spec[*cmv].cend(), *sv);
 
         // keep count of how many species are included (or not found) in
         // the list of cmv's adjacent species
@@ -666,8 +625,7 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
             // by v in the list of maximal characters Cm
             if (subst) {
               cm.remove(*(cmv++));
-            }
-            else {
+            } else {
               cm.push_front(*v);
               cm.remove(*(cmv++));
 
@@ -675,21 +633,17 @@ const std::list<RBVertex> maximal_characters(const RBGraph& g) {
             }
 
             cmv--;
-          }
-          else if (count_incl < adj_spec[*cmv].size() && count_excl > 0) {
+          } else if (count_incl < adj_spec[*cmv].size() && count_excl > 0) {
             // the list of adjacent species to v is neither a superset nor a
             // subset of the list of adjacent species to cmv, which means
             // v may be a new maximal character
-            if (!subst)
-              keep_char = true;
-          }
-          else if (count_incl == adj_spec[*cmv].size()) {
+            if (!subst) keep_char = true;
+          } else if (count_incl == adj_spec[*cmv].size()) {
             // the list of adjacent species to v is the same as the list of
             // adjacent species to cmv, so v can be ignored in the next
             // iterations on the characters in Cm
             skip_cycle = true;
-          }
-          else if (count_excl == 0) {
+          } else if (count_excl == 0) {
             // the list of adjacent species to v is a subset of the list of
             // adjacent species to cmv, meaning v can be ignored in the
             // next iterations on the characters in Cm
@@ -763,39 +717,32 @@ bool has_red_sigmagraph(const RBGraph& g) {
   RBVertexIter v, v_end;
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (is_active(*v, g))
-      count_actives++;
+    if (is_active(*v, g)) count_actives++;
 
-    if (count_actives == 2)
-      break;
+    if (count_actives == 2) break;
   }
 
   // if count_actives doesn't reach 2, g can't contain a red sigma-graph
-  if (count_actives < 2)
-    return false;
+  if (count_actives < 2) return false;
 
   std::tie(v, v_end) = vertices(g);
   for (; v != v_end; ++v) {
-    if (!is_active(*v, g))
-      continue;
+    if (!is_active(*v, g)) continue;
     // for each active character
 
     for (RBVertexIter u = std::next(v); u != v_end; ++u) {
-      if (!is_active(*u, g))
-        continue;
+      if (!is_active(*u, g)) continue;
       // for each active character coming after *v
 
       // check if characters *v and *u are part of a red sigma-graph
-      if (has_red_sigmapath(*v, *u, g))
-        return true;
+      if (has_red_sigmapath(*v, *u, g)) return true;
     }
   }
 
   return false;
 }
 
-bool
-has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g) {
+bool has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g) {
   // vertex that connects c0 and c1 (always with red edges)
   RBVertex junction = 0;
 
@@ -804,8 +751,7 @@ has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g) {
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(c0, g);
   for (; e != e_end; ++e) {
-    if (!is_red(*e, g))
-      continue;
+    if (!is_red(*e, g)) continue;
 
     RBVertex s = target(*e, g);
 
@@ -829,19 +775,16 @@ has_red_sigmapath(const RBVertex c0, const RBVertex c1, const RBGraph& g) {
 
     half_sigma = true;
 
-    if (junction != 0)
-      break;
+    if (junction != 0) break;
   }
 
-  if (!half_sigma || junction == 0)
-    return false;
+  if (!half_sigma || junction == 0) return false;
 
   std::tie(e, e_end) = out_edges(c1, g);
   for (; e != e_end; ++e) {
     RBVertex s = target(*e, g);
 
-    if (!is_red(*e, g) || s == junction)
-      continue;
+    if (!is_red(*e, g) || s == junction) continue;
 
     // for each species connected to c1 via a red edge (which is not junction)
 

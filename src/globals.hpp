@@ -4,7 +4,6 @@
 #include <list>
 #include <string>
 
-
 //=============================================================================
 // Output modifiers
 
@@ -12,9 +11,8 @@
   @brief Global logging namespace
 */
 namespace logging {
-  extern bool enabled; ///< Logging toggle
+extern bool enabled;  ///< Logging toggle
 };
-
 
 //=============================================================================
 // Algorithm modifiers
@@ -23,23 +21,22 @@ namespace logging {
   @brief Global exponential algorithm namespace
 */
 namespace exponential {
-  extern bool enabled; ///< Exponential algorithm toggle
+extern bool enabled;  ///< Exponential algorithm toggle
 };
 
 /**
   @brief Global user interaction namespace
 */
 namespace interactive {
-  extern bool enabled; ///< User interaction toggle
+extern bool enabled;  ///< User interaction toggle
 };
 
 /**
   @brief Global safe source selection namespace
 */
 namespace nthsource {
-  extern size_t index; ///< Safe source index selection
+extern size_t index;  ///< Safe source index selection
 };
-
 
 //=============================================================================
 // Typedefs used for readabily
@@ -49,4 +46,4 @@ namespace nthsource {
 */
 typedef std::list<std::string>::const_iterator StringIter;
 
-#endif // GLOBALS_HPP
+#endif  // GLOBALS_HPP
