@@ -28,7 +28,7 @@ void initial_state_visitor::start_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "DFS: start_vertex: [ ";
 
-    for (const std::string& kk : hasse[v].species) {
+    for (const auto& kk : hasse[v].species) {
       std::cout << kk << " ";
     }
 
@@ -46,7 +46,7 @@ void initial_state_visitor::discover_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "DFS: discover_vertex: [ ";
 
-    for (const std::string& kk : hasse[v].species) {
+    for (const auto& kk : hasse[v].species) {
       std::cout << kk << " ";
     }
 
@@ -64,13 +64,13 @@ void initial_state_visitor::examine_edge(const HDEdge e, const HDGraph& hasse) {
     // verbosity enabled
     std::cout << "DFS: examine_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
+    for (const auto& kk : hasse[vs].species) {
       std::cout << kk << " ";
     }
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    auto jj = hasse[e].signedcharacters.cbegin();
     for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
@@ -79,7 +79,7 @@ void initial_state_visitor::examine_edge(const HDEdge e, const HDGraph& hasse) {
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
+    for (const auto& kk : hasse[vt].species) {
       std::cout << kk << " ";
     }
 
@@ -99,13 +99,13 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "DFS: tree_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
+    for (const auto& kk : hasse[vs].species) {
       std::cout << kk << " ";
     }
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    auto jj = hasse[e].signedcharacters.cbegin();
     for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
@@ -114,7 +114,7 @@ void initial_state_visitor::tree_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
+    for (const auto& kk : hasse[vt].species) {
       std::cout << kk << " ";
     }
 
@@ -133,13 +133,13 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "DFS: back_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
+    for (const auto& kk : hasse[vs].species) {
       std::cout << kk << " ";
     }
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    auto jj = hasse[e].signedcharacters.cbegin();
     for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
@@ -148,7 +148,7 @@ void initial_state_visitor::back_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
+    for (const auto& kk : hasse[vt].species) {
       std::cout << kk << " ";
     }
 
@@ -167,13 +167,13 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     // verbosity enabled
     std::cout << "DFS: forward_or_cross_edge: [ ";
 
-    for (const std::string& kk : hasse[vs].species) {
+    for (const auto& kk : hasse[vs].species) {
       std::cout << kk << " ";
     }
 
     std::cout << "] -";
 
-    SignedCharacterIter jj = hasse[e].signedcharacters.cbegin();
+    auto jj = hasse[e].signedcharacters.cbegin();
     for (; jj != hasse[e].signedcharacters.cend(); ++jj) {
       std::cout << *jj;
 
@@ -182,7 +182,7 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
 
     std::cout << "-> [ ";
 
-    for (const std::string& kk : hasse[vt].species) {
+    for (const auto& kk : hasse[vt].species) {
       std::cout << kk << " ";
     }
 
@@ -195,7 +195,7 @@ void initial_state_visitor::forward_or_cross_edge(const HDEdge e,
     return;
   }
 
-  HDVertex v_test = vt;
+  auto v_test = vt;
 
   while (out_degree(v_test, hasse) == 1) {
     // e is not the last edge in the chain (vt is not a sink in hasse),
@@ -220,7 +220,7 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
     // verbosity enabled
     std::cout << "DFS: finish_vertex: [ ";
 
-    for (const std::string& kk : hasse[v].species) {
+    for (const auto& kk : hasse[v].species) {
       std::cout << kk << " ";
     }
 
@@ -229,7 +229,7 @@ void initial_state_visitor::finish_vertex(const HDVertex v,
 
   // build list of vertices in chain
   std::list<HDVertex> chain_v;
-  for (const HDEdge& e : chain) {
+  for (const auto& e : chain) {
     chain_v.push_back(source(e, hasse));
   }
 
@@ -328,8 +328,7 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
     // uninitialized graph properties
     return false;
 
-  // const RBGraph& g = *orig_g(hasse);
-  const RBGraph& gm = *orig_gm(hasse);
+  const auto& gm = *orig_gm(hasse);
 
   // chain holds the list of edges representing the chain
 
@@ -345,13 +344,13 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
 
   std::list<SignedCharacter> lsc;
 
-  for (const std::string& c : hasse[source_v].characters) {
+  for (const auto& c : hasse[source_v].characters) {
     lsc.push_back({c, State::gain});
   }
 
-  for (const HDEdge& e : chain) {
-    for (const SignedCharacter& sc : hasse[e].signedcharacters) {
-      StringIter check_sc_in_chain =
+  for (const auto& e : chain) {
+    for (const auto& sc : hasse[e].signedcharacters) {
+      const auto check_sc_in_chain =
           std::find(hasse[v].characters.cbegin(), hasse[v].characters.cend(),
                     sc.character);
 
@@ -359,8 +358,7 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
         // ignore wrong edge (other chain, old edge)
         break;
 
-      SignedCharacterIter check_sc_in_lsc =
-          std::find(lsc.cbegin(), lsc.cend(), sc);
+      const auto check_sc_in_lsc = std::find(lsc.cbegin(), lsc.cend(), sc);
 
       if (check_sc_in_lsc != lsc.cend())
         // remove previous signed character in lsc - it might be out of order
@@ -374,7 +372,7 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
     // verbosity enabled
     std::cout << std::endl << "Test chain: < ";
 
-    for (const SignedCharacter& kk : lsc) {
+    for (const auto& kk : lsc) {
       std::cout << kk << " ";
     }
 
@@ -409,7 +407,7 @@ bool initial_state_visitor::safe_chain(const HDVertex v, const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, chain is a safe chain
-  const bool output = !has_red_sigmagraph(gm_test);
+  const auto output = !has_red_sigmagraph(gm_test);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -427,8 +425,7 @@ bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
     // uninitialized graph properties
     return false;
 
-  // const RBGraph& g = *orig_g(hasse);
-  const RBGraph& gm = *orig_gm(hasse);
+  const auto& gm = *orig_gm(hasse);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -437,8 +434,8 @@ bool initial_state_visitor::safe_source_test1(const HDGraph& hasse) {
 
   // search for a species s+ in GRB|CM∪A that consists of C(s) and is connected
   // to only inactive characters
-  for (const std::string& species_name : hasse[source_v].species) {
-    const RBVertex source_s = get_vertex(species_name, gm);
+  for (const auto& species_name : hasse[source_v].species) {
+    const auto source_s = get_vertex(species_name, gm);
     // for each source species (s+) in source_v
     bool active = false;
 
@@ -505,7 +502,7 @@ std::list<HDVertex> initial_states(const HDGraph& hasse) {
   }
 
   if (output.empty() && sources.size() == 1) {
-    const HDVertex source = sources.front();
+    const auto source = sources.front();
 
     if (realize_source(source, hasse)) output.push_back(sources.front());
   } else if (output.empty() && sources.size() > 1) {
@@ -513,16 +510,16 @@ std::list<HDVertex> initial_states(const HDGraph& hasse) {
       // verbosity enabled
       std::cout << "Sources: < ";
 
-      for (const HDVertex& i : sources) {
+      for (const auto& i : sources) {
         std::cout << "[ ";
 
-        for (const std::string& kk : hasse[i].species) {
+        for (const auto& kk : hasse[i].species) {
           std::cout << kk << " ";
         }
 
         std::cout << "( ";
 
-        for (const std::string& kk : hasse[i].characters) {
+        for (const auto& kk : hasse[i].characters) {
           std::cout << kk << " ";
         }
 
@@ -541,16 +538,16 @@ std::list<HDVertex> initial_states(const HDGraph& hasse) {
     // verbosity enabled
     std::cout << "Safe sources: < ";
 
-    for (const HDVertex& i : output) {
+    for (const auto& i : output) {
       std::cout << "[ ";
 
-      for (const std::string& kk : hasse[i].species) {
+      for (const auto& kk : hasse[i].species) {
         std::cout << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : hasse[i].characters) {
+      for (const auto& kk : hasse[i].characters) {
         std::cout << kk << " ";
       }
 
@@ -589,9 +586,9 @@ std::list<HDVertex> safe_source_test2(const std::list<HDVertex>& sources,
     gm_c.push_back(gm[*v].name);
   }
 
-  for (const HDVertex& source : sources) {
+  for (const auto& source : sources) {
     // list of characters of source
-    const std::list<std::string> source_c = hasse[source].characters;
+    const auto source_c = hasse[source].characters;
 
     // search for a species s+ in GRB|CM∪A that consists of C(s) and a set of
     // maximal characters, and is connected to only inactive characters
@@ -600,7 +597,7 @@ std::list<HDVertex> safe_source_test2(const std::list<HDVertex>& sources,
       if (!is_species(*v, gm)) continue;
 
       // if s+ is in source it means that it was already tested in Test 1
-      StringIter search = std::find(hasse[source].species.cbegin(),
+      const auto search = std::find(hasse[source].species.cbegin(),
                                     hasse[source].species.cend(), gm[*v].name);
 
       if (search != hasse[source].species.cend())
@@ -621,10 +618,10 @@ std::list<HDVertex> safe_source_test2(const std::list<HDVertex>& sources,
 
           break;
         } else {
-          const RBVertex vt = target(*e, gm);
+          const auto vt = target(*e, gm);
 
           // search if vt is a maximal character in source_c
-          StringIter search =
+          auto search =
               std::find(source_c.cbegin(), source_c.cend(), gm[vt].name);
 
           if (search == source_c.cend()) {
@@ -696,8 +693,7 @@ std::list<HDVertex> safe_source_test3(const std::list<HDVertex>& sources,
     // uninitialized graph properties
     return output;
 
-  // const RBGraph& g = *orig_g(hasse);
-  const RBGraph& gm = *orig_gm(hasse);
+  const auto& gm = *orig_gm(hasse);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -707,12 +703,12 @@ std::list<HDVertex> safe_source_test3(const std::list<HDVertex>& sources,
   HDVertexIMap source_map;
 
   // make sure every source is connected to active characters
-  for (const HDVertex& source : sources) {
+  for (const auto& source : sources) {
     bool source_active = true;
 
     // make sure every species s+ is connected to active characters
-    for (const std::string& species_name : hasse[source].species) {
-      RBVertex source_s = get_vertex(species_name, gm);
+    for (const auto& species_name : hasse[source].species) {
+      const auto source_s = get_vertex(species_name, gm);
       // for each source species (s+) in source
       size_t active_count = 0;
 
@@ -747,35 +743,35 @@ std::list<HDVertex> safe_source_test3(const std::list<HDVertex>& sources,
   size_t min_active_count = 0;
   std::list<HDVertex> maybe_output;
 
-  for (const std::pair<HDVertex, size_t>& pair : source_map) {
-    const size_t active_count = pair.second;
+  for (const auto& pair : source_map) {
+    const auto active_count = pair.second;
 
     if (min_active_count > 0 && active_count >= min_active_count) continue;
 
     min_active_count = active_count;
   }
 
-  for (const std::pair<HDVertex, size_t>& pair : source_map) {
-    const HDVertex source = pair.first;
-    const size_t active_count = pair.second;
+  for (const auto& pair : source_map) {
+    const auto source = pair.first;
+    const auto active_count = pair.second;
 
     if (active_count > min_active_count) continue;
 
     maybe_output.push_back(source);
   }
 
-  for (const HDVertex& source : maybe_output) {
+  for (const auto& source : maybe_output) {
     if (logging::enabled) {
       // verbosity enabled
       std::cout << "Source (+ active characters): [ ";
 
-      for (const std::string& kk : hasse[source].species) {
+      for (const auto& kk : hasse[source].species) {
         std::cout << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : hasse[source].characters) {
+      for (const auto& kk : hasse[source].characters) {
         std::cout << kk << " ";
       }
 
@@ -814,20 +810,19 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
     // uninitialized graph properties
     return false;
 
-  const RBGraph& g = *orig_g(hasse);
-  // const RBGraph& gm = *orig_gm(hasse);
+  const auto& g = *orig_g(hasse);
 
   if (logging::enabled) {
     // verbosity enabled
     std::cout << "Test source realization: [ ";
 
-    for (const std::string& kk : hasse[source].species) {
+    for (const auto& kk : hasse[source].species) {
       std::cout << kk << " ";
     }
 
     std::cout << "( ";
 
-    for (const std::string& kk : hasse[source].characters) {
+    for (const auto& kk : hasse[source].characters) {
       std::cout << kk << " ";
     }
 
@@ -840,7 +835,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
 
   // initialize the list of characters of source
   std::list<SignedCharacter> source_lsc;
-  for (const std::string& ci : hasse[source].characters) {
+  for (const auto& ci : hasse[source].characters) {
     source_lsc.push_back({ci, State::gain});
   }
 
@@ -866,7 +861,7 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
   }
 
   // if the realization didn't induce a red Σ-graph, source is a safe source
-  const bool output = !has_red_sigmagraph(g_test);
+  const auto output = !has_red_sigmagraph(g_test);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -882,14 +877,14 @@ bool realize_source(const HDVertex source, const HDGraph& hasse) {
 bool is_partial(const std::list<SignedCharacter>& reduction) {
   std::list<std::string> gained_c{};
 
-  for (const SignedCharacter& sc : reduction) {
+  for (const auto& sc : reduction) {
     if (sc.state == State::gain) {
       gained_c.push_back(sc.character);
 
       continue;
     }
 
-    StringIter find_gained =
+    const auto find_gained =
         std::find(gained_c.cbegin(), gained_c.cend(), sc.character);
 
     if (find_gained == gained_c.cend()) {
@@ -947,7 +942,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   }
 
   // get number of components and the components map
-  size_t c_count = boost::connected_components(
+  const size_t c_count = boost::connected_components(
       g, c_assocmap, boost::vertex_index_map(i_assocmap));
 
   // realize free characters in the graph
@@ -1011,11 +1006,11 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   }
 
   if (c_count > 1) {
-    RBGraphVector components = connected_components(g, c_map, c_count);
+    const auto components = connected_components(g, c_map, c_count);
     // if graph is not connected
     // build subgraphs (connected components) g1, g2, etc.
     // return < reduce(g1), reduce(g2), ... >
-    for (const std::unique_ptr<RBGraph>& component : components) {
+    for (const auto& component : components) {
       output.splice(output.cend(), reduce(*component.get()));
     }
 
@@ -1029,7 +1024,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
   }
 
   // gm = Grb|Cm∪A, maximal reducible graph of g (Grb)
-  RBGraph gm = maximal_reducible_graph(g, true);
+  const auto gm = maximal_reducible_graph(g, true);
 
   if (logging::enabled) {
     // verbosity enabled
@@ -1068,7 +1063,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // exponential algorithm enabled
     std::list<std::list<SignedCharacter>> sources_output;
 
-    for (const HDVertex& source : s) {
+    for (const auto& source : s) {
       // for each safe source in s
       RBGraph g_test;
       copy_graph(g, g_test);
@@ -1077,13 +1072,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
         // verbosity enabled
         std::cout << "Current safe source: [ ";
 
-        for (const std::string& kk : p[source].species) {
+        for (const auto& kk : p[source].species) {
           std::cout << kk << " ";
         }
 
         std::cout << "( ";
 
-        for (const std::string& kk : p[source].characters) {
+        for (const auto& kk : p[source].characters) {
           std::cout << kk << " ";
         }
 
@@ -1093,7 +1088,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // realize the characters of the safe source
       sc.clear();
 
-      for (const std::string& ci : p[source].characters) {
+      for (const auto& ci : p[source].characters) {
         sc.push_back({ci, State::gain});
       }
 
@@ -1101,7 +1096,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
         // verbosity enabled
         std::cout << "Realize the characters < ";
 
-        for (const SignedCharacter& kk : sc) {
+        for (const auto& kk : sc) {
           std::cout << kk << " ";
         }
 
@@ -1117,13 +1112,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
           // verbosity enabled
           std::cout << "Ok for safe source [ ";
 
-          for (const std::string& kk : p[source].species) {
+          for (const auto& kk : p[source].species) {
             std::cout << kk << " ";
           }
 
           std::cout << "( ";
 
-          for (const std::string& kk : p[source].characters) {
+          for (const auto& kk : p[source].characters) {
             std::cout << kk << " ";
           }
 
@@ -1138,13 +1133,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
           // verbosity enabled
           std::cout << "No for safe source [ ";
 
-          for (const std::string& kk : p[source].species) {
+          for (const auto& kk : p[source].species) {
             std::cout << kk << " ";
           }
 
           std::cout << "( ";
 
-          for (const std::string& kk : p[source].characters) {
+          for (const auto& kk : p[source].characters) {
             std::cout << kk << " ";
           }
 
@@ -1161,7 +1156,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // verbosity enabled
       std::cout << "Reductions: [" << std::endl;
 
-      for (const std::list<SignedCharacter>& lkk : sources_output) {
+      for (const auto& lkk : sources_output) {
         if (is_partial(lkk))
           std::cout << "  Partial: ";
         else
@@ -1169,7 +1164,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
         std::cout << "< ";
 
-        for (const SignedCharacter& kk : lkk) {
+        for (const auto& kk : lkk) {
           std::cout << kk << " ";
         }
 
@@ -1197,16 +1192,16 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
               << std::endl;
 
     size_t index = 0;
-    for (const HDVertex& source : s) {
+    for (const auto& source : s) {
       std::cout << "  - " << index << ": [ ";
 
-      for (const std::string& kk : p[source].species) {
+      for (const auto& kk : p[source].species) {
         std::cout << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : p[source].characters) {
+      for (const auto& kk : p[source].characters) {
         std::cout << kk << " ";
       }
 
@@ -1237,13 +1232,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
           std::cout << "Source [ ";
 
-          for (const std::string& kk : p[source].species) {
+          for (const auto& kk : p[source].species) {
             std::cout << kk << " ";
           }
 
           std::cout << "( ";
 
-          for (const std::string& kk : p[source].characters) {
+          for (const auto& kk : p[source].characters) {
             std::cout << kk << " ";
           }
 
@@ -1263,7 +1258,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
     sc.clear();
 
-    for (const std::string& ci : p[source].characters) {
+    for (const auto& ci : p[source].characters) {
       sc.push_back({ci, State::gain});
     }
 
@@ -1283,13 +1278,13 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
       // verbosity enabled
       std::cout << "Source [ ";
 
-      for (const std::string& kk : p[source].species) {
+      for (const auto& kk : p[source].species) {
         std::cout << kk << " ";
       }
 
       std::cout << "( ";
 
-      for (const std::string& kk : p[source].characters) {
+      for (const auto& kk : p[source].characters) {
         std::cout << kk << " ";
       }
 
@@ -1303,7 +1298,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
 
   sc.clear();
 
-  for (const std::string& ci : p[source].characters) {
+  for (const auto& ci : p[source].characters) {
     sc.push_back({ci, State::gain});
   }
 
@@ -1311,7 +1306,7 @@ std::list<SignedCharacter> reduce(RBGraph& g) {
     // verbosity enabled
     std::cout << "Realize the characters < ";
 
-    for (const SignedCharacter& kk : sc) {
+    for (const auto& kk : sc) {
       std::cout << kk << " ";
     }
 
@@ -1482,7 +1477,7 @@ std::pair<std::list<SignedCharacter>, bool> realize(const RBVertex v,
   RBOutEdgeIter e, e_end;
   std::tie(e, e_end) = out_edges(v, g);
   for (; e != e_end; ++e) {
-    const RBVertex u = target(*e, g);
+    const auto u = target(*e, g);
 
     if (is_inactive(u, g)) lsc.push_back({g[u].name, State::gain});
   }
@@ -1497,7 +1492,7 @@ std::pair<std::list<SignedCharacter>, bool> realize(
   // realize the list of signed characters lsc; the algorithm stops when a
   // non-feasible realization is encountered, setting the boolean flag to false
   // TODO: maybe change this behaviour
-  for (const SignedCharacter& i : lsc) {
+  for (const auto& i : lsc) {
     if (std::find(output.cbegin(), output.cend(), i) != output.cend())
       // the signed character i has already been realized in a previous sc
       continue;

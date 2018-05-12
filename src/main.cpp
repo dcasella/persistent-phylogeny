@@ -134,7 +134,7 @@ int main(int argc, const char* argv[]) {
   }
 
   size_t count_file = 0;
-  for (const std::string& file : files) {
+  for (const auto& file : files) {
     // for each filename in files
 
     if (logging::enabled) {
@@ -143,8 +143,8 @@ int main(int argc, const char* argv[]) {
     } else {
       // verbosity disabled
       if (files.size() > 1) {
-        const double d_perc = std::floor(100.0 * count_file / files.size());
-        const size_t perc = static_cast<size_t>(d_perc);
+        const auto d_perc = std::floor(100.0 * count_file / files.size());
+        const auto perc = static_cast<size_t>(d_perc);
 
         if (perc < 10) std::cout << " ";
 
@@ -157,7 +157,7 @@ int main(int argc, const char* argv[]) {
 
     count_file++;
 
-    RBGraph g;
+    RBGraph g{};
 
     try {
       read_graph(file, g);
@@ -165,7 +165,7 @@ int main(int argc, const char* argv[]) {
       std::stringstream keep_c{};
 
       if (vm["maximal"].as<bool>()) {
-        RBGraph gm = maximal_reducible_graph(g);
+        const auto gm = maximal_reducible_graph(g);
 
         if (vm["testpy"].as<bool>()) {
           RBVertexIter v, v_end;
@@ -181,10 +181,10 @@ int main(int argc, const char* argv[]) {
         copy_graph(gm, g);
       }
 
-      const std::list<SignedCharacter> output = reduce(g);
+      const auto output = reduce(g);
 
       std::stringstream reduction;
-      for (const SignedCharacter& sc : output) {
+      for (const auto& sc : output) {
         reduction << sc << " ";
       }
 
@@ -192,7 +192,7 @@ int main(int argc, const char* argv[]) {
         if (vm["maximal"].as<bool>()) {
           // run the function check_reduction(filename, reduction), store its
           // output in pycheck
-          boost::python::object pycheck = pymod.attr("check_reduction")(
+          const auto pycheck = pymod.attr("check_reduction")(
               file, reduction.str(), keep_c.str());
 
           if (!boost::python::extract<bool>(pycheck)())
@@ -201,7 +201,7 @@ int main(int argc, const char* argv[]) {
         } else {
           // run the function check_reduction(filename, reduction), store its
           // output in pycheck
-          boost::python::object pycheck =
+          const auto pycheck =
               pymod.attr("check_reduction")(file, reduction.str());
 
           if (!boost::python::extract<bool>(pycheck)())

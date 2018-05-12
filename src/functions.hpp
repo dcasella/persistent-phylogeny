@@ -221,9 +221,10 @@ std::list<HDVertex> safe_source_test2(const std::list<HDVertex>& sources,
          \e hasse
 
   Test 3:
+  All sources species must be incident on active characters.
   A source s is safe for GRB if there exists a species s' in GRB|CM∪A that
-  consists of C(s) + other active characters, and the realization of C(s') in
-  GRB does not induce red Σ-graphs in GRB.
+  consists of C(s) + minimum number of active characters, and the realization
+  of C(s') in GRB does not induce red Σ-graphs in GRB.
 
   @param[in] sources List of source vertices
   @param[in] hasse   Hasse diagram graph
